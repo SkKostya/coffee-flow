@@ -1,0 +1,422 @@
+---
+description: Создание или редактирование компонентов
+alwaysApply: false
+---
+
+# Coffee Flow Component Rules
+
+## Правила для React компонентов
+
+### Основные принципы
+
+- Все компоненты должны следовать принципам функционального программирования
+- Используйте TypeScript для типизации пропсов и состояния
+- Компоненты должны быть переиспользуемыми и настраиваемыми через пропсы
+- Следуйте принципу единственной ответственности
+
+### Структура компонента
+
+#### 1. Стандартная структура
+
+```typescript
+import React from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import type { ComponentProps } from '../../types';
+
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+}
+
+const Button: React.FC<ButtonProps> = ({
+  title,
+  onPress,
+  variant = 'primary',
+  disabled = false,
+}) => {
+  // Логика компонента
+
+  return (
+    <TouchableOpacity
+      style={[styles.button, styles[variant], disabled && styles.disabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text style={styles.text}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
+export default Button;
+```
+
+#### 2. Импорты
+
+- Импортируйте React в начале файла
+- Группируйте импорты: React, React Native, сторонние библиотеки, локальные
+- Используйте type imports для типов
+
+```typescript
+// ✅ ПРАВИЛЬНО - группировка импортов
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+import type { ButtonProps } from '../../types';
+import { useColors } from '../../shared/hooks/useColors';
+import Colors from '../../shared/constants/Colors';
+
+// ❌ НЕПРАВИЛЬНО - хаотичные импорты
+import { useColors } from '../../shared/hooks/useColors';
+import React from 'react';
+import { View } from 'react-native';
+```
+
+### Типизация компонентов
+
+#### 1. Интерфейсы пропсов
+
+- Создавайте интерфейсы для всех пропсов компонента
+- Используйте описательные имена для интерфейсов
+- Делайте необязательные пропсы с помощью `?`
+- Устанавливайте значения по умолчанию для необязательных пропсов
+
+```typescript
+// ✅ ПРАВИЛЬНО - четкая типизация
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  error?: string;
+  disabled?: boolean;
+}
+
+// ❌ НЕПРАВИЛЬНО - слабая типизация
+interface InputFieldProps {
+  label: any;
+  value: any;
+  onChangeText: any;
+}
+```
+
+#### 2. Типизация событий
+
+- Используйте правильные типы для событий
+- Типизируйте callback функции
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные события
+interface FormProps {
+  onSubmit: (data: FormData) => void;
+  onCancel: () => void;
+  onChange: (field: keyof FormData, value: string) => void;
+}
+
+// ❌ НЕПРАВИЛЬНО - слабая типизация событий
+interface FormProps {
+  onSubmit: any;
+  onCancel: any;
+  onChange: any;
+}
+```
+
+### Стилизация компонентов
+
+#### 1. Использование цветовой системы
+
+- ВСЕГДА используйте цвета из палитры Colors.ts
+- Используйте хук `useColors()` для темизируемых компонентов
+- Не используйте хардкодные цвета
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование цветовой системы
+const Button: React.FC<ButtonProps> = ({ variant = 'primary' }) => {
+  const colors = useColors();
+
+  const buttonStyle = {
+    backgroundColor:
+      variant === 'primary' ? colors.primary.main : colors.secondary.main,
+    borderColor: colors.borders.primary,
+  };
+
+  return (
+    <TouchableOpacity style={[styles.button, buttonStyle]}>
+      {/* содержимое */}
+    </TouchableOpacity>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - хардкодные цвета
+const buttonStyle = {
+  backgroundColor: '#E08D3C',
+  borderColor: '#333',
+};
+```
+
+#### 2. Стили
+
+- Используйте StyleSheet для создания стилей
+- Группируйте связанные стили
+- Используйте семантические имена для стилей
+
+```typescript
+// ✅ ПРАВИЛЬНО - организованные стили
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.neutral[900],
+  },
+});
+
+// ❌ НЕПРАВИЛЬНО - инлайн стили
+<View style={{ flex: 1, padding: 16, flexDirection: 'row' }}>
+```
+
+### Логика компонентов
+
+#### 1. Хуки
+
+- Используйте хуки для управления состоянием и побочными эффектами
+- Создавайте кастомные хуки для сложной логики
+- Разделяйте логику и представление
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование хуков
+const FormComponent: React.FC<FormProps> = ({ onSubmit }) => {
+  const [formData, setFormData] = useState<FormData>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const handleSubmit = useCallback(() => {
+    if (validateForm(formData)) {
+      onSubmit(formData);
+    }
+  }, [formData, onSubmit]);
+
+  return <View>{/* форма */}</View>;
+};
+
+// ❌ НЕПРАВИЛЬНО - смешивание логики и представления
+const FormComponent: React.FC<FormProps> = ({ onSubmit }) => {
+  // вся логика в компоненте
+};
+```
+
+#### 2. Обработка событий
+
+- Создавайте отдельные функции для обработки событий
+- Используйте useCallback для оптимизации
+- Обрабатывайте ошибки и edge cases
+
+```typescript
+// ✅ ПРАВИЛЬНО - обработка событий
+const handlePress = useCallback(() => {
+  try {
+    onPress();
+  } catch (error) {
+    console.error('Button press error:', error);
+    // обработка ошибки
+  }
+}, [onPress]);
+
+// ❌ НЕПРАВИЛЬНО - прямая передача
+<TouchableOpacity onPress={onPress}>
+```
+
+### Переиспользование компонентов
+
+#### 1. Пропсы для настройки
+
+- Используйте пропсы для настройки поведения компонента
+- Предоставляйте разумные значения по умолчанию
+- Используйте variant пропсы для разных стилей
+
+```typescript
+// ✅ ПРАВИЛЬНО - настраиваемый компонент
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
+  loading?: boolean;
+}
+
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'medium',
+  disabled = false,
+  loading = false,
+  ...props
+}) => {
+  // логика компонента
+};
+
+// ❌ НЕПРАВИЛЬНО - жестко закодированное поведение
+const Button: React.FC<ButtonProps> = () => {
+  // фиксированное поведение
+};
+```
+
+#### 2. Композиция
+
+- Используйте children для композиции компонентов
+- Создавайте компоненты-контейнеры для сложных макетов
+
+```typescript
+// ✅ ПРАВИЛЬНО - композиция через children
+const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <View style={styles.card}>{children}</View>
+);
+
+// Использование
+<Card>
+  <Text>Заголовок</Text>
+  <Text>Описание</Text>
+</Card>;
+
+// ❌ НЕПРАВИЛЬНО - жестко закодированное содержимое
+const Card: React.FC = () => (
+  <View style={styles.card}>
+    <Text>Заголовок</Text>
+    <Text>Описание</Text>
+  </View>
+);
+```
+
+### Производительность
+
+#### 1. Мемоизация
+
+- Используйте React.memo для компонентов, которые часто перерендериваются
+- Используйте useMemo для дорогих вычислений
+- Используйте useCallback для функций, передаваемых как пропсы
+
+```typescript
+// ✅ ПРАВИЛЬНО - мемоизация
+const ExpensiveComponent = React.memo<ComponentProps>(({ data, onPress }) => {
+  const processedData = useMemo(() => {
+    return processData(data);
+  }, [data]);
+
+  const handlePress = useCallback(() => {
+    onPress(processedData);
+  }, [onPress, processedData]);
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      {/* содержимое */}
+    </TouchableOpacity>
+  );
+});
+
+// ❌ НЕПРАВИЛЬНО - без мемоизации
+const ExpensiveComponent = ({ data, onPress }) => {
+  const processedData = processData(data); // пересчитывается при каждом рендере
+
+  return (
+    <TouchableOpacity onPress={() => onPress(processedData)}>
+      {/* содержимое */}
+    </TouchableOpacity>
+  );
+};
+```
+
+#### 2. Оптимизация рендеринга
+
+- Избегайте создания объектов и функций в render
+- Используйте useRef для значений, которые не должны вызывать ререндер
+- Разделяйте тяжелые компоненты на более мелкие
+
+### Доступность
+
+#### 1. Accessibility
+
+- Добавляйте accessibilityLabel для интерактивных элементов
+- Используйте accessibilityHint для дополнительной информации
+- Обеспечивайте навигацию с помощью клавиатуры
+
+```typescript
+// ✅ ПРАВИЛЬНО - доступность
+<TouchableOpacity
+  accessibilityLabel="Кнопка входа в систему"
+  accessibilityHint="Нажмите для входа в систему"
+  accessibilityRole="button"
+  onPress={handlePress}
+>
+  <Text>Войти</Text>
+</TouchableOpacity>
+
+// ❌ НЕПРАВИЛЬНО - без доступности
+<TouchableOpacity onPress={handlePress}>
+  <Text>Войти</Text>
+</TouchableOpacity>
+```
+
+#### 2. Контрастность
+
+- Используйте цвета с достаточным контрастом
+- Не полагайтесь только на цвет для передачи информации
+- Тестируйте компоненты с различными темами
+
+### Тестирование
+
+#### 1. Структура тестов
+
+- Создавайте тесты для каждого компонента
+- Тестируйте различные состояния и пропсы
+- Используйте моки для внешних зависимостей
+
+#### 2. Пример теста
+
+```typescript
+import { render, fireEvent } from '@testing-library/react-native';
+import Button from './Button';
+
+describe('Button', () => {
+  it('renders with correct title', () => {
+    const { getByText } = render(
+      <Button title="Test Button" onPress={jest.fn()} />
+    );
+
+    expect(getByText('Test Button')).toBeTruthy();
+  });
+
+  it('calls onPress when pressed', () => {
+    const onPress = jest.fn();
+    const { getByText } = render(
+      <Button title="Test Button" onPress={onPress} />
+    );
+
+    fireEvent.press(getByText('Test Button'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+### Запрещено
+
+- ❌ Создавать компоненты без TypeScript типизации
+- ❌ Использовать хардкодные цвета вместо цветовой системы
+- ❌ Смешивать логику и представление в одном компоненте
+- ❌ Создавать компоненты без обработки ошибок
+- ❌ Игнорировать доступность и контрастность
+
+### Рекомендуется
+
+- ✅ Использовать функциональные компоненты с хуками
+- ✅ Следовать принципу единственной ответственности
+- ✅ Создавать переиспользуемые и настраиваемые компоненты
+- ✅ Использовать мемоизацию для оптимизации
+- ✅ Тестировать все компоненты
+- ✅ Обеспечивать доступность

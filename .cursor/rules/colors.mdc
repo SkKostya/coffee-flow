@@ -1,0 +1,300 @@
+---
+description: Стилизация или определение цветов объектов на проекте
+alwaysApply: false
+---
+
+# Coffee Flow Color System Rules
+
+## Цветовая система Coffee Flow
+
+### Основные принципы
+
+- ВСЕГДА используйте цвета из палитры Colors.ts вместо хардкодных значений
+- Используйте хук `useColors()` для компонентов, которые должны поддерживать темы
+- Обеспечивайте достаточный контраст между текстом и фоном
+
+### Импорты и использование
+
+```typescript
+// ✅ ПРАВИЛЬНО - используйте импорт Colors
+import Colors from '../constants/Colors';
+const primaryColor = Colors.primary[500];
+
+// ✅ ПРАВИЛЬНО - используйте хук useColors для темизации
+import useColors from '../hooks/useColors';
+const colors = useColors();
+const backgroundColor = colors.background;
+
+// ❌ НЕПРАВИЛЬНО - хардкодные цвета
+const wrongColor = '#E08D3C';
+const wrongColor2 = 'orange';
+```
+
+### Цветовые палитры
+
+#### Primary Colors (Оранжевые/коричневые тона)
+
+- **500** - Основной цвет для кнопок, ссылок и акцентов
+- **300** - Hover состояния и вторичные элементы
+- **700** - Активные состояния и выделение
+- **50-200** - Светлые фоны и границы
+- **800-900** - Темные фоны
+
+#### Secondary Colors (Синие тона)
+
+- **500** - Вторичные кнопки и информационные элементы
+- **300** - Фоны и границы
+- **50-200** - Светлые акценты
+- **700-900** - Темные акценты
+
+#### Success/Error Colors
+
+- **Success 500** - Успешные операции и подтверждения
+- **Error 500** - Ошибки и предупреждения
+- **Warning** - Используйте Primary 500
+
+#### Neutral Colors (Серые тона)
+
+- **50-200** - Светлые фоны и границы
+- **300-500** - Текст и иконки
+- **600-900** - Темные фоны и основной текст
+
+### Утилитарные функции
+
+```typescript
+// ✅ Используйте утилитарные функции для сложных случаев
+import { getColor, getColorWithOpacity } from '../constants/Colors';
+
+const color = getColor('primary', 500);
+const transparentColor = getColorWithOpacity('#E08D3C', 0.5);
+```
+
+### Примеры компонентов
+
+#### Кнопки
+
+```typescript
+const PrimaryButton = ({ title, onPress }) => {
+  const colors = useColors();
+
+  return (
+    <TouchableOpacity
+      style={{
+        backgroundColor: colors.primary.main,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 8,
+      }}
+      onPress={onPress}
+    >
+      <Text style={{ color: colors.primary.contrast, fontWeight: '600' }}>
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+```
+
+#### Карточки
+
+```typescript
+const Card = ({ children }) => {
+  const colors = useColors();
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.backgrounds.elevated,
+        borderRadius: 12,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: colors.borders.primary,
+        shadowColor: colors.shadows.medium,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+```
+
+### Доступность
+
+- Всегда проверяйте контрастность между текстом и фоном
+- Используйте цвета 500+ для основного текста на светлых фонах
+- Используйте цвета 50-300 для текста на темных фонах
+- Не полагайтесь только на цвет для передачи информации
+
+### Миграция существующего кода
+
+1. Замените все хардкодные цвета на соответствующие из палитры
+2. Используйте хук `useColors` для компонентов с темами
+3. Обновите стили для использования новых цветов
+4. Протестируйте контрастность и доступность
+
+### Запрещено
+
+- ❌ Хардкодные hex-коды цветов
+- ❌ CSS названия цветов (red, blue, green)
+- ❌ Прямые ссылки на цвета без импорта Colors
+- ❌ Использование цветов без учета темы
+
+### Рекомендуется
+
+- ✅ Импорт Colors из constants/Colors
+- ✅ Хук useColors для темизируемых компонентов
+- ✅ Использование семантических названий цветов
+- ✅ Тестирование контрастности
+- ✅ Документирование нестандартного использования цветов
+
+# Coffee Flow Color System Rules
+
+## Цветовая система Coffee Flow
+
+### Основные принципы
+
+- ВСЕГДА используйте цвета из палитры Colors.ts вместо хардкодных значений
+- Используйте хук `useColors()` для компонентов, которые должны поддерживать темы
+- Обеспечивайте достаточный контраст между текстом и фоном
+
+### Импорты и использование
+
+```typescript
+// ✅ ПРАВИЛЬНО - используйте импорт Colors
+import Colors from '../constants/Colors';
+const primaryColor = Colors.primary[500];
+
+// ✅ ПРАВИЛЬНО - используйте хук useColors для темизации
+import useColors from '../hooks/useColors';
+const colors = useColors();
+const backgroundColor = colors.background;
+
+// ❌ НЕПРАВИЛЬНО - хардкодные цвета
+const wrongColor = '#E08D3C';
+const wrongColor2 = 'orange';
+```
+
+### Цветовые палитры
+
+#### Primary Colors (Оранжевые/коричневые тона)
+
+- **500** - Основной цвет для кнопок, ссылок и акцентов
+- **300** - Hover состояния и вторичные элементы
+- **700** - Активные состояния и выделение
+- **50-200** - Светлые фоны и границы
+- **800-900** - Темные фоны
+
+#### Secondary Colors (Синие тона)
+
+- **500** - Вторичные кнопки и информационные элементы
+- **300** - Фоны и границы
+- **50-200** - Светлые акценты
+- **700-900** - Темные акценты
+
+#### Success/Error Colors
+
+- **Success 500** - Успешные операции и подтверждения
+- **Error 500** - Ошибки и предупреждения
+- **Warning** - Используйте Primary 500
+
+#### Neutral Colors (Серые тона)
+
+- **50-200** - Светлые фоны и границы
+- **300-500** - Текст и иконки
+- **600-900** - Темные фоны и основной текст
+
+### Утилитарные функции
+
+```typescript
+// ✅ Используйте утилитарные функции для сложных случаев
+import { getColor, getColorWithOpacity } from '../constants/Colors';
+
+const color = getColor('primary', 500);
+const transparentColor = getColorWithOpacity('#E08D3C', 0.5);
+```
+
+### Примеры компонентов
+
+#### Кнопки
+
+```typescript
+const PrimaryButton = ({ title, onPress }) => {
+  const colors = useColors();
+
+  return (
+    <TouchableOpacity
+      style={{
+        backgroundColor: colors.primary.main,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 8,
+      }}
+      onPress={onPress}
+    >
+      <Text style={{ color: colors.primary.contrast, fontWeight: '600' }}>
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+```
+
+#### Карточки
+
+```typescript
+const Card = ({ children }) => {
+  const colors = useColors();
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.backgrounds.elevated,
+        borderRadius: 12,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: colors.borders.primary,
+        shadowColor: colors.shadows.medium,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+```
+
+### Доступность
+
+- Всегда проверяйте контрастность между текстом и фоном
+- Используйте цвета 500+ для основного текста на светлых фонах
+- Используйте цвета 50-300 для текста на темных фонах
+- Не полагайтесь только на цвет для передачи информации
+
+### Миграция существующего кода
+
+1. Замените все хардкодные цвета на соответствующие из палитры
+2. Используйте хук `useColors` для компонентов с темами
+3. Обновите стили для использования новых цветов
+4. Протестируйте контрастность и доступность
+
+### Запрещено
+
+- ❌ Хардкодные hex-коды цветов
+- ❌ CSS названия цветов (red, blue, green)
+- ❌ Прямые ссылки на цвета без импорта Colors
+- ❌ Использование цветов без учета темы
+
+### Рекомендуется
+
+- ✅ Импорт Colors из constants/Colors
+- ✅ Хук useColors для темизируемых компонентов
+- ✅ Использование семантических названий цветов
+- ✅ Тестирование контрастности
+- ✅ Документирование нестандартного использования цветов

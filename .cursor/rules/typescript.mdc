@@ -1,0 +1,1184 @@
+---
+description: Создание или редактирование типов или интерфейсов typescript
+alwaysApply: false
+---
+
+# Coffee Flow TypeScript Rules
+
+## Правила для TypeScript
+
+### Основные принципы
+
+- Используйте строгую типизацию для всех сущностей
+- Избегайте использования `any` типа
+- Создавайте переиспользуемые типы и интерфейсы
+- Используйте union types и discriminated unions для сложных состояний
+
+### Типизация данных
+
+#### 1. Интерфейсы vs Type Aliases
+
+- Используйте интерфейсы для объектов и классов
+- Используйте type aliases для union types, intersections и utility types
+- Расширяйте интерфейсы через extends
+
+```typescript
+// ✅ ПРАВИЛЬНО - интерфейсы для объектов
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+}
+
+interface AdminUser extends User {
+  role: 'admin';
+  permissions: string[];
+}
+
+// ✅ ПРАВИЛЬНО - type aliases для union types
+type UserRole = 'user' | 'admin' | 'moderator';
+type UserStatus = 'active' | 'inactive' | 'pending';
+
+// ❌ НЕПРАВИЛЬНО - смешивание подходов
+type User = {
+  id: string;
+  name: string;
+};
+```
+
+#### 2. Строгая типизация
+
+- Избегайте `any` типа
+- Используйте `unknown` для неизвестных типов
+- Типизируйте все параметры функций
+
+```typescript
+// ✅ ПРАВИЛЬНО - строгая типизация
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+const fetchUser = async (id: string): Promise<ApiResponse<User>> => {
+  const response = await api.get(`/users/${id}`);
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - слабая типизация
+const fetchUser = async (id: any): Promise<any> => {
+  const response = await api.get(`/users/${id}`);
+  return response.data;
+};
+```
+
+### Типизация функций
+
+#### 1. Параметры функций
+
+- Типизируйте все параметры функций
+- Используйте rest parameters для переменного количества аргументов
+- Делайте необязательные параметры с помощью `?`
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные параметры
+interface FormValidationParams {
+  values: Record<string, unknown>;
+  rules: ValidationRule[];
+  onError?: (errors: ValidationError[]) => void;
+}
+
+const validateForm = ({
+  values,
+  rules,
+  onError,
+}: FormValidationParams): ValidationResult => {
+  // логика валидации
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные параметры
+const validateForm = (values, rules, onError) => {
+  // логика валидации
+};
+```
+
+#### 2. Возвращаемые значения
+
+- Типизируйте возвращаемые значения функций
+- Используйте union types для функций, которые могут вернуть разные типы
+- Используйте void для функций без возвращаемого значения
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные возвращаемые значения
+const parsePhoneNumber = (phone: string): string | null => {
+  if (!phone) return null;
+
+  const cleaned = phone.replace(/\D/g, '');
+  return cleaned.length === 11 ? cleaned : null;
+};
+
+const handleSubmit = async (data: FormData): Promise<void> => {
+  await api.submit(data);
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные возвращаемые значения
+const parsePhoneNumber = (phone: string) => {
+  if (!phone) return null;
+  return phone.replace(/\D/g, '');
+};
+```
+
+#### 3. Callback функции
+
+- Типизируйте callback функции как параметры
+- Используйте generic типы для гибкости
+- Типизируйте события и их обработчики
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные callback функции
+interface FormHandlers<T> {
+  onChange: (field: keyof T, value: T[keyof T]) => void;
+  onSubmit: (data: T) => Promise<void>;
+  onError: (error: ValidationError) => void;
+}
+
+const useForm = <T>(handlers: FormHandlers<T>) => {
+  // логика хука
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные callback функции
+const useForm = (handlers) => {
+  // логика хука
+};
+```
+
+### Generic типы
+
+#### 1. Использование generics
+
+- Используйте generic типы для переиспользуемых компонентов и функций
+- Ограничивайте generic типы с помощью extends
+- Используйте descriptive имена для generic параметров
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование generics
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+const fetchData = async <T>(url: string): Promise<ApiResponse<T>> => {
+  const response = await api.get(url);
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - без generics
+interface ApiResponse {
+  data: any;
+  status: number;
+  message: string;
+}
+```
+
+#### 2. Generic constraints
+
+- Используйте extends для ограничения generic типов
+- Обеспечивайте минимальный набор свойств для generic типов
+
+```typescript
+// ✅ ПРАВИЛЬНО - generic constraints
+interface WithId {
+  id: string;
+}
+
+interface WithTimestamps {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const updateEntity = async <T extends WithId & WithTimestamps>(
+  entity: T,
+  updates: Partial<T>
+): Promise<T> => {
+  // логика обновления
+};
+
+// ❌ НЕПРАВИЛЬНО - без constraints
+const updateEntity = async <T>(entity: T, updates: Partial<T>): Promise<T> => {
+  // может не работать, если T не имеет нужных свойств
+};
+```
+
+### Union Types и Discriminated Unions
+
+#### 1. Union Types
+
+- Используйте union types для значений, которые могут быть разных типов
+- Используйте literal types для конкретных значений
+
+```typescript
+// ✅ ПРАВИЛЬНО - union types
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonSize = 'small' | 'medium' | 'large';
+
+interface ButtonProps {
+  variant: ButtonVariant;
+  size: ButtonSize;
+  disabled?: boolean;
+}
+
+// ❌ НЕПРАВИЛЬНО - string вместо union types
+interface ButtonProps {
+  variant: string;
+  size: string;
+  disabled?: boolean;
+}
+```
+
+#### 2. Discriminated Unions
+
+- Используйте discriminated unions для сложных состояний
+- Добавляйте discriminant property для различения типов
+
+```typescript
+// ✅ ПРАВИЛЬНО - discriminated unions
+interface LoadingState {
+  status: 'loading';
+  progress?: number;
+}
+
+interface SuccessState<T> {
+  status: 'success';
+  data: T;
+}
+
+interface ErrorState {
+  status: 'error';
+  error: string;
+  code?: number;
+}
+
+type AsyncState<T> = LoadingState | SuccessState<T> | ErrorState;
+
+// Использование
+const renderContent = (state: AsyncState<User>) => {
+  switch (state.status) {
+    case 'loading':
+      return <LoadingSpinner progress={state.progress} />;
+    case 'success':
+      return <UserProfile user={state.data} />;
+    case 'error':
+      return <ErrorMessage error={state.error} code={state.code} />;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - без discriminated unions
+type AsyncState = {
+  loading: boolean;
+  data?: any;
+  error?: string;
+};
+```
+
+### Utility Types
+
+#### 1. Встроенные utility types
+
+- Используйте встроенные utility types TypeScript
+- Создавайте собственные utility types для повторяющихся паттернов
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование utility types
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+}
+
+type UserUpdate = Partial<User>;
+type UserRequired = Required<User>;
+type UserKeys = keyof User;
+type UserValues = User[UserKeys];
+
+// Собственный utility type
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+// ❌ НЕПРАВИЛЬНО - дублирование типов
+interface UserUpdate {
+  id?: string;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+```
+
+#### 2. Mapped Types
+
+- Используйте mapped types для создания новых типов на основе существующих
+- Создавайте conditional types для сложной логики
+
+```typescript
+// ✅ ПРАВИЛЬНО - mapped types
+type ValidationRules<T> = {
+  [K in keyof T]?: {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+  };
+};
+
+type FormErrors<T> = {
+  [K in keyof T]?: string;
+};
+
+// Conditional types
+type NonNullableFields<T> = {
+  [K in keyof T]: NonNullable<T[K]>;
+};
+
+// ❌ НЕПРАВИЛЬНО - ручное создание типов
+type ValidationRules = {
+  name?: { required?: boolean; minLength?: number };
+  email?: { required?: boolean; pattern?: RegExp };
+  // дублирование для каждого поля
+};
+```
+
+### Типизация API и сервисов
+
+#### 1. API типы
+
+- Создавайте типы для всех API endpoints
+- Используйте generic типы для переиспользуемых API структур
+- Типизируйте ошибки и успешные ответы
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные API
+interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+  meta?: {
+    timestamp: string;
+    version: string;
+  };
+}
+
+interface PaginationParams {
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+const fetchUsers = async (
+  params: PaginationParams
+): Promise<ApiResponse<User[]>> => {
+  const response = await api.get('/users', { params });
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные API
+const fetchUsers = async (params) => {
+  const response = await api.get('/users', { params });
+  return response.data;
+};
+```
+
+#### 2. Сервисные типы
+
+- Создавайте интерфейсы для сервисов
+- Используйте dependency injection для тестирования
+- Типизируйте все методы сервисов
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные сервисы
+interface AuthService {
+  login(credentials: LoginCredentials): Promise<AuthResponse>;
+  register(userData: RegisterData): Promise<AuthResponse>;
+  logout(): Promise<void>;
+  refreshToken(): Promise<string>;
+  getCurrentUser(): Promise<User | null>;
+}
+
+class AuthServiceImpl implements AuthService {
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    // реализация
+  }
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    // реализация
+  }
+
+  // ... остальные методы
+}
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные сервисы
+class AuthService {
+  async login(credentials) {
+    // реализация
+  }
+}
+```
+
+### Типизация компонентов
+
+#### 1. Props типы
+
+- Создавайте интерфейсы для всех props компонентов
+- Используйте generic типы для переиспользуемых компонентов
+- Типизируйте children и event handlers
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные props
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
+  loading?: boolean;
+  children?: React.ReactNode;
+}
+
+const Button: React.FC<ButtonProps> = ({
+  title,
+  onPress,
+  variant = 'primary',
+  size = 'medium',
+  disabled = false,
+  loading = false,
+  children,
+}) => {
+  // реализация компонента
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные props
+const Button = ({
+  title,
+  onPress,
+  variant,
+  size,
+  disabled,
+  loading,
+  children,
+}) => {
+  // реализация компонента
+};
+```
+
+#### 2. Event типы
+
+- Используйте правильные типы для событий React Native
+- Типизируйте custom события
+- Используйте generic типы для event handlers
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные события
+interface FormEvents<T> {
+  onChange: (field: keyof T, value: T[keyof T]) => void;
+  onSubmit: (data: T) => void;
+  onReset: () => void;
+  onValidationError: (errors: ValidationErrors<T>) => void;
+}
+
+interface TextInputProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onSubmitEditing?: () => void;
+}
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные события
+interface TextInputProps {
+  value: string;
+  onChangeText: any;
+  onFocus?: any;
+  onBlur?: any;
+}
+```
+
+### Обработка ошибок
+
+#### 1. Error типы
+
+- Создавайте custom error типы для разных типов ошибок
+- Используйте discriminated unions для error states
+- Типизируйте error boundaries
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные ошибки
+interface ValidationError {
+  type: 'validation';
+  field: string;
+  message: string;
+  code: string;
+}
+
+interface NetworkError {
+  type: 'network';
+  status: number;
+  message: string;
+  retryable: boolean;
+}
+
+interface AuthError {
+  type: 'auth';
+  code: 'unauthorized' | 'forbidden' | 'expired';
+  message: string;
+}
+
+type AppError = ValidationError | NetworkError | AuthError;
+
+const handleError = (error: AppError) => {
+  switch (error.type) {
+    case 'validation':
+      showValidationError(error.field, error.message);
+      break;
+    case 'network':
+      if (error.retryable) {
+        showRetryDialog();
+      } else {
+        showErrorMessage(error.message);
+      }
+      break;
+    case 'auth':
+      handleAuthError(error.code);
+      break;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные ошибки
+const handleError = (error: any) => {
+  // обработка без типизации
+};
+```
+
+### Запрещено
+
+- ❌ Использовать `any` тип
+- ❌ Создавать нетипизированные функции и компоненты
+- ❌ Игнорировать TypeScript ошибки
+- ❌ Использовать `// @ts-ignore` без веской причины
+- ❌ Создавать слабо типизированные API
+
+### Рекомендуется
+
+- ✅ Использовать строгую типизацию для всех сущностей
+- ✅ Создавать переиспользуемые типы и интерфейсы
+- ✅ Использовать generic типы для гибкости
+- ✅ Применять utility types для упрощения кода
+- ✅ Создавать discriminated unions для сложных состояний
+- ✅ Типизировать все API endpoints и сервисы
+- ✅ Использовать conditional types для сложной логики
+
+# Coffee Flow TypeScript Rules
+
+## Правила для TypeScript
+
+### Основные принципы
+
+- Используйте строгую типизацию для всех сущностей
+- Избегайте использования `any` типа
+- Создавайте переиспользуемые типы и интерфейсы
+- Используйте union types и discriminated unions для сложных состояний
+
+### Типизация данных
+
+#### 1. Интерфейсы vs Type Aliases
+
+- Используйте интерфейсы для объектов и классов
+- Используйте type aliases для union types, intersections и utility types
+- Расширяйте интерфейсы через extends
+
+```typescript
+// ✅ ПРАВИЛЬНО - интерфейсы для объектов
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+}
+
+interface AdminUser extends User {
+  role: 'admin';
+  permissions: string[];
+}
+
+// ✅ ПРАВИЛЬНО - type aliases для union types
+type UserRole = 'user' | 'admin' | 'moderator';
+type UserStatus = 'active' | 'inactive' | 'pending';
+
+// ❌ НЕПРАВИЛЬНО - смешивание подходов
+type User = {
+  id: string;
+  name: string;
+};
+```
+
+#### 2. Строгая типизация
+
+- Избегайте `any` типа
+- Используйте `unknown` для неизвестных типов
+- Типизируйте все параметры функций
+
+```typescript
+// ✅ ПРАВИЛЬНО - строгая типизация
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+const fetchUser = async (id: string): Promise<ApiResponse<User>> => {
+  const response = await api.get(`/users/${id}`);
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - слабая типизация
+const fetchUser = async (id: any): Promise<any> => {
+  const response = await api.get(`/users/${id}`);
+  return response.data;
+};
+```
+
+### Типизация функций
+
+#### 1. Параметры функций
+
+- Типизируйте все параметры функций
+- Используйте rest parameters для переменного количества аргументов
+- Делайте необязательные параметры с помощью `?`
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные параметры
+interface FormValidationParams {
+  values: Record<string, unknown>;
+  rules: ValidationRule[];
+  onError?: (errors: ValidationError[]) => void;
+}
+
+const validateForm = ({
+  values,
+  rules,
+  onError,
+}: FormValidationParams): ValidationResult => {
+  // логика валидации
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные параметры
+const validateForm = (values, rules, onError) => {
+  // логика валидации
+};
+```
+
+#### 2. Возвращаемые значения
+
+- Типизируйте возвращаемые значения функций
+- Используйте union types для функций, которые могут вернуть разные типы
+- Используйте void для функций без возвращаемого значения
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные возвращаемые значения
+const parsePhoneNumber = (phone: string): string | null => {
+  if (!phone) return null;
+
+  const cleaned = phone.replace(/\D/g, '');
+  return cleaned.length === 11 ? cleaned : null;
+};
+
+const handleSubmit = async (data: FormData): Promise<void> => {
+  await api.submit(data);
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные возвращаемые значения
+const parsePhoneNumber = (phone: string) => {
+  if (!phone) return null;
+  return phone.replace(/\D/g, '');
+};
+```
+
+#### 3. Callback функции
+
+- Типизируйте callback функции как параметры
+- Используйте generic типы для гибкости
+- Типизируйте события и их обработчики
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные callback функции
+interface FormHandlers<T> {
+  onChange: (field: keyof T, value: T[keyof T]) => void;
+  onSubmit: (data: T) => Promise<void>;
+  onError: (error: ValidationError) => void;
+}
+
+const useForm = <T>(handlers: FormHandlers<T>) => {
+  // логика хука
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные callback функции
+const useForm = (handlers) => {
+  // логика хука
+};
+```
+
+### Generic типы
+
+#### 1. Использование generics
+
+- Используйте generic типы для переиспользуемых компонентов и функций
+- Ограничивайте generic типы с помощью extends
+- Используйте descriptive имена для generic параметров
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование generics
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+const fetchData = async <T>(url: string): Promise<ApiResponse<T>> => {
+  const response = await api.get(url);
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - без generics
+interface ApiResponse {
+  data: any;
+  status: number;
+  message: string;
+}
+```
+
+#### 2. Generic constraints
+
+- Используйте extends для ограничения generic типов
+- Обеспечивайте минимальный набор свойств для generic типов
+
+```typescript
+// ✅ ПРАВИЛЬНО - generic constraints
+interface WithId {
+  id: string;
+}
+
+interface WithTimestamps {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const updateEntity = async <T extends WithId & WithTimestamps>(
+  entity: T,
+  updates: Partial<T>
+): Promise<T> => {
+  // логика обновления
+};
+
+// ❌ НЕПРАВИЛЬНО - без constraints
+const updateEntity = async <T>(entity: T, updates: Partial<T>): Promise<T> => {
+  // может не работать, если T не имеет нужных свойств
+};
+```
+
+### Union Types и Discriminated Unions
+
+#### 1. Union Types
+
+- Используйте union types для значений, которые могут быть разных типов
+- Используйте literal types для конкретных значений
+
+```typescript
+// ✅ ПРАВИЛЬНО - union types
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonSize = 'small' | 'medium' | 'large';
+
+interface ButtonProps {
+  variant: ButtonVariant;
+  size: ButtonSize;
+  disabled?: boolean;
+}
+
+// ❌ НЕПРАВИЛЬНО - string вместо union types
+interface ButtonProps {
+  variant: string;
+  size: string;
+  disabled?: boolean;
+}
+```
+
+#### 2. Discriminated Unions
+
+- Используйте discriminated unions для сложных состояний
+- Добавляйте discriminant property для различения типов
+
+```typescript
+// ✅ ПРАВИЛЬНО - discriminated unions
+interface LoadingState {
+  status: 'loading';
+  progress?: number;
+}
+
+interface SuccessState<T> {
+  status: 'success';
+  data: T;
+}
+
+interface ErrorState {
+  status: 'error';
+  error: string;
+  code?: number;
+}
+
+type AsyncState<T> = LoadingState | SuccessState<T> | ErrorState;
+
+// Использование
+const renderContent = (state: AsyncState<User>) => {
+  switch (state.status) {
+    case 'loading':
+      return <LoadingSpinner progress={state.progress} />;
+    case 'success':
+      return <UserProfile user={state.data} />;
+    case 'error':
+      return <ErrorMessage error={state.error} code={state.code} />;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - без discriminated unions
+type AsyncState = {
+  loading: boolean;
+  data?: any;
+  error?: string;
+};
+```
+
+### Utility Types
+
+#### 1. Встроенные utility types
+
+- Используйте встроенные utility types TypeScript
+- Создавайте собственные utility types для повторяющихся паттернов
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование utility types
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+}
+
+type UserUpdate = Partial<User>;
+type UserRequired = Required<User>;
+type UserKeys = keyof User;
+type UserValues = User[UserKeys];
+
+// Собственный utility type
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+// ❌ НЕПРАВИЛЬНО - дублирование типов
+interface UserUpdate {
+  id?: string;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+```
+
+#### 2. Mapped Types
+
+- Используйте mapped types для создания новых типов на основе существующих
+- Создавайте conditional types для сложной логики
+
+```typescript
+// ✅ ПРАВИЛЬНО - mapped types
+type ValidationRules<T> = {
+  [K in keyof T]?: {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+  };
+};
+
+type FormErrors<T> = {
+  [K in keyof T]?: string;
+};
+
+// Conditional types
+type NonNullableFields<T> = {
+  [K in keyof T]: NonNullable<T[K]>;
+};
+
+// ❌ НЕПРАВИЛЬНО - ручное создание типов
+type ValidationRules = {
+  name?: { required?: boolean; minLength?: number };
+  email?: { required?: boolean; pattern?: RegExp };
+  // дублирование для каждого поля
+};
+```
+
+### Типизация API и сервисов
+
+#### 1. API типы
+
+- Создавайте типы для всех API endpoints
+- Используйте generic типы для переиспользуемых API структур
+- Типизируйте ошибки и успешные ответы
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные API
+interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+  meta?: {
+    timestamp: string;
+    version: string;
+  };
+}
+
+interface PaginationParams {
+  page: number;
+  limit: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+const fetchUsers = async (
+  params: PaginationParams
+): Promise<ApiResponse<User[]>> => {
+  const response = await api.get('/users', { params });
+  return response.data;
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные API
+const fetchUsers = async (params) => {
+  const response = await api.get('/users', { params });
+  return response.data;
+};
+```
+
+#### 2. Сервисные типы
+
+- Создавайте интерфейсы для сервисов
+- Используйте dependency injection для тестирования
+- Типизируйте все методы сервисов
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные сервисы
+interface AuthService {
+  login(credentials: LoginCredentials): Promise<AuthResponse>;
+  register(userData: RegisterData): Promise<AuthResponse>;
+  logout(): Promise<void>;
+  refreshToken(): Promise<string>;
+  getCurrentUser(): Promise<User | null>;
+}
+
+class AuthServiceImpl implements AuthService {
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    // реализация
+  }
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    // реализация
+  }
+
+  // ... остальные методы
+}
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные сервисы
+class AuthService {
+  async login(credentials) {
+    // реализация
+  }
+}
+```
+
+### Типизация компонентов
+
+#### 1. Props типы
+
+- Создавайте интерфейсы для всех props компонентов
+- Используйте generic типы для переиспользуемых компонентов
+- Типизируйте children и event handlers
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные props
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
+  loading?: boolean;
+  children?: React.ReactNode;
+}
+
+const Button: React.FC<ButtonProps> = ({
+  title,
+  onPress,
+  variant = 'primary',
+  size = 'medium',
+  disabled = false,
+  loading = false,
+  children,
+}) => {
+  // реализация компонента
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные props
+const Button = ({
+  title,
+  onPress,
+  variant,
+  size,
+  disabled,
+  loading,
+  children,
+}) => {
+  // реализация компонента
+};
+```
+
+#### 2. Event типы
+
+- Используйте правильные типы для событий React Native
+- Типизируйте custom события
+- Используйте generic типы для event handlers
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные события
+interface FormEvents<T> {
+  onChange: (field: keyof T, value: T[keyof T]) => void;
+  onSubmit: (data: T) => void;
+  onReset: () => void;
+  onValidationError: (errors: ValidationErrors<T>) => void;
+}
+
+interface TextInputProps {
+  value: string;
+  onChangeText: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onSubmitEditing?: () => void;
+}
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные события
+interface TextInputProps {
+  value: string;
+  onChangeText: any;
+  onFocus?: any;
+  onBlur?: any;
+}
+```
+
+### Обработка ошибок
+
+#### 1. Error типы
+
+- Создавайте custom error типы для разных типов ошибок
+- Используйте discriminated unions для error states
+- Типизируйте error boundaries
+
+```typescript
+// ✅ ПРАВИЛЬНО - типизированные ошибки
+interface ValidationError {
+  type: 'validation';
+  field: string;
+  message: string;
+  code: string;
+}
+
+interface NetworkError {
+  type: 'network';
+  status: number;
+  message: string;
+  retryable: boolean;
+}
+
+interface AuthError {
+  type: 'auth';
+  code: 'unauthorized' | 'forbidden' | 'expired';
+  message: string;
+}
+
+type AppError = ValidationError | NetworkError | AuthError;
+
+const handleError = (error: AppError) => {
+  switch (error.type) {
+    case 'validation':
+      showValidationError(error.field, error.message);
+      break;
+    case 'network':
+      if (error.retryable) {
+        showRetryDialog();
+      } else {
+        showErrorMessage(error.message);
+      }
+      break;
+    case 'auth':
+      handleAuthError(error.code);
+      break;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - нетипизированные ошибки
+const handleError = (error: any) => {
+  // обработка без типизации
+};
+```
+
+### Запрещено
+
+- ❌ Использовать `any` тип
+- ❌ Создавать нетипизированные функции и компоненты
+- ❌ Игнорировать TypeScript ошибки
+- ❌ Использовать `// @ts-ignore` без веской причины
+- ❌ Создавать слабо типизированные API
+
+### Рекомендуется
+
+- ✅ Использовать строгую типизацию для всех сущностей
+- ✅ Создавать переиспользуемые типы и интерфейсы
+- ✅ Использовать generic типы для гибкости
+- ✅ Применять utility types для упрощения кода
+- ✅ Создавать discriminated unions для сложных состояний
+- ✅ Типизировать все API endpoints и сервисы
+- ✅ Использовать conditional types для сложной логики

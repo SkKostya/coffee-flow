@@ -1,0 +1,1258 @@
+---
+description: Адаптивная, резиновая верстка
+alwaysApply: false
+---
+
+# Coffee Flow Responsive Design Rules
+
+## Правила для адаптивной верстки
+
+### Основные принципы
+
+- ВСЕ компоненты должны быть адаптивными для мобильных устройств и планшетов
+- Используйте responsive breakpoints для разных размеров экранов
+- Применяйте гибкие размеры и отступы
+- Обеспечивайте оптимальный UX на всех устройствах
+
+### Breakpoints и размеры экранов
+
+#### 1. Стандартные breakpoints
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование стандартных breakpoints
+export const Breakpoints = {
+  // Мобильные устройства (портретная ориентация)
+  mobile: {
+    min: 320,
+    max: 767,
+  },
+  // Планшеты (портретная и ландшафтная ориентация)
+  tablet: {
+    min: 768,
+    max: 1023,
+  },
+  // Большие планшеты и маленькие десктопы
+  largeTablet: {
+    min: 1024,
+    max: 1439,
+  },
+  // Десктопы
+  desktop: {
+    min: 1440,
+    max: Infinity,
+  },
+} as const;
+
+export type Breakpoint = keyof typeof Breakpoints;
+```
+
+#### 2. Хук для определения размера экрана
+
+```typescript
+// ✅ ПРАВИЛЬНО - хук для responsive дизайна
+import { useState, useEffect } from 'react';
+import { Dimensions } from 'react-native';
+
+interface UseResponsiveReturn {
+  isMobile: boolean;
+  isTablet: boolean;
+  isLargeTablet: boolean;
+  isDesktop: boolean;
+  currentBreakpoint: Breakpoint;
+  screenWidth: number;
+  screenHeight: number;
+}
+
+const useResponsive = (): UseResponsiveReturn => {
+  const [screenDimensions, setScreenDimensions] = useState({
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  });
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setScreenDimensions({
+        width: window.width,
+        height: window.height,
+      });
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const { width, height } = screenDimensions;
+
+  const isMobile =
+    width >= Breakpoints.mobile.min && width <= Breakpoints.mobile.max;
+  const isTablet =
+    width >= Breakpoints.tablet.min && width <= Breakpoints.tablet.max;
+  const isLargeTablet =
+    width >= Breakpoints.largeTablet.min &&
+    width <= Breakpoints.largeTablet.max;
+  const isDesktop = width >= Breakpoints.desktop.min;
+
+  const getCurrentBreakpoint = (): Breakpoint => {
+    if (isMobile) return 'mobile';
+    if (isTablet) return 'tablet';
+    if (isLargeTablet) return 'largeTablet';
+    return 'desktop';
+  };
+
+  return {
+    isMobile,
+    isTablet,
+    isLargeTablet,
+    isDesktop,
+    currentBreakpoint: getCurrentBreakpoint(),
+    screenWidth: width,
+    screenHeight: height,
+  };
+};
+
+export default useResponsive;
+```
+
+### Responsive стили
+
+#### 1. Адаптивные размеры
+
+- Используйте относительные единицы измерения
+- Применяйте разные размеры для разных breakpoints
+- Используйте flexbox для гибких макетов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивные стили
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+});
+
+// Responsive стили для разных breakpoints
+const getResponsiveStyles = (breakpoint: Breakpoint) => {
+  switch (breakpoint) {
+    case 'mobile':
+      return {
+        container: {
+          paddingHorizontal: 16,
+          paddingVertical: 20,
+        },
+        title: {
+          fontSize: 24,
+          marginBottom: 16,
+        },
+        subtitle: {
+          fontSize: 16,
+          marginBottom: 24,
+          paddingHorizontal: 20,
+        },
+      };
+    case 'tablet':
+      return {
+        container: {
+          paddingHorizontal: 32,
+          paddingVertical: 32,
+        },
+        title: {
+          fontSize: 32,
+          marginBottom: 24,
+        },
+        subtitle: {
+          fontSize: 20,
+          marginBottom: 32,
+          paddingHorizontal: 40,
+        },
+      };
+    case 'largeTablet':
+      return {
+        container: {
+          paddingHorizontal: 48,
+          paddingVertical: 40,
+        },
+        title: {
+          fontSize: 36,
+          marginBottom: 32,
+        },
+        subtitle: {
+          fontSize: 22,
+          marginBottom: 40,
+          paddingHorizontal: 60,
+        },
+      };
+    default:
+      return styles;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры
+const styles = StyleSheet.create({
+  container: {
+    width: 375, // фиксированная ширина
+    height: 667, // фиксированная высота
+    padding: 20, // фиксированные отступы
+  },
+});
+```
+
+#### 2. Адаптивные компоненты
+
+- Создавайте компоненты, которые адаптируются к размеру экрана
+- Используйте conditional rendering для разных breakpoints
+- Применяйте разные layouts для мобильных и планшетов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивный компонент
+interface ResponsiveLayoutProps {
+  children: React.ReactNode;
+  mobileLayout?: React.ReactNode;
+  tabletLayout?: React.ReactNode;
+}
+
+const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
+  children,
+  mobileLayout,
+  tabletLayout,
+}) => {
+  const { isMobile, isTablet } = useResponsive();
+
+  if (isMobile && mobileLayout) {
+    return <>{mobileLayout}</>;
+  }
+
+  if (isTablet && tabletLayout) {
+    return <>{tabletLayout}</>;
+  }
+
+  return <>{children}</>;
+};
+
+// Использование
+const AuthScreen = () => {
+  const { isMobile, isTablet } = useResponsive();
+
+  return (
+    <ResponsiveLayout
+      mobileLayout={
+        <View style={styles.mobileContainer}>
+          <CoffeeLogo />
+          <AuthForm />
+        </View>
+      }
+      tabletLayout={
+        <View style={styles.tabletContainer}>
+          <View style={styles.leftPanel}>
+            <CoffeeLogo />
+            <Text style={styles.welcomeText}>
+              Добро пожаловать в Coffee Flow
+            </Text>
+          </View>
+          <View style={styles.rightPanel}>
+            <AuthForm />
+          </View>
+        </View>
+      }
+    >
+      {/* Дефолтный layout */}
+      <View style={styles.defaultContainer}>
+        <CoffeeLogo />
+        <AuthForm />
+      </View>
+    </ResponsiveLayout>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - неадаптивный компонент
+const AuthScreen = () => (
+  <View style={styles.container}>
+    <CoffeeLogo />
+    <AuthForm />
+  </View>
+);
+```
+
+### Адаптивные макеты
+
+#### 1. Grid система
+
+- Используйте flexbox для создания адаптивных grid макетов
+- Применяйте разные количества колонок для разных breakpoints
+- Обеспечивайте правильное выравнивание элементов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивный grid
+const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { isMobile, isTablet, isLargeTablet } = useResponsive();
+
+  const getGridStyle = () => {
+    if (isMobile) {
+      return {
+        flexDirection: 'column' as const,
+        gap: 16,
+      };
+    }
+
+    if (isTablet) {
+      return {
+        flexDirection: 'row' as const,
+        flexWrap: 'wrap' as const,
+        gap: 20,
+      };
+    }
+
+    if (isLargeTablet) {
+      return {
+        flexDirection: 'row' as const,
+        flexWrap: 'wrap' as const,
+        gap: 24,
+      };
+    }
+
+    return {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: 32,
+    };
+  };
+
+  return (
+    <View style={[styles.grid, getGridStyle()]}>
+      {React.Children.map(children, (child, index) => (
+        <View
+          key={index}
+          style={[
+            styles.gridItem,
+            {
+              flex: isMobile
+                ? 1
+                : isTablet
+                ? '0 0 calc(50% - 10px)'
+                : '0 0 calc(33.333% - 16px)',
+            },
+          ]}
+        >
+          {child}
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированный grid
+const Grid = ({ children }) => (
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{children}</View>
+);
+```
+
+#### 2. Адаптивные отступы и размеры
+
+- Используйте responsive spacing
+- Применяйте разные размеры шрифтов для разных устройств
+- Обеспечивайте правильные пропорции элементов
+
+```typescript
+// ✅ ПРАВИЛЬНО - responsive spacing
+const getResponsiveSpacing = (breakpoint: Breakpoint) => {
+  const spacing = {
+    mobile: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 20,
+      xl: 24,
+      xxl: 32,
+    },
+    tablet: {
+      xs: 6,
+      sm: 12,
+      md: 24,
+      lg: 32,
+      xl: 40,
+      xxl: 48,
+    },
+    largeTablet: {
+      xs: 8,
+      sm: 16,
+      md: 32,
+      lg: 40,
+      xl: 48,
+      xxl: 56,
+    },
+    desktop: {
+      xs: 10,
+      sm: 20,
+      md: 40,
+      lg: 48,
+      xl: 56,
+      xxl: 64,
+    },
+  };
+
+  return spacing[breakpoint];
+};
+
+const getResponsiveTypography = (breakpoint: Breakpoint) => {
+  const typography = {
+    mobile: {
+      h1: 24,
+      h2: 20,
+      h3: 18,
+      body: 16,
+      caption: 14,
+      small: 12,
+    },
+    tablet: {
+      h1: 32,
+      h2: 28,
+      h3: 24,
+      body: 18,
+      caption: 16,
+      small: 14,
+    },
+    largeTablet: {
+      h1: 36,
+      h2: 32,
+      h3: 28,
+      body: 20,
+      caption: 18,
+      small: 16,
+    },
+    desktop: {
+      h1: 40,
+      h2: 36,
+      h3: 32,
+      body: 22,
+      caption: 20,
+      small: 18,
+    },
+  };
+
+  return typography[breakpoint];
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 24, // фиксированный размер
+    marginBottom: 16, // фиксированный отступ
+  },
+});
+```
+
+### Адаптивные изображения и иконки
+
+#### 1. Масштабирование изображений
+
+- Используйте responsive размеры для изображений
+- Применяйте разные разрешения для разных устройств
+- Обеспечивайте качество на всех экранах
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивные изображения
+interface ResponsiveImageProps {
+  source: any;
+  alt?: string;
+  mobileSize?: { width: number; height: number };
+  tabletSize?: { width: number; height: number };
+  largeTabletSize?: { width: number; height: number };
+  desktopSize?: { width: number; height: number };
+}
+
+const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
+  source,
+  alt,
+  mobileSize = { width: 200, height: 200 },
+  tabletSize = { width: 300, height: 300 },
+  largeTabletSize = { width: 400, height: 400 },
+  desktopSize = { width: 500, height: 500 },
+}) => {
+  const { currentBreakpoint } = useResponsive();
+
+  const getImageSize = () => {
+    switch (currentBreakpoint) {
+      case 'mobile':
+        return mobileSize;
+      case 'tablet':
+        return tabletSize;
+      case 'largeTablet':
+        return largeTabletSize;
+      case 'desktop':
+        return desktopSize;
+      default:
+        return mobileSize;
+    }
+  };
+
+  const { width, height } = getImageSize();
+
+  return (
+    <Image
+      source={source}
+      style={{ width, height }}
+      accessibilityLabel={alt}
+      resizeMode="contain"
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры изображений
+const Image = ({ source }) => (
+  <Image source={source} style={{ width: 200, height: 200 }} />
+);
+```
+
+### Адаптивная навигация
+
+#### 1. Разные паттерны навигации
+
+- Используйте tab navigation для мобильных устройств
+- Применяйте sidebar navigation для планшетов
+- Обеспечивайте удобную навигацию на всех устройствах
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивная навигация
+const ResponsiveNavigation = () => {
+  const { isMobile, isTablet } = useResponsive();
+
+  if (isMobile) {
+    return (
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
+    );
+  }
+
+  if (isTablet) {
+    return (
+      <Drawer.Navigator>
+        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+      </Drawer.Navigator>
+    );
+  }
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - одинаковая навигация для всех устройств
+const Navigation = () => (
+  <Tab.Navigator>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Tab.Navigator>
+);
+```
+
+### Тестирование адаптивности
+
+#### 1. Тестирование на разных устройствах
+
+- Тестируйте на реальных мобильных устройствах и планшетах
+- Используйте эмуляторы для разных размеров экранов
+- Проверяйте ориентацию экрана (портрет/ландшафт)
+
+#### 2. Пример теста
+
+```typescript
+import { render } from '@testing-library/react-native';
+import { Dimensions } from 'react-native';
+import ResponsiveComponent from './ResponsiveComponent';
+
+describe('ResponsiveComponent', () => {
+  it('renders mobile layout on small screens', () => {
+    // Мокаем размер экрана для мобильного устройства
+    Dimensions.get = jest.fn().mockReturnValue({
+      width: 375,
+      height: 667,
+    });
+
+    const { getByTestId } = render(<ResponsiveComponent />);
+    expect(getByTestId('mobile-layout')).toBeTruthy();
+  });
+
+  it('renders tablet layout on medium screens', () => {
+    // Мокаем размер экрана для планшета
+    Dimensions.get = jest.fn().mockReturnValue({
+      width: 768,
+      height: 1024,
+    });
+
+    const { getByTestId } = render(<ResponsiveComponent />);
+    expect(getByTestId('tablet-layout')).toBeTruthy();
+  });
+});
+```
+
+### Запрещено
+
+- ❌ Создавать компоненты с фиксированными размерами
+- ❌ Игнорировать разные размеры экранов
+- ❌ Использовать абсолютные единицы измерения
+- ❌ Создавать неадаптивные макеты
+- ❌ Игнорировать ориентацию экрана
+
+### Рекомендуется
+
+- ✅ Использовать responsive breakpoints
+- ✅ Создавать адаптивные компоненты
+- ✅ Применять гибкие размеры и отступы
+- ✅ Тестировать на разных устройствах
+- ✅ Учитывать ориентацию экрана
+- ✅ Использовать flexbox для макетов
+- ✅ Создавать responsive grid системы
+
+# Coffee Flow Responsive Design Rules
+
+## Правила для адаптивной верстки
+
+### Основные принципы
+
+- ВСЕ компоненты должны быть адаптивными для мобильных устройств и планшетов
+- Используйте responsive breakpoints для разных размеров экранов
+- Применяйте гибкие размеры и отступы
+- Обеспечивайте оптимальный UX на всех устройствах
+
+### Breakpoints и размеры экранов
+
+#### 1. Стандартные breakpoints
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование стандартных breakpoints
+export const Breakpoints = {
+  // Мобильные устройства (портретная ориентация)
+  mobile: {
+    min: 320,
+    max: 767,
+  },
+  // Планшеты (портретная и ландшафтная ориентация)
+  tablet: {
+    min: 768,
+    max: 1023,
+  },
+  // Большие планшеты и маленькие десктопы
+  largeTablet: {
+    min: 1024,
+    max: 1439,
+  },
+  // Десктопы
+  desktop: {
+    min: 1440,
+    max: Infinity,
+  },
+} as const;
+
+export type Breakpoint = keyof typeof Breakpoints;
+```
+
+#### 2. Хук для определения размера экрана
+
+```typescript
+// ✅ ПРАВИЛЬНО - хук для responsive дизайна
+import { useState, useEffect } from 'react';
+import { Dimensions } from 'react-native';
+
+interface UseResponsiveReturn {
+  isMobile: boolean;
+  isTablet: boolean;
+  isLargeTablet: boolean;
+  isDesktop: boolean;
+  currentBreakpoint: Breakpoint;
+  screenWidth: number;
+  screenHeight: number;
+}
+
+const useResponsive = (): UseResponsiveReturn => {
+  const [screenDimensions, setScreenDimensions] = useState({
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  });
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setScreenDimensions({
+        width: window.width,
+        height: window.height,
+      });
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const { width, height } = screenDimensions;
+
+  const isMobile =
+    width >= Breakpoints.mobile.min && width <= Breakpoints.mobile.max;
+  const isTablet =
+    width >= Breakpoints.tablet.min && width <= Breakpoints.tablet.max;
+  const isLargeTablet =
+    width >= Breakpoints.largeTablet.min &&
+    width <= Breakpoints.largeTablet.max;
+  const isDesktop = width >= Breakpoints.desktop.min;
+
+  const getCurrentBreakpoint = (): Breakpoint => {
+    if (isMobile) return 'mobile';
+    if (isTablet) return 'tablet';
+    if (isLargeTablet) return 'largeTablet';
+    return 'desktop';
+  };
+
+  return {
+    isMobile,
+    isTablet,
+    isLargeTablet,
+    isDesktop,
+    currentBreakpoint: getCurrentBreakpoint(),
+    screenWidth: width,
+    screenHeight: height,
+  };
+};
+
+export default useResponsive;
+```
+
+### Responsive стили
+
+#### 1. Адаптивные размеры
+
+- Используйте относительные единицы измерения
+- Применяйте разные размеры для разных breakpoints
+- Используйте flexbox для гибких макетов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивные стили
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+});
+
+// Responsive стили для разных breakpoints
+const getResponsiveStyles = (breakpoint: Breakpoint) => {
+  switch (breakpoint) {
+    case 'mobile':
+      return {
+        container: {
+          paddingHorizontal: 16,
+          paddingVertical: 20,
+        },
+        title: {
+          fontSize: 24,
+          marginBottom: 16,
+        },
+        subtitle: {
+          fontSize: 16,
+          marginBottom: 24,
+          paddingHorizontal: 20,
+        },
+      };
+    case 'tablet':
+      return {
+        container: {
+          paddingHorizontal: 32,
+          paddingVertical: 32,
+        },
+        title: {
+          fontSize: 32,
+          marginBottom: 24,
+        },
+        subtitle: {
+          fontSize: 20,
+          marginBottom: 32,
+          paddingHorizontal: 40,
+        },
+      };
+    case 'largeTablet':
+      return {
+        container: {
+          paddingHorizontal: 48,
+          paddingVertical: 40,
+        },
+        title: {
+          fontSize: 36,
+          marginBottom: 32,
+        },
+        subtitle: {
+          fontSize: 22,
+          marginBottom: 40,
+          paddingHorizontal: 60,
+        },
+      };
+    default:
+      return styles;
+  }
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры
+const styles = StyleSheet.create({
+  container: {
+    width: 375, // фиксированная ширина
+    height: 667, // фиксированная высота
+    padding: 20, // фиксированные отступы
+  },
+});
+```
+
+#### 2. Адаптивные компоненты
+
+- Создавайте компоненты, которые адаптируются к размеру экрана
+- Используйте conditional rendering для разных breakpoints
+- Применяйте разные layouts для мобильных и планшетов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивный компонент
+interface ResponsiveLayoutProps {
+  children: React.ReactNode;
+  mobileLayout?: React.ReactNode;
+  tabletLayout?: React.ReactNode;
+}
+
+const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
+  children,
+  mobileLayout,
+  tabletLayout,
+}) => {
+  const { isMobile, isTablet } = useResponsive();
+
+  if (isMobile && mobileLayout) {
+    return <>{mobileLayout}</>;
+  }
+
+  if (isTablet && tabletLayout) {
+    return <>{tabletLayout}</>;
+  }
+
+  return <>{children}</>;
+};
+
+// Использование
+const AuthScreen = () => {
+  const { isMobile, isTablet } = useResponsive();
+
+  return (
+    <ResponsiveLayout
+      mobileLayout={
+        <View style={styles.mobileContainer}>
+          <CoffeeLogo />
+          <AuthForm />
+        </View>
+      }
+      tabletLayout={
+        <View style={styles.tabletContainer}>
+          <View style={styles.leftPanel}>
+            <CoffeeLogo />
+            <Text style={styles.welcomeText}>
+              Добро пожаловать в Coffee Flow
+            </Text>
+          </View>
+          <View style={styles.rightPanel}>
+            <AuthForm />
+          </View>
+        </View>
+      }
+    >
+      {/* Дефолтный layout */}
+      <View style={styles.defaultContainer}>
+        <CoffeeLogo />
+        <AuthForm />
+      </View>
+    </ResponsiveLayout>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - неадаптивный компонент
+const AuthScreen = () => (
+  <View style={styles.container}>
+    <CoffeeLogo />
+    <AuthForm />
+  </View>
+);
+```
+
+### Адаптивные макеты
+
+#### 1. Grid система
+
+- Используйте flexbox для создания адаптивных grid макетов
+- Применяйте разные количества колонок для разных breakpoints
+- Обеспечивайте правильное выравнивание элементов
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивный grid
+const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { isMobile, isTablet, isLargeTablet } = useResponsive();
+
+  const getGridStyle = () => {
+    if (isMobile) {
+      return {
+        flexDirection: 'column' as const,
+        gap: 16,
+      };
+    }
+
+    if (isTablet) {
+      return {
+        flexDirection: 'row' as const,
+        flexWrap: 'wrap' as const,
+        gap: 20,
+      };
+    }
+
+    if (isLargeTablet) {
+      return {
+        flexDirection: 'row' as const,
+        flexWrap: 'wrap' as const,
+        gap: 24,
+      };
+    }
+
+    return {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: 32,
+    };
+  };
+
+  return (
+    <View style={[styles.grid, getGridStyle()]}>
+      {React.Children.map(children, (child, index) => (
+        <View
+          key={index}
+          style={[
+            styles.gridItem,
+            {
+              flex: isMobile
+                ? 1
+                : isTablet
+                ? '0 0 calc(50% - 10px)'
+                : '0 0 calc(33.333% - 16px)',
+            },
+          ]}
+        >
+          {child}
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированный grid
+const Grid = ({ children }) => (
+  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{children}</View>
+);
+```
+
+#### 2. Адаптивные отступы и размеры
+
+- Используйте responsive spacing
+- Применяйте разные размеры шрифтов для разных устройств
+- Обеспечивайте правильные пропорции элементов
+
+```typescript
+// ✅ ПРАВИЛЬНО - responsive spacing
+const getResponsiveSpacing = (breakpoint: Breakpoint) => {
+  const spacing = {
+    mobile: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 20,
+      xl: 24,
+      xxl: 32,
+    },
+    tablet: {
+      xs: 6,
+      sm: 12,
+      md: 24,
+      lg: 32,
+      xl: 40,
+      xxl: 48,
+    },
+    largeTablet: {
+      xs: 8,
+      sm: 16,
+      md: 32,
+      lg: 40,
+      xl: 48,
+      xxl: 56,
+    },
+    desktop: {
+      xs: 10,
+      sm: 20,
+      md: 40,
+      lg: 48,
+      xl: 56,
+      xxl: 64,
+    },
+  };
+
+  return spacing[breakpoint];
+};
+
+const getResponsiveTypography = (breakpoint: Breakpoint) => {
+  const typography = {
+    mobile: {
+      h1: 24,
+      h2: 20,
+      h3: 18,
+      body: 16,
+      caption: 14,
+      small: 12,
+    },
+    tablet: {
+      h1: 32,
+      h2: 28,
+      h3: 24,
+      body: 18,
+      caption: 16,
+      small: 14,
+    },
+    largeTablet: {
+      h1: 36,
+      h2: 32,
+      h3: 28,
+      body: 20,
+      caption: 18,
+      small: 16,
+    },
+    desktop: {
+      h1: 40,
+      h2: 36,
+      h3: 32,
+      body: 22,
+      caption: 20,
+      small: 18,
+    },
+  };
+
+  return typography[breakpoint];
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 24, // фиксированный размер
+    marginBottom: 16, // фиксированный отступ
+  },
+});
+```
+
+### Адаптивные изображения и иконки
+
+#### 1. Масштабирование изображений
+
+- Используйте responsive размеры для изображений
+- Применяйте разные разрешения для разных устройств
+- Обеспечивайте качество на всех экранах
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивные изображения
+interface ResponsiveImageProps {
+  source: any;
+  alt?: string;
+  mobileSize?: { width: number; height: number };
+  tabletSize?: { width: number; height: number };
+  largeTabletSize?: { width: number; height: number };
+  desktopSize?: { width: number; height: number };
+}
+
+const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
+  source,
+  alt,
+  mobileSize = { width: 200, height: 200 },
+  tabletSize = { width: 300, height: 300 },
+  largeTabletSize = { width: 400, height: 400 },
+  desktopSize = { width: 500, height: 500 },
+}) => {
+  const { currentBreakpoint } = useResponsive();
+
+  const getImageSize = () => {
+    switch (currentBreakpoint) {
+      case 'mobile':
+        return mobileSize;
+      case 'tablet':
+        return tabletSize;
+      case 'largeTablet':
+        return largeTabletSize;
+      case 'desktop':
+        return desktopSize;
+      default:
+        return mobileSize;
+    }
+  };
+
+  const { width, height } = getImageSize();
+
+  return (
+    <Image
+      source={source}
+      style={{ width, height }}
+      accessibilityLabel={alt}
+      resizeMode="contain"
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - фиксированные размеры изображений
+const Image = ({ source }) => (
+  <Image source={source} style={{ width: 200, height: 200 }} />
+);
+```
+
+### Адаптивная навигация
+
+#### 1. Разные паттерны навигации
+
+- Используйте tab navigation для мобильных устройств
+- Применяйте sidebar navigation для планшетов
+- Обеспечивайте удобную навигацию на всех устройствах
+
+```typescript
+// ✅ ПРАВИЛЬНО - адаптивная навигация
+const ResponsiveNavigation = () => {
+  const { isMobile, isTablet } = useResponsive();
+
+  if (isMobile) {
+    return (
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
+      </Tab.Navigator>
+    );
+  }
+
+  if (isTablet) {
+    return (
+      <Drawer.Navigator>
+        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="Profile" component={ProfileScreen} />
+        <Drawer.Screen name="Settings" component={SettingsScreen} />
+      </Drawer.Navigator>
+    );
+  }
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - одинаковая навигация для всех устройств
+const Navigation = () => (
+  <Tab.Navigator>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Tab.Navigator>
+);
+```
+
+### Тестирование адаптивности
+
+#### 1. Тестирование на разных устройствах
+
+- Тестируйте на реальных мобильных устройствах и планшетах
+- Используйте эмуляторы для разных размеров экранов
+- Проверяйте ориентацию экрана (портрет/ландшафт)
+
+#### 2. Пример теста
+
+```typescript
+import { render } from '@testing-library/react-native';
+import { Dimensions } from 'react-native';
+import ResponsiveComponent from './ResponsiveComponent';
+
+describe('ResponsiveComponent', () => {
+  it('renders mobile layout on small screens', () => {
+    // Мокаем размер экрана для мобильного устройства
+    Dimensions.get = jest.fn().mockReturnValue({
+      width: 375,
+      height: 667,
+    });
+
+    const { getByTestId } = render(<ResponsiveComponent />);
+    expect(getByTestId('mobile-layout')).toBeTruthy();
+  });
+
+  it('renders tablet layout on medium screens', () => {
+    // Мокаем размер экрана для планшета
+    Dimensions.get = jest.fn().mockReturnValue({
+      width: 768,
+      height: 1024,
+    });
+
+    const { getByTestId } = render(<ResponsiveComponent />);
+    expect(getByTestId('tablet-layout')).toBeTruthy();
+  });
+});
+```
+
+### Запрещено
+
+- ❌ Создавать компоненты с фиксированными размерами
+- ❌ Игнорировать разные размеры экранов
+- ❌ Использовать абсолютные единицы измерения
+- ❌ Создавать неадаптивные макеты
+- ❌ Игнорировать ориентацию экрана
+
+### Рекомендуется
+
+- ✅ Использовать responsive breakpoints
+- ✅ Создавать адаптивные компоненты
+- ✅ Применять гибкие размеры и отступы
+- ✅ Тестировать на разных устройствах
+- ✅ Учитывать ориентацию экрана
+- ✅ Использовать flexbox для макетов
+- ✅ Создавать responsive grid системы
