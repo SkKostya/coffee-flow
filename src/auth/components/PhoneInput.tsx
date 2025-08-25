@@ -37,7 +37,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           {
             color: colors.texts.secondary,
             fontSize: typography.body,
-            marginBottom: formSizes.gap / 2,
+            marginBottom: formSizes.gap / 4,
           },
         ]}
       >
@@ -106,7 +106,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   inputLabel: {
     fontWeight: '500',

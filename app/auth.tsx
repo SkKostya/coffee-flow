@@ -101,7 +101,7 @@ export default function AuthScreen() {
                 title="Авторизоваться"
                 onPress={handleLogin}
                 variant="primary"
-                disabled={!isValid}
+                disabled={Object.keys(errors).length > 0}
                 loading={isSubmitting}
               />
 
@@ -109,7 +109,6 @@ export default function AuthScreen() {
                 title="Регистрация"
                 onPress={handleRegistration}
                 variant="secondary"
-                disabled={!isValid}
                 loading={isSubmitting}
               />
             </View>
@@ -343,7 +342,6 @@ const styles = StyleSheet.create({
   },
   rightPanel: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 48,
   },

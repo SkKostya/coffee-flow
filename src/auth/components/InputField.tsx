@@ -48,7 +48,7 @@ const InputField: React.FC<InputFieldProps> = ({
           {
             color: colors.texts.secondary,
             fontSize: typography.body,
-            marginBottom: formSizes.gap / 2,
+            marginBottom: formSizes.gap / 4,
           },
         ]}
       >
@@ -98,7 +98,7 @@ const InputField: React.FC<InputFieldProps> = ({
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   inputLabel: {
     fontWeight: '500',

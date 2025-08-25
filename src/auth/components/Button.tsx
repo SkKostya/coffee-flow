@@ -73,6 +73,7 @@ const Button: React.FC<ButtonProps> = ({
     styles.buttonText,
     {
       fontSize: typography.body,
+      lineHeight: typography.body,
       color:
         variant === 'primary'
           ? colors.colors.white
@@ -109,6 +110,8 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    cursor: 'pointer',
   },
   primaryButton: {
     // Primary button styles are applied inline
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

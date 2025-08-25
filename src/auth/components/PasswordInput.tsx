@@ -50,7 +50,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           {
             color: colors.texts.secondary,
             fontSize: typography.body,
-            marginBottom: formSizes.gap / 2,
+            marginBottom: formSizes.gap / 4,
           },
         ]}
       >
@@ -70,7 +70,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
               height: formSizes.inputHeight,
               borderRadius: formSizes.borderRadius,
               paddingHorizontal: formSizes.paddingHorizontal / 2,
-              paddingRight: formSizes.inputHeight / 2, // Место для кнопки глаза
+              paddingRight: formSizes.inputHeight, // Место для кнопки глаза
               fontSize: typography.body,
             },
           ]}
@@ -86,8 +86,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           style={[
             styles.eyeButton,
             {
-              right: formSizes.paddingHorizontal / 2,
-              top: (formSizes.inputHeight - 20) / 2, // Центрируем иконку
+              right: 0,
+              top: 0,
+              height: formSizes.inputHeight,
+              width: formSizes.inputHeight,
+              justifyContent: 'center',
+              alignItems: 'center',
             },
           ]}
           onPress={togglePasswordVisibility}
@@ -121,7 +125,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   inputLabel: {
     fontWeight: '500',

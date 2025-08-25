@@ -36,12 +36,12 @@ export const getResponsiveTypography = (breakpoint: Breakpoint) => {
       small: 12,
     },
     tablet: {
-      h1: 32,
-      h2: 28,
+      h1: 30,
+      h2: 26,
       h3: 24,
-      body: 18,
-      caption: 16,
-      small: 14,
+      body: 16,
+      caption: 14,
+      small: 12,
     },
   };
 
@@ -53,19 +53,19 @@ export const getResponsiveFormSizes = (breakpoint: Breakpoint) => {
   const formSizes = {
     mobile: {
       maxWidth: '100%',
-      paddingHorizontal: 24,
-      inputHeight: 56,
-      buttonHeight: 56,
+      paddingHorizontal: 16,
+      inputHeight: 42,
+      buttonHeight: 36,
       borderRadius: 12,
-      gap: 24,
+      gap: 16,
     },
     tablet: {
       maxWidth: 400,
-      paddingHorizontal: 32,
-      inputHeight: 60,
-      buttonHeight: 60,
+      paddingHorizontal: 24,
+      inputHeight: 48,
+      buttonHeight: 42,
       borderRadius: 16,
-      gap: 32,
+      gap: 24,
     },
   };
 
