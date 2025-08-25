@@ -178,20 +178,138 @@ import type { AuthState } from '../hooks/useAuth';
 - Константы, используемые во всем приложении
 - Контексты для глобального состояния
 
-#### 3. Примеры
+#### 3. Примеры правильного размещения
 
 ```typescript
 // ✅ В модуле auth - специфичный компонент
 src / auth / components / PhoneInput.tsx;
 
+// ✅ В модуле coffeeshops - специфичный компонент
+src / coffeeshops / components / CoffeeShopCard.tsx;
+
 // ✅ В shared - переиспользуемый компонент
-src / shared / components / Button.tsx;
+src / shared / components / BottomNavigation.tsx;
 
 // ✅ В shared - глобальный хук
 src / shared / hooks / useColors.ts;
 
 // ✅ В shared - глобальные константы
 src / shared / constants / Colors.ts;
+```
+
+#### 4. Критерии для определения размещения
+
+**Размещать в модуле, если компонент/хук:**
+
+- Использует специфичные для модуля типы данных
+- Содержит бизнес-логику модуля
+- Имеет зависимости только внутри модуля
+- Не планируется к переиспользованию в других модулях
+
+**Размещать в shared, если компонент/хук:**
+
+- Используется или может использоваться в нескольких модулях
+- Не содержит специфичной бизнес-логики
+- Работает с глобальными данными (темы, цвета, размеры)
+- Является базовым UI элементом (кнопки, инпуты, навигация)
+
+#### 5. Примеры неправильного размещения
+
+```typescript
+// ❌ НЕПРАВИЛЬНО - специфичный компонент в shared
+src / shared / components / CoffeeShopCard.tsx; // должен быть в coffeeshops/
+
+// ❌ НЕПРАВИЛЬНО - переиспользуемый компонент в модуле
+src / auth / components / Button.tsx; // должен быть в shared/
+
+// ❌ НЕПРАВИЛЬНО - глобальный хук в модуле
+src / auth / hooks / useColors.ts; // должен быть в shared/
+```
+
+### Правила создания новых модулей
+
+#### 1. Когда создавать новый модуль
+
+- Когда появляется новая функциональная область (например, coffeeshops, orders, profile)
+- Когда группа компонентов имеет общую бизнес-логику
+- Когда модуль может быть независимо разработан и протестирован
+- Когда размер существующего модуля становится слишком большим
+
+#### 2. Структура нового модуля
+
+```
+new-module/
+├── components/             # UI компоненты модуля
+│   ├── ComponentA.tsx
+│   ├── ComponentB.tsx
+│   └── index.ts           # Экспорт компонентов
+├── hooks/                 # Хуки модуля
+│   ├── useModuleData.ts
+│   ├── useModuleLogic.ts
+│   └── index.ts           # Экспорт хуков
+├── services/              # API сервисы (опционально)
+│   ├── api.ts
+│   └── index.ts
+├── utils/                 # Утилиты модуля (опционально)
+│   ├── helpers.ts
+│   └── index.ts
+├── validation/            # Валидация (опционально)
+│   ├── schemas.ts
+│   └── index.ts
+└── index.ts               # Публичный API модуля
+```
+
+#### 3. Публичный API модуля
+
+```typescript
+// src/new-module/index.ts
+// Экспортируйте только то, что нужно другим модулям
+export * from './components';
+export * from './hooks';
+export type { ModuleDataType, ModuleConfigType } from './types';
+
+// НЕ экспортируйте внутренние детали
+// export * from './utils'; // ❌ НЕПРАВИЛЬНО
+// export * from './services'; // ❌ НЕПРАВИЛЬНО
+```
+
+#### 4. Примеры модулей
+
+**Модуль auth:**
+
+- Компоненты: LoginForm, PhoneInput, PasswordInput
+- Хуки: useAuth, useAuthForm
+- Валидация: authSchema
+- Назначение: Аутентификация пользователей
+
+**Модуль coffeeshops:**
+
+- Компоненты: CoffeeShopCard, MapPlaceholder, SearchBar
+- Хуки: useCoffeeShops
+- Назначение: Поиск и отображение кофеен
+
+**Модуль orders (пример):**
+
+- Компоненты: OrderCard, OrderForm, PaymentForm
+- Хуки: useOrders, usePayment
+- Сервисы: orderApi, paymentApi
+- Назначение: Управление заказами
+
+#### 5. Взаимодействие между модулями
+
+- Модули должны быть слабо связанными
+- Используйте типы из `src/types/` для обмена данными
+- Избегайте прямых импортов из внутренних частей других модулей
+- Используйте shared компоненты для общих UI элементов
+
+```typescript
+// ✅ ПРАВИЛЬНО - импорт через публичный API
+import { CoffeeShopCard } from '../coffeeshops';
+import { useAuth } from '../auth';
+
+// ❌ НЕПРАВИЛЬНО - прямой импорт внутренних деталей
+import { CoffeeShopCard } from '../coffeeshops/components/CoffeeShopCard';
+import { validateAuth } from '../auth/utils/validation';
 ```
 
 ### Правила рефакторинга

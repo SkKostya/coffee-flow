@@ -29,16 +29,6 @@ export const Breakpoints = {
   // Планшеты (портретная и ландшафтная ориентация)
   tablet: {
     min: 768,
-    max: 1023,
-  },
-  // Большие планшеты и маленькие десктопы
-  largeTablet: {
-    min: 1024,
-    max: 1439,
-  },
-  // Десктопы
-  desktop: {
-    min: 1440,
     max: Infinity,
   },
 } as const;
@@ -56,8 +46,6 @@ import { Dimensions } from 'react-native';
 interface UseResponsiveReturn {
   isMobile: boolean;
   isTablet: boolean;
-  isLargeTablet: boolean;
-  isDesktop: boolean;
   currentBreakpoint: Breakpoint;
   screenWidth: number;
   screenHeight: number;
@@ -84,25 +72,16 @@ const useResponsive = (): UseResponsiveReturn => {
 
   const isMobile =
     width >= Breakpoints.mobile.min && width <= Breakpoints.mobile.max;
-  const isTablet =
-    width >= Breakpoints.tablet.min && width <= Breakpoints.tablet.max;
-  const isLargeTablet =
-    width >= Breakpoints.largeTablet.min &&
-    width <= Breakpoints.largeTablet.max;
-  const isDesktop = width >= Breakpoints.desktop.min;
+  const isTablet = width >= Breakpoints.tablet.min;
 
   const getCurrentBreakpoint = (): Breakpoint => {
     if (isMobile) return 'mobile';
-    if (isTablet) return 'tablet';
-    if (isLargeTablet) return 'largeTablet';
-    return 'desktop';
+    return 'tablet';
   };
 
   return {
     isMobile,
     isTablet,
-    isLargeTablet,
-    isDesktop,
     currentBreakpoint: getCurrentBreakpoint(),
     screenWidth: width,
     screenHeight: height,
@@ -182,22 +161,7 @@ const getResponsiveStyles = (breakpoint: Breakpoint) => {
           paddingHorizontal: 40,
         },
       };
-    case 'largeTablet':
-      return {
-        container: {
-          paddingHorizontal: 48,
-          paddingVertical: 40,
-        },
-        title: {
-          fontSize: 36,
-          marginBottom: 32,
-        },
-        subtitle: {
-          fontSize: 22,
-          marginBottom: 40,
-          paddingHorizontal: 60,
-        },
-      };
+
     default:
       return styles;
   }
@@ -302,7 +266,7 @@ const AuthScreen = () => (
 const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isMobile, isTablet, isLargeTablet } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   const getGridStyle = () => {
     if (isMobile) {
@@ -312,26 +276,10 @@ const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
       };
     }
 
-    if (isTablet) {
-      return {
-        flexDirection: 'row' as const,
-        flexWrap: 'wrap' as const,
-        gap: 20,
-      };
-    }
-
-    if (isLargeTablet) {
-      return {
-        flexDirection: 'row' as const,
-        flexWrap: 'wrap' as const,
-        gap: 24,
-      };
-    }
-
     return {
       flexDirection: 'row' as const,
       flexWrap: 'wrap' as const,
-      gap: 32,
+      gap: 20,
     };
   };
 
@@ -343,11 +291,7 @@ const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
           style={[
             styles.gridItem,
             {
-              flex: isMobile
-                ? 1
-                : isTablet
-                ? '0 0 calc(50% - 10px)'
-                : '0 0 calc(33.333% - 16px)',
+              flex: isMobile ? 1 : '0 0 calc(50% - 10px)',
             },
           ]}
         >
@@ -390,22 +334,6 @@ const getResponsiveSpacing = (breakpoint: Breakpoint) => {
       xl: 40,
       xxl: 48,
     },
-    largeTablet: {
-      xs: 8,
-      sm: 16,
-      md: 32,
-      lg: 40,
-      xl: 48,
-      xxl: 56,
-    },
-    desktop: {
-      xs: 10,
-      sm: 20,
-      md: 40,
-      lg: 48,
-      xl: 56,
-      xxl: 64,
-    },
   };
 
   return spacing[breakpoint];
@@ -428,22 +356,6 @@ const getResponsiveTypography = (breakpoint: Breakpoint) => {
       body: 18,
       caption: 16,
       small: 14,
-    },
-    largeTablet: {
-      h1: 36,
-      h2: 32,
-      h3: 28,
-      body: 20,
-      caption: 18,
-      small: 16,
-    },
-    desktop: {
-      h1: 40,
-      h2: 36,
-      h3: 32,
-      body: 22,
-      caption: 20,
-      small: 18,
     },
   };
 
@@ -474,8 +386,6 @@ interface ResponsiveImageProps {
   alt?: string;
   mobileSize?: { width: number; height: number };
   tabletSize?: { width: number; height: number };
-  largeTabletSize?: { width: number; height: number };
-  desktopSize?: { width: number; height: number };
 }
 
 const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -483,8 +393,6 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   alt,
   mobileSize = { width: 200, height: 200 },
   tabletSize = { width: 300, height: 300 },
-  largeTabletSize = { width: 400, height: 400 },
-  desktopSize = { width: 500, height: 500 },
 }) => {
   const { currentBreakpoint } = useResponsive();
 
@@ -494,10 +402,6 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         return mobileSize;
       case 'tablet':
         return tabletSize;
-      case 'largeTablet':
-        return largeTabletSize;
-      case 'desktop':
-        return desktopSize;
       default:
         return mobileSize;
     }
@@ -656,16 +560,6 @@ export const Breakpoints = {
   // Планшеты (портретная и ландшафтная ориентация)
   tablet: {
     min: 768,
-    max: 1023,
-  },
-  // Большие планшеты и маленькие десктопы
-  largeTablet: {
-    min: 1024,
-    max: 1439,
-  },
-  // Десктопы
-  desktop: {
-    min: 1440,
     max: Infinity,
   },
 } as const;
@@ -683,8 +577,6 @@ import { Dimensions } from 'react-native';
 interface UseResponsiveReturn {
   isMobile: boolean;
   isTablet: boolean;
-  isLargeTablet: boolean;
-  isDesktop: boolean;
   currentBreakpoint: Breakpoint;
   screenWidth: number;
   screenHeight: number;
@@ -711,25 +603,16 @@ const useResponsive = (): UseResponsiveReturn => {
 
   const isMobile =
     width >= Breakpoints.mobile.min && width <= Breakpoints.mobile.max;
-  const isTablet =
-    width >= Breakpoints.tablet.min && width <= Breakpoints.tablet.max;
-  const isLargeTablet =
-    width >= Breakpoints.largeTablet.min &&
-    width <= Breakpoints.largeTablet.max;
-  const isDesktop = width >= Breakpoints.desktop.min;
+  const isTablet = width >= Breakpoints.tablet.min;
 
   const getCurrentBreakpoint = (): Breakpoint => {
     if (isMobile) return 'mobile';
-    if (isTablet) return 'tablet';
-    if (isLargeTablet) return 'largeTablet';
-    return 'desktop';
+    return 'tablet';
   };
 
   return {
     isMobile,
     isTablet,
-    isLargeTablet,
-    isDesktop,
     currentBreakpoint: getCurrentBreakpoint(),
     screenWidth: width,
     screenHeight: height,
@@ -809,22 +692,7 @@ const getResponsiveStyles = (breakpoint: Breakpoint) => {
           paddingHorizontal: 40,
         },
       };
-    case 'largeTablet':
-      return {
-        container: {
-          paddingHorizontal: 48,
-          paddingVertical: 40,
-        },
-        title: {
-          fontSize: 36,
-          marginBottom: 32,
-        },
-        subtitle: {
-          fontSize: 22,
-          marginBottom: 40,
-          paddingHorizontal: 60,
-        },
-      };
+
     default:
       return styles;
   }
@@ -929,7 +797,7 @@ const AuthScreen = () => (
 const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isMobile, isTablet, isLargeTablet } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   const getGridStyle = () => {
     if (isMobile) {
@@ -939,26 +807,10 @@ const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
       };
     }
 
-    if (isTablet) {
-      return {
-        flexDirection: 'row' as const,
-        flexWrap: 'wrap' as const,
-        gap: 20,
-      };
-    }
-
-    if (isLargeTablet) {
-      return {
-        flexDirection: 'row' as const,
-        flexWrap: 'wrap' as const,
-        gap: 24,
-      };
-    }
-
     return {
       flexDirection: 'row' as const,
       flexWrap: 'wrap' as const,
-      gap: 32,
+      gap: 20,
     };
   };
 
@@ -970,11 +822,7 @@ const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({
           style={[
             styles.gridItem,
             {
-              flex: isMobile
-                ? 1
-                : isTablet
-                ? '0 0 calc(50% - 10px)'
-                : '0 0 calc(33.333% - 16px)',
+              flex: isMobile ? 1 : '0 0 calc(50% - 10px)',
             },
           ]}
         >
@@ -1017,22 +865,6 @@ const getResponsiveSpacing = (breakpoint: Breakpoint) => {
       xl: 40,
       xxl: 48,
     },
-    largeTablet: {
-      xs: 8,
-      sm: 16,
-      md: 32,
-      lg: 40,
-      xl: 48,
-      xxl: 56,
-    },
-    desktop: {
-      xs: 10,
-      sm: 20,
-      md: 40,
-      lg: 48,
-      xl: 56,
-      xxl: 64,
-    },
   };
 
   return spacing[breakpoint];
@@ -1055,22 +887,6 @@ const getResponsiveTypography = (breakpoint: Breakpoint) => {
       body: 18,
       caption: 16,
       small: 14,
-    },
-    largeTablet: {
-      h1: 36,
-      h2: 32,
-      h3: 28,
-      body: 20,
-      caption: 18,
-      small: 16,
-    },
-    desktop: {
-      h1: 40,
-      h2: 36,
-      h3: 32,
-      body: 22,
-      caption: 20,
-      small: 18,
     },
   };
 
@@ -1101,8 +917,6 @@ interface ResponsiveImageProps {
   alt?: string;
   mobileSize?: { width: number; height: number };
   tabletSize?: { width: number; height: number };
-  largeTabletSize?: { width: number; height: number };
-  desktopSize?: { width: number; height: number };
 }
 
 const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -1110,8 +924,6 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   alt,
   mobileSize = { width: 200, height: 200 },
   tabletSize = { width: 300, height: 300 },
-  largeTabletSize = { width: 400, height: 400 },
-  desktopSize = { width: 500, height: 500 },
 }) => {
   const { currentBreakpoint } = useResponsive();
 
@@ -1121,10 +933,6 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         return mobileSize;
       case 'tablet':
         return tabletSize;
-      case 'largeTablet':
-        return largeTabletSize;
-      case 'desktop':
-        return desktopSize;
       default:
         return mobileSize;
     }
