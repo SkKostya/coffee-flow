@@ -1,10 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Tab } from '@rneui/themed';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  getResponsiveSpacing,
-  getResponsiveTypography,
-} from '../constants/responsiveStyles';
-import { useColors, useResponsive } from '../hooks';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { useColors } from '../hooks';
 
 interface BottomNavigationProps {
   activeTab: 'map' | 'favorites' | 'profile';
@@ -16,94 +14,110 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   onTabPress,
 }) => {
   const colors = useColors();
-  const { currentBreakpoint } = useResponsive();
-  const spacing = getResponsiveSpacing(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
+
+  // Фиксированные размеры для мобильных устройств
+  const typography = { small: 12 };
 
   const tabs = [
     {
       id: 'map' as const,
-      icon: '🗺️',
+      icon: 'map-outline' as const,
+      activeIcon: 'map' as const,
       label: 'Карта',
     },
     {
       id: 'favorites' as const,
-      icon: '❤️',
+      icon: 'heart-outline' as const,
+      activeIcon: 'heart' as const,
       label: 'Избранные',
     },
     {
       id: 'profile' as const,
-      icon: '👤',
+      icon: 'person-outline' as const,
+      activeIcon: 'person' as const,
       label: 'Профиль',
     },
   ];
 
-  const styles = StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      backgroundColor: colors.backgrounds.card,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.lg,
-      paddingHorizontal: spacing.lg,
-      borderTopWidth: 1,
-      borderTopColor: colors.borders.subtle,
-      shadowColor: colors.shadows.light,
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    tab: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: spacing.xs,
-    },
-    activeTab: {
-      backgroundColor: colors.primary.main,
-      borderRadius: 20,
-      paddingHorizontal: spacing.md,
-    },
-    icon: {
-      fontSize: typography.h3,
-      marginBottom: spacing.xs / 2,
-    },
-    label: {
-      fontSize: typography.small,
-      fontWeight: '500',
-    },
-    activeLabel: {
-      color: colors.primary.contrast,
-    },
-    inactiveLabel: {
-      color: colors.texts.secondary,
-    },
-  });
+  // Стили для контейнера табов
+  const containerStyle: ViewStyle = {
+    backgroundColor: colors.backgrounds.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.borders.subtle,
+    shadowColor: colors.shadows.light,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    // Добавляем непрозрачный фон
+    opacity: 1,
+    // Убеждаемся, что фон полностью непрозрачный
+    zIndex: 1000,
+  };
+
+  // Стили для индикатора таба
+  const indicatorStyle: ViewStyle = {
+    backgroundColor: colors.primary.main,
+    height: 3,
+    borderRadius: 2,
+  };
+
+  // Стили для лейбла таба
+  const labelStyle: TextStyle = {
+    fontSize: typography.small,
+    fontWeight: '500',
+    textTransform: 'none' as const,
+  };
+
+  // Стили для активного лейбла
+  const activeLabelStyle: TextStyle = {
+    ...labelStyle,
+    color: colors.primary.main,
+  };
+
+  // Стили для неактивного лейбла
+  const inactiveLabelStyle: TextStyle = {
+    ...labelStyle,
+    color: colors.texts.secondary,
+  };
 
   return (
-    <View style={styles.container}>
+    <Tab
+      value={tabs.findIndex((tab) => tab.id === activeTab)}
+      onChange={(value) => onTabPress(tabs[value].id)}
+      indicatorStyle={indicatorStyle}
+      containerStyle={containerStyle}
+      variant="default"
+    >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
+        const iconName = isActive ? tab.activeIcon : tab.icon;
 
         return (
-          <TouchableOpacity
+          <Tab.Item
             key={tab.id}
-            style={[styles.tab, isActive && styles.activeTab]}
-            onPress={() => onTabPress(tab.id)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.icon}>{tab.icon}</Text>
-            <Text
-              style={[
-                styles.label,
-                isActive ? styles.activeLabel : styles.inactiveLabel,
-              ]}
-            >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
+            value={tab.id}
+            title={tab.label}
+            titleStyle={isActive ? activeLabelStyle : inactiveLabelStyle}
+            icon={({ size }) => (
+              <Ionicons
+                name={iconName}
+                size={size}
+                color={isActive ? colors.primary.main : colors.texts.secondary}
+              />
+            )}
+            containerStyle={styles.tabContainer}
+          />
         );
       })}
-    </View>
+    </Tab>
   );
 };
+
+const styles = StyleSheet.create({
+  tabContainer: {
+    paddingVertical: 8,
+  },
+});
+
+export default BottomNavigation;

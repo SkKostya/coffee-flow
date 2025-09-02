@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import {
   ScrollView,
   StyleSheet,
@@ -6,21 +6,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { ResponsiveDebugger } from '../src/shared/components';
-import {
-  getResponsiveSpacing,
-  getResponsiveTypography,
-} from '../src/shared/constants/responsiveStyles';
 import { useTheme } from '../src/shared/contexts/ThemeContext';
-import { useColors, useResponsive } from '../src/shared/hooks';
+import { useColors } from '../src/shared/hooks';
 
 export default function Index() {
-  const router = useRouter();
   const colors = useColors();
   const { toggleTheme, theme } = useTheme();
-  const { currentBreakpoint, isMobile } = useResponsive();
-  const spacing = getResponsiveSpacing(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
+
+  // Фиксированные размеры для мобильных устройств
+  const spacing = { lg: 24, xl: 32, md: 16, sm: 8 };
+  const typography = { h1: 32, body: 16, caption: 14, small: 12 };
 
   const styles = StyleSheet.create({
     container: {
@@ -31,6 +26,7 @@ export default function Index() {
       padding: spacing.lg,
     },
     title: {
+      marginTop: 48,
       fontSize: typography.h1,
       fontWeight: 'bold',
       color: colors.texts.primary,
@@ -107,30 +103,82 @@ export default function Index() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/coffeeshops')}
+          onPress={() => router.navigate('/coffee-shops')}
         >
           <Text style={styles.buttonText}>Найти кофейни</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
-          onPress={() => router.push('/auth')}
+          onPress={() => router.navigate('/auth/login')}
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
             Авторизация
           </Text>
         </TouchableOpacity>
 
-        {/* Отладочная информация об адаптивности */}
-        <ResponsiveDebugger />
-
-        {/* Информация об адаптивности */}
-        <View style={styles.deviceInfo}>
-          <Text style={styles.deviceInfoText}>
-            Текущий брейкпоинт: {currentBreakpoint} •{' '}
-            {isMobile ? 'Мобильная' : 'Планшетная'} версия
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/menu')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Меню
           </Text>
-        </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/cart')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Корзина
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/checkout')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Оформление заказа
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/orders')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Мои заказы
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/favorites')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Избранное
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/profile')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Профиль
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/onboarding')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Онбординг
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

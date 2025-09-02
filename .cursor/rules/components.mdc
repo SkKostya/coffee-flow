@@ -9,10 +9,91 @@ alwaysApply: false
 
 ### Основные принципы
 
+- **ВСЕГДА используйте React Native Elements** для базовых UI компонентов
 - Все компоненты должны следовать принципам функционального программирования
 - Используйте TypeScript для типизации пропсов и состояния
 - Компоненты должны быть переиспользуемыми и настраиваемыми через пропсы
 - Следуйте принципу единственной ответственности
+- Экранные компоненты размещаются в папке `app/` с группировкой по модулям
+
+### Структура экранов Coffee Flow
+
+#### 1. Организация экранов
+
+```
+app/                          # Экранные компоненты (Expo Router)
+├── _layout.tsx              # Корневой layout с провайдерами
+├── index.tsx                # Главная страница
+├── onboarding.tsx           # Онбординг
+├── profile.tsx              # Профиль пользователя
+├── favorites.tsx            # Избранные кофейни
+├── orders.tsx               # История заказов
+├── checkout.tsx             # Оформление заказа
+├── cart.tsx                 # Корзина
+├── menu.tsx                 # Меню кофейни
+├── auth/                    # Модуль аутентификации
+│   └── login.tsx           # Экран входа
+└── coffee-shops/            # Модуль кофеен
+    ├── index.tsx            # Список кофеен
+    └── [id].tsx             # Детальная страница кофейни
+```
+
+#### 2. Правила для экранных компонентов
+
+- Каждый экран должен быть в отдельном файле
+- Группируйте связанные экраны в папки по модулям
+- Используйте Expo Router для навигации между экранами
+- Следуйте принципам responsive дизайна для мобильных и планшетов
+
+### React Native Elements
+
+#### 1. Обязательное использование
+
+- **Button** - используйте `@rneui/themed` Button вместо TouchableOpacity
+- **Input** - используйте `@rneui/themed` Input вместо TextInput
+- **Card** - используйте `@rneui/themed` Card для карточек
+- **SearchBar** - используйте `@rneui/themed` SearchBar для поиска
+- **Tab** - используйте `@rneui/themed` Tab для навигации
+- **Text** - используйте `@rneui/themed` Text для текста
+
+#### 2. Импорты React Native Elements
+
+```typescript
+// ✅ ПРАВИЛЬНО - импорт из @rneui/themed
+import { Button, Input, Card, Text, SearchBar, Tab } from '@rneui/themed';
+
+// ❌ НЕПРАВИЛЬНО - импорт из react-native
+import { TouchableOpacity, TextInput, View, Text } from 'react-native';
+```
+
+#### 3. Настройка компонентов
+
+- Используйте `useCoffeeFlowTheme()` для доступа к теме
+- Настраивайте цвета через `color` проп
+- Используйте `variant` проп для разных стилей
+- Применяйте `size` проп для размеров
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование React Native Elements
+const Button: React.FC<ButtonProps> = ({ variant = 'primary' }) => {
+  const { theme } = useCoffeeFlowTheme();
+
+  return (
+    <Button
+      type={variant === 'primary' ? 'solid' : 'outline'}
+      color="primary"
+      title="Нажми меня"
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - кастомная реализация
+const Button = ({ variant = 'primary' }) => (
+  <TouchableOpacity style={customStyles[variant]}>
+    <Text>Нажми меня</Text>
+  </TouchableOpacity>
+);
+```
 
 ### Структура компонента
 
@@ -20,7 +101,9 @@ alwaysApply: false
 
 ```typescript
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { ViewStyle, TextStyle } from 'react-native';
+import { Button, Input, Card } from '@rneui/themed';
+import { useCoffeeFlowTheme } from '../../shared/theme';
 import type { ComponentProps } from '../../types';
 
 interface ButtonProps {
@@ -36,16 +119,22 @@ const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   disabled = false,
 }) => {
-  // Логика компонента
+  const { theme } = useCoffeeFlowTheme();
+
+  // Стили для компонента
+  const buttonStyle: ViewStyle = {
+    // стили
+  };
 
   return (
-    <TouchableOpacity
-      style={[styles.button, styles[variant], disabled && styles.disabled]}
+    <Button
+      title={title}
       onPress={onPress}
+      type={variant === 'primary' ? 'solid' : 'outline'}
+      color="primary"
       disabled={disabled}
-    >
-      <Text style={styles.text}>{title}</Text>
-    </TouchableOpacity>
+      buttonStyle={buttonStyle}
+    />
   );
 };
 
@@ -55,23 +144,24 @@ export default Button;
 #### 2. Импорты
 
 - Импортируйте React в начале файла
-- Группируйте импорты: React, React Native, сторонние библиотеки, локальные
+- Группируйте импорты: React, React Native, React Native Elements, локальные
 - Используйте type imports для типов
 
 ```typescript
 // ✅ ПРАВИЛЬНО - группировка импортов
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ViewStyle, TextStyle } from 'react-native';
+import { Button, Input, Card } from '@rneui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { ButtonProps } from '../../types';
+import { useCoffeeFlowTheme } from '../../shared/theme';
 import { useColors } from '../../shared/hooks/useColors';
-import Colors from '../../shared/constants/Colors';
 
 // ❌ НЕПРАВИЛЬНО - хаотичные импорты
 import { useColors } from '../../shared/hooks/useColors';
 import React from 'react';
-import { View } from 'react-native';
+import { Button } from '@rneui/themed';
 ```
 
 ### Типизация компонентов
@@ -128,12 +218,13 @@ interface FormProps {
 #### 1. Использование цветовой системы
 
 - ВСЕГДА используйте цвета из палитры Colors.ts
-- Используйте хук `useColors()` для темизируемых компонентов
+- Используйте хук `useCoffeeFlowTheme()` для темизации
 - Не используйте хардкодные цвета
 
 ```typescript
 // ✅ ПРАВИЛЬНО - использование цветовой системы
 const Button: React.FC<ButtonProps> = ({ variant = 'primary' }) => {
+  const { theme } = useCoffeeFlowTheme();
   const colors = useColors();
 
   const buttonStyle = {
@@ -143,9 +234,11 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary' }) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.button, buttonStyle]}>
-      {/* содержимое */}
-    </TouchableOpacity>
+    <Button
+      type={variant === 'primary' ? 'solid' : 'outline'}
+      color="primary"
+      buttonStyle={buttonStyle}
+    />
   );
 };
 
@@ -161,6 +254,7 @@ const buttonStyle = {
 - Используйте StyleSheet для создания стилей
 - Группируйте связанные стили
 - Используйте семантические имена для стилей
+- Применяйте стили через props React Native Elements
 
 ```typescript
 // ✅ ПРАВИЛЬНО - организованные стили
@@ -169,20 +263,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.neutral[900],
+  button: {
+    marginTop: 16,
   },
 });
 
+// Использование в компоненте
+<Button
+  title="Нажми меня"
+  buttonStyle={styles.button}
+  containerStyle={styles.container}
+/>
+
 // ❌ НЕПРАВИЛЬНО - инлайн стили
-<View style={{ flex: 1, padding: 16, flexDirection: 'row' }}>
+<Button title="Нажми меня" style={{ marginTop: 16, padding: 16 }} />
 ```
 
 ### Логика компонентов
@@ -205,7 +299,19 @@ const FormComponent: React.FC<FormProps> = ({ onSubmit }) => {
     }
   }, [formData, onSubmit]);
 
-  return <View>{/* форма */}</View>;
+  return (
+    <Card>
+      <Input
+        label="Имя"
+        value={formData.name}
+        onChangeText={(text) =>
+          setFormData((prev) => ({ ...prev, name: text }))
+        }
+        errorMessage={errors.name}
+      />
+      <Button title="Отправить" onPress={handleSubmit} />
+    </Card>
+  );
 };
 
 // ❌ НЕПРАВИЛЬНО - смешивание логики и представления
@@ -232,7 +338,7 @@ const handlePress = useCallback(() => {
 }, [onPress]);
 
 // ❌ НЕПРАВИЛЬНО - прямая передача
-<TouchableOpacity onPress={onPress}>
+<Button onPress={onPress} />;
 ```
 
 ### Переиспользование компонентов
@@ -259,7 +365,16 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
   ...props
 }) => {
-  // логика компонента
+  return (
+    <Button
+      type={variant === 'outline' ? 'outline' : 'solid'}
+      color={variant === 'primary' ? 'primary' : 'secondary'}
+      size={size}
+      disabled={disabled}
+      loading={loading}
+      {...props}
+    />
+  );
 };
 
 // ❌ НЕПРАВИЛЬНО - жестко закодированное поведение
@@ -276,7 +391,7 @@ const Button: React.FC<ButtonProps> = () => {
 ```typescript
 // ✅ ПРАВИЛЬНО - композиция через children
 const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <View style={styles.card}>{children}</View>
+  <Card containerStyle={styles.card}>{children}</Card>
 );
 
 // Использование
@@ -287,10 +402,10 @@ const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // ❌ НЕПРАВИЛЬНО - жестко закодированное содержимое
 const Card: React.FC = () => (
-  <View style={styles.card}>
+  <Card>
     <Text>Заголовок</Text>
     <Text>Описание</Text>
-  </View>
+  </Card>
 );
 ```
 
@@ -314,9 +429,9 @@ const ExpensiveComponent = React.memo<ComponentProps>(({ data, onPress }) => {
   }, [onPress, processedData]);
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-      {/* содержимое */}
-    </TouchableOpacity>
+    <Button onPress={handlePress}>
+      <Text>{processedData}</Text>
+    </Button>
   );
 });
 
@@ -325,9 +440,9 @@ const ExpensiveComponent = ({ data, onPress }) => {
   const processedData = processData(data); // пересчитывается при каждом рендере
 
   return (
-    <TouchableOpacity onPress={() => onPress(processedData)}>
-      {/* содержимое */}
-    </TouchableOpacity>
+    <Button onPress={() => onPress(processedData)}>
+      <Text>{processedData}</Text>
+    </Button>
   );
 };
 ```
@@ -348,19 +463,16 @@ const ExpensiveComponent = ({ data, onPress }) => {
 
 ```typescript
 // ✅ ПРАВИЛЬНО - доступность
-<TouchableOpacity
+<Button
+  title="Кнопка входа в систему"
   accessibilityLabel="Кнопка входа в систему"
   accessibilityHint="Нажмите для входа в систему"
   accessibilityRole="button"
   onPress={handlePress}
->
-  <Text>Войти</Text>
-</TouchableOpacity>
+/>
 
 // ❌ НЕПРАВИЛЬНО - без доступности
-<TouchableOpacity onPress={handlePress}>
-  <Text>Войти</Text>
-</TouchableOpacity>
+<Button onPress={handlePress} />
 ```
 
 #### 2. Контрастность
@@ -411,12 +523,120 @@ describe('Button', () => {
 - ❌ Смешивать логику и представление в одном компоненте
 - ❌ Создавать компоненты без обработки ошибок
 - ❌ Игнорировать доступность и контрастность
+- ❌ Использовать базовые React Native компоненты вместо React Native Elements
 
 ### Рекомендуется
 
+- ✅ ВСЕГДА использовать React Native Elements для базовых UI компонентов
 - ✅ Использовать функциональные компоненты с хуками
 - ✅ Следовать принципу единственной ответственности
 - ✅ Создавать переиспользуемые и настраиваемые компоненты
+- ✅ Использовать мемоизацию для оптимизации
+- ✅ Тестировать все компоненты
+- ✅ Обеспечивать доступность
+- ✅ Использовать `useCoffeeFlowTheme()` для темизации
+- ✅ Размещать экранные компоненты в папке app/ с группировкой по модулям
+
+### React Native Elements компоненты
+
+#### Основные компоненты для использования:
+
+1. **Button** - для всех кнопок
+2. **Input** - для текстовых полей
+3. **Card** - для карточек и контейнеров
+4. **Text** - для текста
+5. **SearchBar** - для поиска
+6. **Tab** - для навигации
+7. **Icon** - для иконок
+8. **Divider** - для разделителей
+9. **Overlay** - для модальных окон
+10. **FAB** - для плавающих кнопок действий
+
+#### Примеры использования:
+
+```typescript
+// Кнопка
+<Button title="Нажми меня" type="solid" color="primary" />
+
+// Поле ввода
+<Input label="Имя" placeholder="Введите имя" />
+
+// Карточка
+<Card>
+  <Card.Title>Заголовок</Card.Title>
+  <Card.Divider />
+  <Text>Содержимое</Text>
+</Card>
+
+// Поиск
+<SearchBar placeholder="Поиск..." />
+
+// Табы
+<Tab value={activeTab} onChange={setActiveTab}>
+  <Tab.Item title="Первый" value="first" />
+  <Tab.Item title="Второй" value="second" />
+</Tab>
+```
+
+### Экранные компоненты
+
+#### 1. Структура экрана
+
+```typescript
+// ✅ ПРАВИЛЬНО - структура экрана
+import React from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Text, Button } from '@rneui/themed';
+import { useCoffeeFlowTheme } from '../../shared/theme';
+
+interface ScreenProps {
+  navigation: any; // замените на правильный тип навигации
+}
+
+const Screen: React.FC<ScreenProps> = ({ navigation }) => {
+  const { theme } = useCoffeeFlowTheme();
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text h1>Заголовок экрана</Text>
+      <Button title="Действие" onPress={() => {}} />
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
+
+export default Screen;
+```
+
+#### 2. Навигация между экранами
+
+```typescript
+// ✅ ПРАВИЛЬНО - навигация
+import { router } from 'expo-router';
+
+const handleNavigation = () => {
+  router.navigate('/coffee-shops');
+};
+
+// Для параметризованных маршрутов
+const handleCoffeeShopPress = (id: string) => {
+  router.navigate({
+    pathname: '/coffee-shops/[id]',
+    params: { id },
+  });
+};
+```
+
+### Заключение
+
+Следуя этим правилам, вы создадите качественные, переиспользуемые и поддерживаемые компоненты для Coffee Flow. **Помните**: ВСЕГДА используйте React Native Elements для базовых UI компонентов и размещайте экранные компоненты в папке `app/` с группировкой по модулям.
+
 - ✅ Использовать мемоизацию для оптимизации
 - ✅ Тестировать все компоненты
 - ✅ Обеспечивать доступность

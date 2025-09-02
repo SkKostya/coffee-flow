@@ -1,24 +1,34 @@
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  getResponsiveLogoSize,
-  getResponsiveSpacing,
-} from '../../shared/constants/responsiveStyles';
-import useResponsive from '../../shared/hooks/useResponsive';
+import { useColors } from '../../shared/hooks/useColors';
 
 const CoffeeLogo: React.FC = () => {
-  const { currentBreakpoint } = useResponsive();
+  const colors = useColors();
 
-  const logoSize = getResponsiveLogoSize(currentBreakpoint);
-  const spacing = getResponsiveSpacing(currentBreakpoint);
+  // Фиксированные размеры для мобильных устройств
+  const logoSize = { width: 120, height: 120 };
+  const spacing = { xxl: 32 };
 
   return (
     <View style={[styles.logoContainer, { marginBottom: spacing.xxl }]}>
-      <Image
-        source={require('../../../assets/images/splash-icon.png')}
-        style={{ width: logoSize.width, height: logoSize.height }}
-      />
+      <View
+        style={[
+          styles.logoWrapper,
+          {
+            width: logoSize.width,
+            height: logoSize.height,
+          },
+        ]}
+      >
+        <Image
+          source={require('../../../assets/images/splash-icon.png')}
+          style={[
+            styles.logo,
+            { width: logoSize.width, height: logoSize.height },
+          ]}
+        />
+      </View>
     </View>
   );
 };
@@ -26,6 +36,14 @@ const CoffeeLogo: React.FC = () => {
 const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
+  },
+  logoWrapper: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+  },
+  logo: {
+    borderRadius: 20,
   },
 });
 

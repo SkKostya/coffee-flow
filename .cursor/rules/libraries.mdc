@@ -1,0 +1,528 @@
+---
+description: Использовать для работы с устанавливаемыми пакетами, модулями и библиотеками
+alwaysApply: false
+---
+
+# Coffee Flow Libraries Usage Rules
+
+## Правила использования готовых библиотек
+
+### Основные принципы
+
+- **ВСЕГДА сначала ищите готовые решения** перед написанием кастомного кода
+- Используйте проверенные библиотеки для сложных UI компонентов и анимаций
+- Отдавайте предпочтение библиотекам с активной поддержкой и хорошей документацией
+- Избегайте "велосипедостроения" для стандартных задач
+
+### Когда использовать готовые библиотеки
+
+#### 1. UI компоненты и анимации
+
+- **Bottom sheets и модальные окна** - `@gorhom/bottom-sheet`, `react-native-modal`
+- **Анимации и жесты** - `react-native-reanimated`, `react-native-gesture-handler`
+- **Сложные формы** - `react-hook-form`, `formik`
+- **Навигация** - `@react-navigation/native`, `expo-router`
+- **Карты** - `react-native-maps`, `expo-location`
+
+#### 2. Функциональность
+
+- **HTTP запросы** - `axios`, `react-query`, `swr`
+- **Состояние приложения** - `zustand`, `redux-toolkit`, `jotai`
+- **Локальное хранилище** - `@react-native-async-storage/async-storage`
+- **Уведомления** - `expo-notifications`, `react-native-push-notification`
+- **Аналитика** - `expo-analytics`, `react-native-firebase`
+
+### Рекомендуемые библиотеки для Coffee Flow
+
+#### UI и анимации
+
+```typescript
+// ✅ РЕКОМЕНДУЕТСЯ - готовые библиотеки
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { Modal } from 'react-native-modal';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// ❌ НЕ РЕКОМЕНДУЕТСЯ - кастомная реализация
+const CustomBottomSheet = () => {
+  // сложная логика с useSharedValue, withSpring и т.д.
+};
+```
+
+#### Формы и валидация
+
+```typescript
+// ✅ РЕКОМЕНДУЕТСЯ - готовые библиотеки
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+// ❌ НЕ РЕКОМЕНДУЕТСЯ - кастомная реализация
+const CustomForm = () => {
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  // сложная логика валидации и управления состоянием
+};
+```
+
+### Процесс выбора библиотеки
+
+#### 1. Анализ задачи
+
+- Определите, является ли задача стандартной или уникальной
+- Оцените сложность кастомной реализации
+- Рассмотрите время разработки и поддержки
+
+#### 2. Поиск библиотек
+
+- Изучите популярные решения в экосистеме React Native
+- Проверьте количество звезд на GitHub и последние обновления
+- Прочитайте документацию и примеры использования
+
+#### 3. Оценка качества
+
+- **Активность разработки** - последний коммит не старше 6 месяцев
+- **Количество загрузок** - минимум 10k+ еженедельно
+- **Размер бандла** - не должен значительно увеличивать размер приложения
+- **Совместимость** - должна работать с текущими версиями зависимостей
+
+### Примеры использования в Coffee Flow
+
+#### Bottom Sheet для списка кофеен
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование @gorhom/bottom-sheet
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+
+export const CoffeeShopsList: React.FC<CoffeeShopsListProps> = ({
+  coffeeShops,
+  onCoffeeShopPress,
+}) => {
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['30%', '80%'], []);
+
+  return (
+    <BottomSheetModal ref={bottomSheetRef} snapPoints={snapPoints} index={0}>
+      <BottomSheetView>{/* Содержимое списка */}</BottomSheetView>
+    </BottomSheetModal>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - кастомная реализация с react-native-reanimated
+const CustomBottomSheet = () => {
+  const height = useSharedValue(SCREEN_HEIGHT * 0.3);
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+  // ~100 строк сложной анимации
+};
+```
+
+#### Форма аутентификации
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование react-hook-form
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+const AuthForm = () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
+
+  return (
+    <Controller
+      control={control}
+      name="phoneNumber"
+      render={({ field: { onChange, value } }) => (
+        <Input
+          value={value}
+          onChangeText={onChange}
+          errorMessage={errors.phoneNumber?.message}
+        />
+      )}
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - кастомная реализация
+const CustomAuthForm = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [isValid, setIsValid] = useState(false);
+  // сложная логика валидации и управления состоянием
+};
+```
+
+### Интеграция с правилами проекта
+
+#### 1. React Native Elements
+
+- Используйте готовые библиотеки для сложных компонентов
+- React Native Elements остается основным для базовых UI элементов
+- Комбинируйте библиотеки для создания богатого пользовательского опыта
+
+#### 2. TypeScript
+
+- Всегда типизируйте использование внешних библиотек
+- Создавайте wrapper компоненты для лучшей интеграции
+- Используйте generic типы для гибкости
+
+#### 3. Архитектура
+
+- Размещайте wrapper компоненты в соответствующих модулях
+- Создавайте адаптеры для интеграции с цветовой системой
+- Следуйте принципам модульности
+
+### Установка и настройка библиотек
+
+#### 1. Установка
+
+```bash
+# Основная библиотека
+pnpm add @gorhom/bottom-sheet
+
+# Зависимости (если нужны)
+pnpm add react-native-reanimated react-native-gesture-handler
+```
+
+#### 2. Настройка
+
+- Следуйте инструкциям по установке из документации
+- Настройте необходимые провайдеры и конфигурации
+- Протестируйте на разных устройствах
+
+#### 3. Интеграция с темой
+
+```typescript
+// ✅ ПРАВИЛЬНО - интеграция с цветовой системой
+const { colors } = useColors();
+
+<BottomSheetModal
+  backgroundStyle={{
+    backgroundColor: colors.backgrounds.card,
+  }}
+  handleIndicatorStyle={{
+    backgroundColor: colors.backgrounds.primary,
+  }}
+>
+  {/* Содержимое */}
+</BottomSheetModal>;
+```
+
+### Запрещено
+
+- ❌ Создавать кастомные реализации стандартных компонентов без веской причины
+- ❌ Использовать устаревшие или неподдерживаемые библиотеки
+- ❌ Игнорировать размер бандла и производительность
+- ❌ Не читать документацию перед использованием
+
+### Рекомендуется
+
+- ✅ Всегда искать готовые решения перед написанием кастомного кода
+- ✅ Использовать проверенные библиотеки с активной поддержкой
+- ✅ Интегрировать библиотеки с цветовой системой и темой проекта
+- ✅ Создавать wrapper компоненты для лучшей интеграции
+- ✅ Тестировать библиотеки на разных устройствах
+- ✅ Документировать использование внешних библиотек
+
+### Примеры библиотек для Coffee Flow
+
+#### UI компоненты
+
+1. **@gorhom/bottom-sheet** - для bottom sheets и модальных окон
+2. **react-native-modal** - для простых модальных окон
+3. **react-native-slide-up-panel** - для slide-up панелей
+4. **react-native-super-grid** - для адаптивных grid макетов
+
+#### Анимации и жесты
+
+1. **react-native-reanimated** - для сложных анимаций
+2. **react-native-gesture-handler** - для жестов
+3. **lottie-react-native** - для Lottie анимаций
+4. **react-native-svg** - для SVG анимаций
+
+#### Формы и валидация
+
+1. **react-hook-form** - для управления формами
+2. **@hookform/resolvers** - для интеграции с валидаторами
+3. **yup** - для схем валидации
+4. **zod** - для TypeScript-first валидации
+
+#### Состояние и данные
+
+1. **zustand** - для простого управления состоянием
+2. **react-query** - для серверного состояния
+3. **@tanstack/react-query** - для современного react-query
+4. **swr** - для альтернативы react-query
+
+### Заключение
+
+Использование готовых библиотек значительно ускоряет разработку и повышает качество кода. В Coffee Flow мы отдаем предпочтение проверенным решениям, которые интегрируются с нашей архитектурой и дизайн-системой.
+
+**Помните**: Лучше потратить время на изучение и интеграцию готовой библиотеки, чем на написание кастомного решения, которое потребует постоянной поддержки и может содержать ошибки.
+
+# Coffee Flow Libraries Usage Rules
+
+## Правила использования готовых библиотек
+
+### Основные принципы
+
+- **ВСЕГДА сначала ищите готовые решения** перед написанием кастомного кода
+- Используйте проверенные библиотеки для сложных UI компонентов и анимаций
+- Отдавайте предпочтение библиотекам с активной поддержкой и хорошей документацией
+- Избегайте "велосипедостроения" для стандартных задач
+
+### Когда использовать готовые библиотеки
+
+#### 1. UI компоненты и анимации
+
+- **Bottom sheets и модальные окна** - `@gorhom/bottom-sheet`, `react-native-modal`
+- **Анимации и жесты** - `react-native-reanimated`, `react-native-gesture-handler`
+- **Сложные формы** - `react-hook-form`, `formik`
+- **Навигация** - `@react-navigation/native`, `expo-router`
+- **Карты** - `react-native-maps`, `expo-location`
+
+#### 2. Функциональность
+
+- **HTTP запросы** - `axios`, `react-query`, `swr`
+- **Состояние приложения** - `zustand`, `redux-toolkit`, `jotai`
+- **Локальное хранилище** - `@react-native-async-storage/async-storage`
+- **Уведомления** - `expo-notifications`, `react-native-push-notification`
+- **Аналитика** - `expo-analytics`, `react-native-firebase`
+
+### Рекомендуемые библиотеки для Coffee Flow
+
+#### UI и анимации
+
+```typescript
+// ✅ РЕКОМЕНДУЕТСЯ - готовые библиотеки
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { Modal } from 'react-native-modal';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// ❌ НЕ РЕКОМЕНДУЕТСЯ - кастомная реализация
+const CustomBottomSheet = () => {
+  // сложная логика с useSharedValue, withSpring и т.д.
+};
+```
+
+#### Формы и валидация
+
+```typescript
+// ✅ РЕКОМЕНДУЕТСЯ - готовые библиотеки
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+// ❌ НЕ РЕКОМЕНДУЕТСЯ - кастомная реализация
+const CustomForm = () => {
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  // сложная логика валидации и управления состоянием
+};
+```
+
+### Процесс выбора библиотеки
+
+#### 1. Анализ задачи
+
+- Определите, является ли задача стандартной или уникальной
+- Оцените сложность кастомной реализации
+- Рассмотрите время разработки и поддержки
+
+#### 2. Поиск библиотек
+
+- Изучите популярные решения в экосистеме React Native
+- Проверьте количество звезд на GitHub и последние обновления
+- Прочитайте документацию и примеры использования
+
+#### 3. Оценка качества
+
+- **Активность разработки** - последний коммит не старше 6 месяцев
+- **Количество загрузок** - минимум 10k+ еженедельно
+- **Размер бандла** - не должен значительно увеличивать размер приложения
+- **Совместимость** - должна работать с текущими версиями зависимостей
+
+### Примеры использования в Coffee Flow
+
+#### Bottom Sheet для списка кофеен
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование @gorhom/bottom-sheet
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+
+export const CoffeeShopsList: React.FC<CoffeeShopsListProps> = ({
+  coffeeShops,
+  onCoffeeShopPress,
+}) => {
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ['30%', '80%'], []);
+
+  return (
+    <BottomSheetModal ref={bottomSheetRef} snapPoints={snapPoints} index={0}>
+      <BottomSheetView>{/* Содержимое списка */}</BottomSheetView>
+    </BottomSheetModal>
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - кастомная реализация с react-native-reanimated
+const CustomBottomSheet = () => {
+  const height = useSharedValue(SCREEN_HEIGHT * 0.3);
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+  // ~100 строк сложной анимации
+};
+```
+
+#### Форма аутентификации
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование react-hook-form
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+const AuthForm = () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
+
+  return (
+    <Controller
+      control={control}
+      name="phoneNumber"
+      render={({ field: { onChange, value } }) => (
+        <Input
+          value={value}
+          onChangeText={onChange}
+          errorMessage={errors.phoneNumber?.message}
+        />
+      )}
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - кастомная реализация
+const CustomAuthForm = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [isValid, setIsValid] = useState(false);
+  // сложная логика валидации и управления состоянием
+};
+```
+
+### Интеграция с правилами проекта
+
+#### 1. React Native Elements
+
+- Используйте готовые библиотеки для сложных компонентов
+- React Native Elements остается основным для базовых UI элементов
+- Комбинируйте библиотеки для создания богатого пользовательского опыта
+
+#### 2. TypeScript
+
+- Всегда типизируйте использование внешних библиотек
+- Создавайте wrapper компоненты для лучшей интеграции
+- Используйте generic типы для гибкости
+
+#### 3. Архитектура
+
+- Размещайте wrapper компоненты в соответствующих модулях
+- Создавайте адаптеры для интеграции с цветовой системой
+- Следуйте принципам модульности
+
+### Установка и настройка библиотек
+
+#### 1. Установка
+
+```bash
+# Основная библиотека
+pnpm add @gorhom/bottom-sheet
+
+# Зависимости (если нужны)
+pnpm add react-native-reanimated react-native-gesture-handler
+```
+
+#### 2. Настройка
+
+- Следуйте инструкциям по установке из документации
+- Настройте необходимые провайдеры и конфигурации
+- Протестируйте на разных устройствах
+
+#### 3. Интеграция с темой
+
+```typescript
+// ✅ ПРАВИЛЬНО - интеграция с цветовой системой
+const { colors } = useColors();
+
+<BottomSheetModal
+  backgroundStyle={{
+    backgroundColor: colors.backgrounds.card,
+  }}
+  handleIndicatorStyle={{
+    backgroundColor: colors.backgrounds.primary,
+  }}
+>
+  {/* Содержимое */}
+</BottomSheetModal>;
+```
+
+### Запрещено
+
+- ❌ Создавать кастомные реализации стандартных компонентов без веской причины
+- ❌ Использовать устаревшие или неподдерживаемые библиотеки
+- ❌ Игнорировать размер бандла и производительность
+- ❌ Не читать документацию перед использованием
+
+### Рекомендуется
+
+- ✅ Всегда искать готовые решения перед написанием кастомного кода
+- ✅ Использовать проверенные библиотеки с активной поддержкой
+- ✅ Интегрировать библиотеки с цветовой системой и темой проекта
+- ✅ Создавать wrapper компоненты для лучшей интеграции
+- ✅ Тестировать библиотеки на разных устройствах
+- ✅ Документировать использование внешних библиотек
+
+### Примеры библиотек для Coffee Flow
+
+#### UI компоненты
+
+1. **@gorhom/bottom-sheet** - для bottom sheets и модальных окон
+2. **react-native-modal** - для простых модальных окон
+3. **react-native-slide-up-panel** - для slide-up панелей
+4. **react-native-super-grid** - для адаптивных grid макетов
+
+#### Анимации и жесты
+
+1. **react-native-reanimated** - для сложных анимаций
+2. **react-native-gesture-handler** - для жестов
+3. **lottie-react-native** - для Lottie анимаций
+4. **react-native-svg** - для SVG анимаций
+
+#### Формы и валидация
+
+1. **react-hook-form** - для управления формами
+2. **@hookform/resolvers** - для интеграции с валидаторами
+3. **yup** - для схем валидации
+4. **zod** - для TypeScript-first валидации
+
+#### Состояние и данные
+
+1. **zustand** - для простого управления состоянием
+2. **react-query** - для серверного состояния
+3. **@tanstack/react-query** - для современного react-query
+4. **swr** - для альтернативы react-query
+
+### Заключение
+
+Использование готовых библиотек значительно ускоряет разработку и повышает качество кода. В Coffee Flow мы отдаем предпочтение проверенным решениям, которые интегрируются с нашей архитектурой и дизайн-системой.
+
+**Помните**: Лучше потратить время на изучение и интеграцию готовой библиотеки, чем на написание кастомного решения, которое потребует постоянной поддержки и может содержать ошибки.

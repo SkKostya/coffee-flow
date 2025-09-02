@@ -1,17 +1,10 @@
+import {
+  Button as RNEButton,
+  ButtonProps as RNEButtonProps,
+} from '@rneui/themed';
 import React from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  ViewStyle,
-} from 'react-native';
-import {
-  getResponsiveFormSizes,
-  getResponsiveTypography,
-} from '../../shared/constants/responsiveStyles';
-import useColors from '../../shared/hooks/useColors';
-import useResponsive from '../../shared/hooks/useResponsive';
+import { ViewStyle } from 'react-native';
+import { useColors } from '../../shared/hooks/useColors';
 
 interface ButtonProps {
   title: string;
@@ -31,98 +24,62 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
 }) => {
   const colors = useColors();
-  const { currentBreakpoint } = useResponsive();
-
-  const formSizes = getResponsiveFormSizes(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
 
   const isDisabled = disabled || loading;
 
-  const buttonStyle =
-    variant === 'primary'
-      ? [
-          styles.button,
-          styles.primaryButton,
-          {
-            backgroundColor: isDisabled
-              ? colors.colors.neutral[300]
-              : colors.colors.primary[500],
-            height: formSizes.buttonHeight,
-            borderRadius: formSizes.borderRadius,
-            marginBottom: formSizes.gap / 2,
-          },
-          style,
-        ]
-      : [
-          styles.button,
-          styles.secondaryButton,
-          {
-            backgroundColor: colors.backgrounds.input,
-            borderColor: isDisabled
-              ? colors.colors.neutral[300]
-              : colors.colors.primary[500],
-            borderWidth: 1,
-            height: formSizes.buttonHeight,
-            borderRadius: formSizes.borderRadius,
-            marginBottom: formSizes.gap / 2,
-          },
-          style,
-        ];
+  // Определяем тип кнопки для React Native Elements
+  const buttonType: RNEButtonProps['type'] =
+    variant === 'primary' ? 'solid' : 'outline';
 
-  const textStyle = [
-    styles.buttonText,
-    {
-      fontSize: typography.body,
-      lineHeight: typography.body,
-      color:
-        variant === 'primary'
-          ? colors.colors.white
-          : isDisabled
-          ? colors.colors.neutral[400]
-          : colors.colors.primary[500],
-    },
-  ];
+  // Определяем цвет кнопки
+  const buttonColor = variant === 'primary' ? 'primary' : 'secondary';
+
+  // Фиксированные размеры для мобильных устройств
+  const buttonHeight = 48;
+  const borderRadius = 12;
+  const fontSize = 16;
+  const gap = 16;
+
+  // Стили для кнопки
+  const buttonStyle: ViewStyle = {
+    height: buttonHeight,
+    borderRadius: borderRadius,
+    ...style,
+  };
+
+  // Стили для текста
+  const titleStyle = {
+    fontSize: fontSize,
+    lineHeight: fontSize,
+    fontWeight: '600' as const,
+    color:
+      variant === 'primary' ? colors.texts.primary : colors.colors.primary[500],
+  };
+
+  // Стили для контейнера кнопки
+  const containerStyle = {
+    marginBottom: gap / 2,
+    borderRadius: borderRadius,
+    overflow: 'hidden' as const,
+  };
 
   return (
-    <TouchableOpacity
-      style={buttonStyle}
+    <RNEButton
+      title={title}
       onPress={onPress}
+      type={buttonType}
+      color={buttonColor}
       disabled={isDisabled}
+      loading={loading}
+      buttonStyle={buttonStyle}
+      titleStyle={titleStyle}
+      containerStyle={containerStyle}
       activeOpacity={isDisabled ? 1 : 0.8}
-    >
-      {loading ? (
-        <ActivityIndicator
-          color={
-            variant === 'primary'
-              ? colors.colors.white
-              : colors.colors.primary[500]
-          }
-          size="small"
-        />
-      ) : (
-        <Text style={textStyle}>{title}</Text>
-      )}
-    </TouchableOpacity>
+      // Добавляем дополнительные пропсы для лучшего внешнего вида
+      raised={variant === 'primary'}
+      radius={borderRadius}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    cursor: 'pointer',
-  },
-  primaryButton: {
-    // Primary button styles are applied inline
-  },
-  secondaryButton: {
-    // Secondary button styles are applied inline
-  },
-  buttonText: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-});
 
 export default Button;

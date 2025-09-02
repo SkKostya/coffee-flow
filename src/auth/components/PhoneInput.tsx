@@ -1,12 +1,8 @@
+import { Input } from '@rneui/themed';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import MaskInput from 'react-native-mask-input';
-import {
-  getResponsiveFormSizes,
-  getResponsiveTypography,
-} from '../../shared/constants/responsiveStyles';
-import useColors from '../../shared/hooks/useColors';
-import useResponsive from '../../shared/hooks/useResponsive';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { useMaskedInputProps } from 'react-native-mask-input';
+import { useColors } from '../../shared/hooks/useColors';
 
 interface PhoneInputProps {
   label: string;
@@ -24,98 +20,87 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   isInvalid = false,
 }) => {
   const colors = useColors();
-  const { currentBreakpoint } = useResponsive();
 
-  const formSizes = getResponsiveFormSizes(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
+  const maskedInputProps = useMaskedInputProps({
+    mask: [
+      '+',
+      /\d/,
+      ' ',
+      '(',
+      /\d/,
+      /\d/,
+      /\d/,
+      ')',
+      ' ',
+      /\d/,
+      /\d/,
+      /\d/,
+      '-',
+      /\d/,
+      /\d/,
+      '-',
+      /\d/,
+      /\d/,
+    ],
+    value: value,
+    onChangeText: onChangeText,
+  });
+
+  // Фиксированные размеры для мобильных устройств
+  const formSizes = { gap: 16 };
+  const typography = { body: 16, caption: 14 };
+
+  // Стили для контейнера инпута
+  const containerStyle: ViewStyle = {
+    marginBottom: 12,
+  };
+
+  // Стили для лейбла
+  const labelStyle: TextStyle = {
+    color: colors.texts.secondary,
+    fontSize: typography.body,
+    marginBottom: formSizes.gap / 4,
+    fontWeight: '500',
+  };
+
+  // Стили для текста ошибки
+  const errorStyle: TextStyle = {
+    color: colors.colors.error[500],
+    fontSize: typography.caption,
+    marginTop: error ? formSizes.gap / 4 : 0,
+    marginBottom: 0,
+    marginLeft: formSizes.gap / 6,
+    fontWeight: '400',
+  };
 
   return (
-    <View style={styles.inputContainer}>
-      <Text
-        style={[
-          styles.inputLabel,
-          {
-            color: colors.texts.secondary,
-            fontSize: typography.body,
-            marginBottom: formSizes.gap / 4,
-          },
-        ]}
-      >
-        {label}
-      </Text>
-      <MaskInput
-        style={[
-          styles.inputField,
-          {
-            backgroundColor: colors.backgrounds.input,
-            color: colors.texts.primary,
-            borderColor: isInvalid
-              ? colors.colors.error[500]
-              : colors.borders.primary,
-            borderWidth: isInvalid ? 2 : 1,
-            height: formSizes.inputHeight,
-            borderRadius: formSizes.borderRadius,
-            paddingHorizontal: formSizes.paddingHorizontal / 2,
-            fontSize: typography.body,
-          },
-        ]}
-        placeholder="+7 (___) ___-__-__"
-        placeholderTextColor={colors.texts.disabled}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType="phone-pad"
-        mask={[
-          '+',
-          /\d/,
-          ' ',
-          '(',
-          /\d/,
-          /\d/,
-          /\d/,
-          ')',
-          ' ',
-          /\d/,
-          /\d/,
-          /\d/,
-          '-',
-          /\d/,
-          /\d/,
-          '-',
-          /\d/,
-          /\d/,
-        ]}
-      />
-      {error && (
-        <Text
-          style={[
-            styles.errorText,
-            {
-              color: colors.colors.error[500],
-              fontSize: typography.caption,
-              marginTop: formSizes.gap / 4,
-              marginLeft: formSizes.gap / 6,
-            },
-          ]}
-        >
-          {error}
-        </Text>
-      )}
-    </View>
+    <Input
+      label={label}
+      errorMessage={error}
+      containerStyle={containerStyle}
+      labelStyle={labelStyle}
+      errorStyle={errorStyle}
+      {...maskedInputProps}
+      placeholder="+7 (___) ___-__-__"
+      keyboardType="phone-pad"
+      // Используем цвета темы React Native Elements
+      inputContainerStyle={[
+        styles.inputContainer,
+        {
+          backgroundColor: colors.backgrounds.input,
+          borderColor: isInvalid
+            ? colors.colors.error[500]
+            : colors.borders.primary,
+          borderWidth: isInvalid ? 2 : 1,
+        },
+      ]}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   inputContainer: {
-    marginBottom: 12,
-  },
-  inputLabel: {
-    fontWeight: '500',
-  },
-  inputField: {
-    borderWidth: 1,
-  },
-  errorText: {
-    fontWeight: '400',
+    // Стили для контейнера инпута
   },
 });
 

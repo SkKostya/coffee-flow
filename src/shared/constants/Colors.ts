@@ -1,7 +1,7 @@
 // Color palette for Coffee Flow app
 // Based on the comprehensive color system
 
-export const Colors = {
+const Colors = {
   // Primary Colors (Orange/Brown tones)
   primary: {
     50: '#FDF9F5',

@@ -1,18 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Input } from '@rneui/themed';
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {
-  getResponsiveFormSizes,
-  getResponsiveTypography,
-} from '../../shared/constants/responsiveStyles';
-import useColors from '../../shared/hooks/useColors';
-import useResponsive from '../../shared/hooks/useResponsive';
+import { TextStyle, ViewStyle } from 'react-native';
+import { useColors } from '../../shared/hooks/useColors';
 
 interface PasswordInputProps {
   label: string;
@@ -32,117 +22,81 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   isInvalid = false,
 }) => {
   const colors = useColors();
-  const { currentBreakpoint } = useResponsive();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-  const formSizes = getResponsiveFormSizes(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
+  // Фиксированные размеры для мобильных устройств
+  const formSizes = { inputHeight: 48, gap: 16 };
+  const typography = { body: 16, caption: 14 };
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
+  // Стили для контейнера инпута
+  const containerStyle: ViewStyle = {
+    marginBottom: 12,
+  };
+
+  // Стили для самого инпута
+  const inputStyle: TextStyle = {
+    height: formSizes.inputHeight,
+    fontSize: typography.body,
+  };
+
+  // Стили для лейбла
+  const labelStyle: TextStyle = {
+    color: colors.texts.secondary,
+    fontSize: typography.body,
+    marginBottom: formSizes.gap / 4,
+    fontWeight: '500',
+  };
+
+  // Стили для текста ошибки
+  const errorStyle: TextStyle = {
+    color: colors.colors.error[500],
+    fontSize: typography.caption,
+    marginTop: formSizes.gap / 4,
+    marginLeft: formSizes.gap / 6,
+    fontWeight: '400',
+  };
+
+  // Правая иконка для показа/скрытия пароля
+  const rightIcon = (
+    <Ionicons
+      name={isPasswordVisible ? 'eye-off' : 'eye'}
+      size={20}
+      color={colors.texts.secondary}
+      onPress={togglePasswordVisibility}
+    />
+  );
+
   return (
-    <View style={styles.inputContainer}>
-      <Text
-        style={[
-          styles.inputLabel,
-          {
-            color: colors.texts.secondary,
-            fontSize: typography.body,
-            marginBottom: formSizes.gap / 4,
-          },
-        ]}
-      >
-        {label}
-      </Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={[
-            styles.inputField,
-            {
-              backgroundColor: colors.backgrounds.input,
-              color: colors.texts.primary,
-              borderColor: isInvalid
-                ? colors.colors.error[500]
-                : colors.borders.primary,
-              borderWidth: isInvalid ? 2 : 1,
-              height: formSizes.inputHeight,
-              borderRadius: formSizes.borderRadius,
-              paddingHorizontal: formSizes.paddingHorizontal / 2,
-              paddingRight: formSizes.inputHeight, // Место для кнопки глаза
-              fontSize: typography.body,
-            },
-          ]}
-          placeholder={placeholder}
-          placeholderTextColor={colors.texts.disabled}
-          value={value}
-          onChangeText={onChangeText}
-          secureTextEntry={!isPasswordVisible}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={[
-            styles.eyeButton,
-            {
-              right: 0,
-              top: 0,
-              height: formSizes.inputHeight,
-              width: formSizes.inputHeight,
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          ]}
-          onPress={togglePasswordVisibility}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name={isPasswordVisible ? 'eye-off' : 'eye'}
-            size={20}
-            color={colors.texts.secondary}
-          />
-        </TouchableOpacity>
-      </View>
-      {error && (
-        <Text
-          style={[
-            styles.errorText,
-            {
-              color: colors.colors.error[500],
-              fontSize: typography.caption,
-              marginTop: formSizes.gap / 4,
-              marginLeft: formSizes.gap / 6,
-            },
-          ]}
-        >
-          {error}
-        </Text>
-      )}
-    </View>
+    <Input
+      label={label}
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      secureTextEntry={!isPasswordVisible}
+      autoCapitalize="none"
+      autoCorrect={false}
+      errorMessage={error}
+      rightIcon={rightIcon}
+      containerStyle={containerStyle}
+      inputStyle={inputStyle}
+      labelStyle={labelStyle}
+      errorStyle={errorStyle}
+      // Используем цвета темы React Native Elements
+      inputContainerStyle={[
+        {
+          backgroundColor: colors.backgrounds.input,
+          borderColor: isInvalid
+            ? colors.colors.error[500]
+            : colors.borders.primary,
+          borderWidth: isInvalid ? 2 : 1,
+        },
+      ]}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  inputContainer: {
-    marginBottom: 12,
-  },
-  inputLabel: {
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    position: 'relative',
-  },
-  inputField: {
-    borderWidth: 1,
-  },
-  eyeButton: {
-    position: 'absolute',
-    padding: 4,
-  },
-  errorText: {
-    fontWeight: '400',
-  },
-});
 
 export default PasswordInput;

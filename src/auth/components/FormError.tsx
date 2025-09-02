@@ -1,11 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Card, Text } from '@rneui/themed';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import {
-  getResponsiveFormSizes,
-  getResponsiveTypography,
-} from '../../shared/constants/responsiveStyles';
-import useColors from '../../shared/hooks/useColors';
-import useResponsive from '../../shared/hooks/useResponsive';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { useColors } from '../../shared/hooks/useColors';
 
 interface FormErrorProps {
   message?: string;
@@ -13,48 +10,77 @@ interface FormErrorProps {
 
 const FormError: React.FC<FormErrorProps> = ({ message }) => {
   const colors = useColors();
-  const { currentBreakpoint } = useResponsive();
 
-  const formSizes = getResponsiveFormSizes(currentBreakpoint);
-  const typography = getResponsiveTypography(currentBreakpoint);
+  // Фиксированные размеры для мобильных устройств
+  const formSizes = { borderRadius: 12, gap: 16 };
+  const typography = { caption: 14, body: 16 };
 
   if (!message) return null;
 
+  // Стили для контейнера ошибки
+  const containerStyle: ViewStyle = {
+    borderRadius: formSizes.borderRadius,
+    padding: formSizes.gap,
+    marginBottom: formSizes.gap,
+    borderWidth: 1,
+    // Добавляем тень для лучшего внешнего вида
+    shadowColor: colors.colors.error[500],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  };
+
+  // Стили для текста ошибки
+  const textStyle: TextStyle = {
+    color: colors.colors.error[500],
+    fontSize: typography.caption,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: typography.caption * 1.4,
+  };
+
   return (
-    <View
-      style={[
+    <Card
+      containerStyle={[
         styles.errorContainer,
+        containerStyle,
         {
-          borderRadius: formSizes.borderRadius / 2,
-          padding: formSizes.gap / 2,
-          marginBottom: formSizes.gap / 2,
+          backgroundColor: `${colors.colors.error[500]}10`, // 10% прозрачности
+          borderColor: `${colors.colors.error[500]}30`, // 30% прозрачности
         },
       ]}
     >
-      <Text
-        style={[
-          styles.errorText,
-          {
-            color: colors.colors.error[500],
-            fontSize: typography.caption,
-          },
-        ]}
-      >
-        {message}
-      </Text>
-    </View>
+      <View style={styles.errorHeader}>
+        <Ionicons
+          name="alert-circle"
+          size={24}
+          color={colors.colors.error[500]}
+          style={styles.errorIcon}
+        />
+        <Text
+          style={[textStyle, { fontSize: typography.body, fontWeight: '600' }]}
+        >
+          Ошибка
+        </Text>
+      </View>
+      <Text style={[textStyle, { marginTop: 8 }]}>{message}</Text>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
   errorContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    position: 'relative',
   },
-  errorText: {
-    fontWeight: '500',
-    textAlign: 'center',
+  errorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  errorIcon: {
+    marginRight: 8,
   },
 });
 

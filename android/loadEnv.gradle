@@ -1,0 +1,9 @@
+def envFile = rootProject.file("../.env")
+if (envFile.exists()) {
+  envFile.eachLine { line ->
+    if (line && !line.startsWith("#")) {
+      def (key, value) = line.split("=")
+      project.ext.set(key.trim(), value.trim())
+    }
+  }
+}
