@@ -10,8 +10,11 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         tabBarStyle: {
           borderTopWidth: 2,
-          borderColor: colors.borders.secondary,
-          backgroundColor: colors.backgrounds.primary,
+          borderColor: colors.borders.subtle,
+          backgroundColor: colors.backgrounds.neutral,
+          height: 80,
+          paddingBottom: 15,
+          paddingTop: 5,
         },
         tabBarActiveTintColor: colors.primary.main,
         headerStyle: {

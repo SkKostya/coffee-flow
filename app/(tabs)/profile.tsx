@@ -1,77 +1,227 @@
-// app/profile.tsx
-import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Button, ListItem, Text } from '@rneui/themed';
+import { router, Stack } from 'expo-router';
 import React from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useColors } from '../../src/shared/hooks/useColors';
 
-const user = {
-  name: 'Иван Петров',
-  email: 'ivan.petrov@example.com',
-  avatar: 'https://i.pravatar.cc/150?img=12',
-};
+const isAuthenticated = true;
 
-export default function ProfileScreen({ navigation }: any) {
+export default function ProfileScreen() {
   const colors = useColors();
+
+  const handleLogout = () => {};
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      padding: 20,
       backgroundColor: colors.backgrounds.primary,
     },
-    header: { alignItems: 'center', marginBottom: 30 },
-    avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
-    name: { fontSize: 20, fontWeight: '700', color: colors.texts.primary },
-    email: { fontSize: 14, color: colors.texts.secondary },
-    menu: { marginTop: 20 },
+    header: {
+      paddingTop: 42,
+      paddingBottom: 18,
+      marginBottom: 16,
+      backgroundColor: colors.backgrounds.neutral,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.texts.primary,
+    },
+    loginButton: {
+      marginHorizontal: 20,
+      marginBottom: 16,
+      borderRadius: 12,
+    },
     menuItem: {
-      padding: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
       borderBottomWidth: 1,
       borderBottomColor: colors.borders.subtle,
     },
-    menuText: { fontSize: 16, color: colors.texts.primary },
+    menuItemContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    menuItemLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    menuItemText: {
+      fontSize: 16,
+      color: colors.texts.primary,
+      marginLeft: 12,
+    },
+    logoutText: {
+      fontSize: 16,
+      color: colors.error.main,
+      marginLeft: 12,
+    },
+    versionText: {
+      textAlign: 'center',
+      color: colors.texts.secondary,
+      fontSize: 12,
+      marginTop: 20,
+      marginBottom: 30,
+    },
   });
 
+  const menuItems = [
+    {
+      id: 'account',
+      title: 'Учетная запись',
+      icon: 'person-outline',
+      onPress: () => router.navigate('/account'),
+    },
+    {
+      id: 'cart',
+      title: 'Корзина',
+      icon: 'cart-outline',
+      onPress: () => router.navigate('/cart'),
+    },
+    {
+      id: 'favorites',
+      title: 'Избранные',
+      icon: 'heart-outline',
+      onPress: () => router.navigate('/favorites'),
+    },
+    {
+      id: 'orders',
+      title: 'История заказов',
+      icon: 'time-outline',
+      onPress: () => router.navigate('/orders'),
+    },
+    {
+      id: 'notifications',
+      title: 'Уведомления',
+      icon: 'notifications-outline',
+      onPress: () => {},
+    },
+    {
+      id: 'faq',
+      title: 'Часто задаваемые вопросы',
+      icon: 'help-circle-outline',
+      onPress: () => {},
+    },
+    {
+      id: 'support',
+      title: 'Служба поддержки',
+      icon: 'headset-outline',
+      onPress: () => {},
+    },
+  ];
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image source={{ uri: user.avatar }} style={styles.avatar} />
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
+    >
+      <View>
+        <Stack.Screen options={{ headerShown: false }} />
+
+        <View style={styles.header}>
+          <Text style={styles.title}>Профиль</Text>
+        </View>
+
+        {!isAuthenticated && (
+          <View style={styles.loginButton}>
+            <Button
+              title="Авторизоваться"
+              icon={<Ionicons name="person-outline" size={20} color="white" />}
+              iconPosition="left"
+              onPress={() => router.navigate('/auth/login')}
+            />
+          </View>
+        )}
+
+        <View>
+          {isAuthenticated ? (
+            <>
+              {menuItems.map((item) => (
+                <ListItem
+                  key={item.id}
+                  containerStyle={styles.menuItem}
+                  onPress={item.onPress}
+                >
+                  <ListItem.Content style={styles.menuItemContent}>
+                    <View style={styles.menuItemLeft}>
+                      <Ionicons
+                        name={item.icon as any}
+                        size={24}
+                        color={colors.texts.primary}
+                      />
+                      <Text style={styles.menuItemText}>{item.title}</Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={colors.texts.secondary}
+                    />
+                  </ListItem.Content>
+                </ListItem>
+              ))}
+
+              <ListItem containerStyle={styles.menuItem} onPress={handleLogout}>
+                <ListItem.Content style={styles.menuItemContent}>
+                  <View style={styles.menuItemLeft}>
+                    <Ionicons
+                      name="exit-outline"
+                      size={24}
+                      color={colors.error.main}
+                    />
+                    <Text style={styles.logoutText}>Выйти</Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.texts.secondary}
+                  />
+                </ListItem.Content>
+              </ListItem>
+            </>
+          ) : (
+            <>
+              {menuItems
+                .filter((item) =>
+                  [
+                    'cart',
+                    'favorites',
+                    'notifications',
+                    'faq',
+                    'support',
+                  ].includes(item.id)
+                )
+                .map((item) => (
+                  <ListItem
+                    key={item.id}
+                    containerStyle={styles.menuItem}
+                    onPress={item.onPress}
+                  >
+                    <ListItem.Content style={styles.menuItemContent}>
+                      <View style={styles.menuItemLeft}>
+                        <Ionicons
+                          name={item.icon as any}
+                          size={24}
+                          color={colors.texts.primary}
+                        />
+                        <Text style={styles.menuItemText}>{item.title}</Text>
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={colors.texts.secondary}
+                      />
+                    </ListItem.Content>
+                  </ListItem>
+                ))}
+            </>
+          )}
+        </View>
       </View>
 
-      <View style={styles.menu}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.navigate('/orders')}
-        >
-          <Text style={styles.menuText}>Мои заказы</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.navigate('/favorites')}
-        >
-          <Text style={styles.menuText}>Избранное</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-          <Text style={styles.menuText}>Настройки</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.navigate('/auth/login')}
-        >
-          <Text style={[styles.menuText, { color: colors.error.main }]}>
-            Выйти
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.versionText}>Версия 10.4.97</Text>
     </ScrollView>
   );
 }

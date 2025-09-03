@@ -61,6 +61,7 @@ export interface BackgroundVariants {
   elevated: string;
   card: string;
   input: string;
+  neutral: string;
 }
 
 export interface TextVariants {

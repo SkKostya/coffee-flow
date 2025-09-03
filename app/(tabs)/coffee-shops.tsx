@@ -1,4 +1,3 @@
-import { darkMapTheme, lightMapTheme } from '@/src/shared/theme/mapThemeColors';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
@@ -11,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTheme } from '../../src/shared/contexts/ThemeContext';
 import { useColors } from '../../src/shared/hooks/useColors';
 
@@ -42,7 +40,7 @@ const coffeeShops = [
   },
 ];
 
-export default function HomeScreen() {
+function CoffeeShops() {
   const { isDark } = useTheme();
   const colors = useColors();
   const [query, setQuery] = useState('');
@@ -105,7 +103,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Карта занимает фон */}
-      <MapView
+      {/* <MapView
         provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject}
         customMapStyle={isDark ? darkMapTheme : lightMapTheme}
@@ -130,7 +128,7 @@ export default function HomeScreen() {
             }
           />
         ))}
-      </MapView>
+      </MapView> */}
 
       {/* Список в bottom sheet */}
       <BottomSheet
@@ -187,3 +185,5 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+export default CoffeeShops;
