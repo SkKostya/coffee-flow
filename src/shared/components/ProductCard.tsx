@@ -8,29 +8,30 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useColors } from '../../shared';
+import { useColors } from '../hooks';
 import type { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
   onFavoritePress: () => void;
   onProductPress: () => void;
+  isAvailable?: boolean;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onFavoritePress,
   onProductPress,
+  isAvailable = true,
 }) => {
   const colors = useColors();
 
   const cardStyle: ViewStyle = {
     backgroundColor: colors.backgrounds.neutral,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borders.subtle,
     margin: 0,
     padding: 12,
+    opacity: isAvailable ? 1 : 0.5,
   };
 
   const formatPrice = (price: number): string => {
@@ -76,9 +77,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </Text>
 
           <View style={styles.priceContainer}>
-            <Text style={[styles.price, { color: colors.texts.primary }]}>
-              {formatPrice(product.price)}
-            </Text>
+            {isAvailable ? (
+              <Text style={[styles.price, { color: colors.texts.primary }]}>
+                {formatPrice(product.price)}
+              </Text>
+            ) : (
+              <Text
+                style={[
+                  styles.unavailableText,
+                  { color: colors.texts.secondary },
+                ]}
+              >
+                Нет в наличии
+              </Text>
+            )}
           </View>
         </View>
       </Card>
@@ -118,6 +130,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  unavailableText: {
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'italic',
   },
 });
 

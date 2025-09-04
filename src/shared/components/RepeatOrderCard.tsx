@@ -8,7 +8,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useColors } from '../../shared';
+import { useColors } from '../hooks';
 import type { RepeatOrderItem } from '../types';
 
 interface RepeatOrderCardProps {
@@ -30,8 +30,6 @@ const RepeatOrderCard: React.FC<RepeatOrderCardProps> = ({
     marginVertical: 8,
     marginHorizontal: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: colors.borders.subtle,
   };
 
   const formatPrice = (price: number): string => {

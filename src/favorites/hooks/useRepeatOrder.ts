@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import type {
-  Order,
   OrderCustomization,
   RepeatOrder,
   RepeatOrderItem,
-} from '../types';
+} from '../../shared';
+import type { Order } from '../types';
 
 interface UseRepeatOrderParams {
   originalOrder: Order;

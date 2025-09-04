@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Text } from '@rneui/themed';
+import { Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import type { RepeatOrder, RepeatOrderItem } from '../src/favorites';
-import { DeleteOrderModal, RepeatOrderCard } from '../src/favorites';
-import { useColors } from '../src/shared';
+import { DeleteOrderModal } from '../src/favorites';
+import type { RepeatOrder, RepeatOrderItem } from '../src/shared';
+import { RepeatOrderCard, useColors } from '../src/shared';
 
 // Пример данных для демонстрации
 const exampleRepeatOrder: RepeatOrder = {
@@ -233,37 +233,33 @@ export default function RepeatOrderPage() {
         </View>
 
         <View style={styles.buttonsContainer}>
-          <Button
-            title="Отмена"
-            type="outline"
-            color="primary"
-            size="lg"
-            buttonStyle={[
-              styles.cancelButton,
-              { borderColor: colors.primary.main },
-            ]}
-            titleStyle={[
-              styles.cancelButtonText,
-              { color: colors.primary.main },
-            ]}
+          <TouchableOpacity
+            style={[styles.cancelButton, { borderColor: colors.primary.main }]}
             onPress={handleCancel}
-          />
+          >
+            <Text
+              style={[styles.cancelButtonText, { color: colors.primary.main }]}
+            >
+              Отмена
+            </Text>
+          </TouchableOpacity>
 
-          <Button
-            title="Подтвердить заказ"
-            type="solid"
-            color="primary"
-            size="lg"
-            buttonStyle={[
+          <TouchableOpacity
+            style={[
               styles.confirmButton,
               { backgroundColor: colors.primary.main },
             ]}
-            titleStyle={[
-              styles.confirmButtonText,
-              { color: colors.texts.primary },
-            ]}
             onPress={handleConfirmOrder}
-          />
+          >
+            <Text
+              style={[
+                styles.confirmButtonText,
+                { color: colors.texts.primary },
+              ]}
+            >
+              Повторить заказ
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -366,6 +362,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
@@ -375,6 +373,8 @@ const styles = StyleSheet.create({
     flex: 2,
     borderRadius: 12,
     paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   confirmButtonText: {
     fontSize: 16,

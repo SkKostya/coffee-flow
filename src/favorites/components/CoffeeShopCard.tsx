@@ -2,10 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ListItem, Text } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { useColors } from '../../shared';
+import { Product, ProductCard, useColors } from '../../shared';
 import type { CoffeeShop } from '../../types';
-import { Product } from '../types';
-import ProductCard from './ProductCard';
 
 interface CoffeeShopCardProps {
   coffeeShop: CoffeeShop;
@@ -32,8 +30,6 @@ const CoffeeShopCard: React.FC<CoffeeShopCardProps> = ({
     width: '100%',
     backgroundColor: colors.backgrounds.neutral,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borders.subtle,
     margin: 0,
     padding: 16,
   };

@@ -2,10 +2,9 @@ import { Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import type { Order, Product } from '../../src/favorites';
+import type { Order } from '../../src/favorites';
 import { CoffeeShopCard, OrderCard } from '../../src/favorites';
-import Colors from '../../src/shared/constants/Colors';
-import { useCoffeeFlowTheme } from '../../src/shared/theme';
+import { useColors, type Product } from '../../src/shared';
 import type { CoffeeShop } from '../../src/types';
 
 // Пример данных для демонстрации
@@ -103,7 +102,7 @@ const favoriteProducts: Product[] = [
 ];
 
 export default function FavoritesScreen() {
-  const { theme } = useCoffeeFlowTheme();
+  const colors = useColors();
   const [expandedCoffeeShops, setExpandedCoffeeShops] = useState<Set<string>>(
     new Set(['2']) // URBO coffee развернута по умолчанию
   );
@@ -147,11 +146,11 @@ export default function FavoritesScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: Colors.background }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       {/* Секция "Избранные заказы" */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: Colors.neutral[50] }]}>
+        <Text style={[styles.sectionTitle, { color: colors.texts.secondary }]}>
           Избранные заказы
         </Text>
         {favoriteOrders.map((order) => (
@@ -166,7 +165,7 @@ export default function FavoritesScreen() {
 
       {/* Секция "Избранные позиции" */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: Colors.neutral[50] }]}>
+        <Text style={[styles.sectionTitle, { color: colors.texts.secondary }]}>
           Избранные позиции
         </Text>
 

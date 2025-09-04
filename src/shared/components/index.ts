@@ -3,4 +3,6 @@ export { default as ColorPalette } from './ColorPalette';
 export { default as ColorUsageExamples } from './ColorUsageExamples';
 export { default as FormField } from './FormField';
 export { default as FormScreen } from './FormScreen';
+export { default as ProductCard } from './ProductCard';
+export { default as RepeatOrderCard } from './RepeatOrderCard';
 export { default as ThemeToggle } from './ThemeToggle';

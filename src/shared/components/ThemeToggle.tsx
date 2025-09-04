@@ -43,7 +43,10 @@ const ThemeToggle: React.FC = () => {
       onPress={toggleTheme}
     >
       <View
-        style={[styles.iconContainer, { backgroundColor: Colors.primary[100] }]}
+        style={[
+          styles.iconContainer,
+          { backgroundColor: Colors.primary.light },
+        ]}
       >
         <Text style={styles.icon}>{getThemeIcon()}</Text>
       </View>

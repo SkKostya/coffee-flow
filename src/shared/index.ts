@@ -12,3 +12,6 @@ export * from './contexts/ThemeContext';
 
 // Экспорт темы
 export * from './theme';
+
+// Экспорт типов
+export * from './types';

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Text } from '@rneui/themed';
 import React from 'react';
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, TextStyle, View, ViewStyle } from 'react-native';
 import { useColors } from '../../shared/hooks/useColors';
 
 interface FormErrorProps {

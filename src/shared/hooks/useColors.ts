@@ -73,9 +73,9 @@ export const useColors = (): UseColorsReturn => {
       secondary: isDark ? Colors.neutral[800] : Colors.neutral[50],
       tertiary: isDark ? Colors.neutral[700] : Colors.neutral[100],
       elevated: isDark ? Colors.neutral[700] : Colors.white,
-      card: isDark ? Colors.neutral[800] : Colors.white,
+      card: isDark ? Colors.neutral[800] : Colors.neutral[50],
       input: isDark ? Colors.neutral[700] : Colors.neutral[50],
-      neutral: isDark ? Colors.neutral[600] : theme.background,
+      neutral: isDark ? Colors.neutral[600] : Colors.neutral[50],
     },
 
     // Text variations

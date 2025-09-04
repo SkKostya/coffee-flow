@@ -23,8 +23,6 @@ const OrderCard: React.FC<OrderCardProps> = ({
     marginHorizontal: 0,
     marginBottom: 12,
     padding: 16,
-    borderWidth: 1,
-    borderColor: colors.borders.subtle,
   };
 
   const formatPrice = (price: number): string => {
