@@ -1,82 +1,204 @@
-// app/favorites.tsx
+import { Text } from '@rneui/themed';
 import { router } from 'expo-router';
-import React from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useColors } from '../../src/shared/hooks/useColors';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import type { Order, Product } from '../../src/favorites';
+import { CoffeeShopCard, OrderCard } from '../../src/favorites';
+import Colors from '../../src/shared/constants/Colors';
+import { useCoffeeFlowTheme } from '../../src/shared/theme';
+import type { CoffeeShop } from '../../src/types';
 
-const favorites = [
+// Пример данных для демонстрации
+const favoriteOrders: Order[] = [
   {
-    id: 'c1',
-    name: 'Кофейня Arabica',
-    address: 'ул. Абая, 10',
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93',
+    id: '1',
+    items: [
+      { id: '1', name: 'Американо', price: 1200, quantity: 1 },
+      { id: '2', name: 'Круасан', price: 2090, quantity: 1 },
+    ],
+    total: 3290,
+    status: 'delivered',
+    createdAt: new Date('2024-01-15T10:30:00'),
+    updatedAt: new Date('2024-01-15T11:00:00'),
+    coffeeShopId: '1',
+    coffeeShopName: 'Coffee BOOM',
+    coffeeShopAddress: 'ул. Каныша Сатпаева, 30/5 к4',
   },
   {
-    id: 'c2',
-    name: 'Caffeine Spot',
-    address: 'пр. Назарбаева, 25',
-    rating: 4.6,
-    image: 'https://images.unsplash.com/photo-1521017432531-fbd92d768814',
+    id: '2',
+    items: [
+      { id: '3', name: 'Американо', price: 1200, quantity: 1 },
+      { id: '4', name: 'Круасан', price: 2090, quantity: 1 },
+    ],
+    total: 3290,
+    status: 'delivered',
+    createdAt: new Date('2024-01-14T15:20:00'),
+    updatedAt: new Date('2024-01-14T16:00:00'),
+    coffeeShopId: '1',
+    coffeeShopName: 'Coffee BOOM',
+    coffeeShopAddress: 'ул. Каныша Сатпаева, 30/5 к4',
   },
 ];
 
-export default function FavoritesScreen({ navigation }: any) {
-  const colors = useColors();
+const favoriteCoffeeShops: CoffeeShop[] = [
+  {
+    id: '1',
+    name: 'Coffee BOOM',
+    rating: 4.5,
+    status: 'open',
+    address: 'ул. Каныша Сатпаева, 30/5 к4',
+    distance: 500,
+    image: 'https://example.com/coffee-boom.jpg',
+    workingHours: {
+      open: '08:00',
+      close: '22:00',
+    },
+  },
+  {
+    id: '2',
+    name: 'URBO coffee',
+    rating: 4.3,
+    status: 'open',
+    address: 'ул. Каныша Сатпаева, 30/5 к4',
+    distance: 800,
+    image: 'https://example.com/urbo-coffee.jpg',
+    workingHours: {
+      open: '07:00',
+      close: '23:00',
+    },
+  },
+];
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 20,
-      backgroundColor: colors.backgrounds.primary,
-    },
-    card: {
-      flexDirection: 'row',
-      backgroundColor: colors.backgrounds.card,
-      borderRadius: 12,
-      padding: 10,
-      marginBottom: 12,
-      shadowColor: colors.shadows.medium,
-      shadowOpacity: 0.05,
-      shadowOffset: { width: 0, height: 2 },
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    image: { width: 80, height: 80, borderRadius: 8, marginRight: 12 },
-    info: { flex: 1, justifyContent: 'center' },
-    name: { fontSize: 16, fontWeight: '600', color: colors.texts.primary },
-    address: { fontSize: 14, color: colors.texts.secondary, marginTop: 2 },
-    rating: { fontSize: 14, color: colors.primary.main, marginTop: 4 },
-  });
+const favoriteProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Капучино',
+    price: 990,
+    image: 'https://example.com/cappuccino1.jpg',
+    category: 'coffee',
+    isFavorite: true,
+    coffeeShopId: '2',
+    coffeeShopName: 'URBO coffee',
+  },
+  {
+    id: '2',
+    name: 'Капучино',
+    price: 990,
+    image: 'https://example.com/cappuccino2.jpg',
+    category: 'coffee',
+    isFavorite: true,
+    coffeeShopId: '2',
+    coffeeShopName: 'URBO coffee',
+  },
+  {
+    id: '3',
+    name: 'Капучино',
+    price: 990,
+    image: 'https://example.com/cappuccino3.jpg',
+    category: 'coffee',
+    isFavorite: true,
+    coffeeShopId: '2',
+    coffeeShopName: 'URBO coffee',
+  },
+];
+
+export default function FavoritesScreen() {
+  const { theme } = useCoffeeFlowTheme();
+  const [expandedCoffeeShops, setExpandedCoffeeShops] = useState<Set<string>>(
+    new Set(['2']) // URBO coffee развернута по умолчанию
+  );
+
+  const handleToggleExpand = (coffeeShopId: string) => {
+    const newExpanded = new Set(expandedCoffeeShops);
+    if (newExpanded.has(coffeeShopId)) {
+      newExpanded.delete(coffeeShopId);
+    } else {
+      newExpanded.add(coffeeShopId);
+    }
+    setExpandedCoffeeShops(newExpanded);
+  };
+
+  const handleOpenMenu = (coffeeShop: CoffeeShop) => {
+    router.navigate({
+      pathname: '/coffee-shops/[id]',
+      params: { id: coffeeShop.id },
+    });
+  };
+
+  const handleOrderDetails = (order: Order) => {
+    // Навигация к деталям заказа
+    console.log('Детали заказа:', order.id);
+  };
+
+  const handleRepeatOrder = (order: Order) => {
+    // Навигация к повтору заказа
+    router.push('/repeat-order');
+  };
+
+  const handleProductPress = (product: Product) => {
+    // Навигация к продукту
+    console.log('Продукт нажат:', product.name);
+  };
+
+  const handleFavoriteToggle = (productId: string) => {
+    // Переключение избранного
+    console.log('Избранное переключено для продукта:', productId);
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      {favorites.map((shop) => (
-        <TouchableOpacity
-          key={shop.id}
-          style={styles.card}
-          onPress={() =>
-            router.navigate({
-              pathname: '/coffee-shops/[id]',
-              params: { id: shop.id },
-            })
-          }
-        >
-          <Image source={{ uri: shop.image }} style={styles.image} />
-          <View style={styles.info}>
-            <Text style={styles.name}>{shop.name}</Text>
-            <Text style={styles.address}>{shop.address}</Text>
-            <Text style={styles.rating}>⭐ {shop.rating}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+    <ScrollView
+      style={[styles.container, { backgroundColor: Colors.background }]}
+    >
+      {/* Секция "Избранные заказы" */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: Colors.neutral[50] }]}>
+          Избранные заказы
+        </Text>
+        {favoriteOrders.map((order) => (
+          <OrderCard
+            key={order.id}
+            order={order}
+            onDetailsPress={() => handleOrderDetails(order)}
+            onRepeatPress={() => handleRepeatOrder(order)}
+          />
+        ))}
+      </View>
+
+      {/* Секция "Избранные позиции" */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: Colors.neutral[50] }]}>
+          Избранные позиции
+        </Text>
+
+        {/* Кофейни */}
+        {favoriteCoffeeShops.map((coffeeShop) => (
+          <CoffeeShopCard
+            key={coffeeShop.id}
+            coffeeShop={coffeeShop}
+            shopProducts={favoriteProducts}
+            onFavoriteToggle={handleFavoriteToggle}
+            onProductPress={handleProductPress}
+            isExpanded={expandedCoffeeShops.has(coffeeShop.id)}
+            onToggleExpand={() => handleToggleExpand(coffeeShop.id)}
+            onOpenMenu={() => handleOpenMenu(coffeeShop)}
+          />
+        ))}
+      </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  section: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+});

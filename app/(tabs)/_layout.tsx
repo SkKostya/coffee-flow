@@ -18,7 +18,13 @@ export default function TabsLayout() {
         },
         tabBarActiveTintColor: colors.primary.main,
         headerStyle: {
-          backgroundColor: colors.backgrounds.primary,
+          backgroundColor: colors.backgrounds.neutral,
+        },
+        headerTitleAlign: 'center',
+        headerTitleStyle: {
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: colors.texts.primary,
         },
         headerTintColor: colors.texts.primary,
         tabBarIcon: ({ color, size }) => {
