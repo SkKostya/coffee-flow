@@ -45,6 +45,7 @@ export default function CoffeeShopScreen() {
       id: cat.id,
       name: cat.name,
       isActive: cat.id === (mockCategories[0]?.id || ''),
+      isVisible: cat.products.length > 0,
     })),
     filteredProducts: [],
     scrollY: 0,
@@ -284,14 +285,16 @@ export default function CoffeeShopScreen() {
 
         {/* Секции продуктов по категориям */}
         {!state.isSearchActive &&
-          mockCategories.map((category) => (
-            <ProductSection
-              key={category.id}
-              category={category}
-              onProductPress={handleProductPress}
-              onFavoritePress={handleFavoritePress}
-            />
-          ))}
+          mockCategories
+            .filter((category) => category.products.length > 0)
+            .map((category) => (
+              <ProductSection
+                key={category.id}
+                category={category}
+                onProductPress={handleProductPress}
+                onFavoritePress={handleFavoritePress}
+              />
+            ))}
       </ScrollView>
     </View>
   );

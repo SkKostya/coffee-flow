@@ -50,62 +50,54 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollView}
       >
-        {categories.map((category) => {
-          const isActive = category.id === activeCategoryId;
-          const animatedValue = animatedValues[category.id];
+        {categories
+          .filter((category) => category.isVisible)
+          .map((category) => {
+            const animatedValue = animatedValues[category.id];
 
-          const backgroundColor = animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['transparent', colors.primary.main],
-          });
+            const backgroundColor = animatedValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['transparent', colors.primary.main],
+            });
 
-          const borderColor = animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [colors.borders.subtle, colors.primary.main],
-          });
+            const borderColor = animatedValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [colors.borders.subtle, colors.primary.main],
+            });
 
-          const textColor = animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [colors.texts.secondary, colors.texts.primary],
-          });
+            const textColor = animatedValue.interpolate({
+              inputRange: [0, 1],
+              outputRange: [colors.texts.secondary, colors.texts.primary],
+            });
 
-          const scale = animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [1, 1.05],
-          });
-
-          return (
-            <TouchableOpacity
-              key={category.id}
-              onPress={() => onCategoryPress(category.id)}
-            >
-              <Animated.View
-                style={[
-                  styles.tab,
-                  {
-                    backgroundColor,
-                    borderColor,
-                    transform: [{ scale }],
-                  },
-                ]}
+            return (
+              <TouchableOpacity
+                key={category.id}
+                onPress={() => onCategoryPress(category.id)}
               >
-                <Animated.Text
+                <Animated.View
                   style={[
-                    styles.tabText,
+                    styles.tab,
                     {
-                      color: textColor,
-                      fontWeight: isActive
-                        ? ('600' as const)
-                        : ('400' as const),
+                      backgroundColor,
+                      borderColor,
                     },
                   ]}
                 >
-                  {category.name}
-                </Animated.Text>
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
+                  <Animated.Text
+                    style={[
+                      styles.tabText,
+                      {
+                        color: textColor,
+                      },
+                    ]}
+                  >
+                    {category.name}
+                  </Animated.Text>
+                </Animated.View>
+              </TouchableOpacity>
+            );
+          })}
       </ScrollView>
     </View>
   );
@@ -121,7 +113,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 8,
   },
   tab: {
     paddingHorizontal: 16,
