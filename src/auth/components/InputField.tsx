@@ -101,7 +101,7 @@ const InputField: React.FC<InputFieldProps> = ({
       containerStyle={containerStyle}
       inputStyle={inputStyle}
       labelStyle={labelStyle}
-      errorStyle={errorStyle}
+      errorStyle={error ? errorStyle : { height: 0 }}
       inputContainerStyle={inputContainerStyle}
       placeholderTextColor={colors.texts.secondary}
       // Добавляем дополнительные пропсы для лучшего внешнего вида

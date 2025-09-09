@@ -1,9 +1,10 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   View,
@@ -38,7 +39,11 @@ export default function AuthScreen() {
   const spacing = { xl: 32 };
 
   const handleForgotPassword = () => {
-    console.log('Forgot password');
+    router.navigate('/auth/reset-password');
+  };
+
+  const handleRegisterPress = () => {
+    router.navigate('/auth/register');
   };
 
   return (
@@ -58,55 +63,63 @@ export default function AuthScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View
-          style={[
-            styles.content,
-            { paddingHorizontal: formSizes.paddingHorizontal },
-          ]}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <CoffeeLogo />
+          <View
+            style={[
+              styles.content,
+              { paddingHorizontal: formSizes.paddingHorizontal },
+            ]}
+          >
+            <CoffeeLogo />
 
-          <View style={[styles.formContainer, { marginBottom: spacing.xl }]}>
-            <PhoneInput
-              label="Номер телефона"
-              value={phoneNumber}
-              onChangeText={updatePhoneNumber}
-              error={errors.phoneNumber?.message}
-              isInvalid={!!errors.phoneNumber}
-            />
+            <View style={[styles.formContainer, { marginBottom: spacing.xl }]}>
+              <PhoneInput
+                label="Номер телефона"
+                value={phoneNumber}
+                onChangeText={updatePhoneNumber}
+                error={errors.phoneNumber?.message}
+                isInvalid={!!errors.phoneNumber}
+              />
 
-            <PasswordInput
-              label="Пароль"
-              placeholder="Введите пароль"
-              value={password}
-              onChangeText={updatePassword}
-              error={errors.password?.message}
-              isInvalid={!!errors.password}
-            />
+              <PasswordInput
+                label="Пароль"
+                placeholder="Введите пароль"
+                value={password}
+                onChangeText={updatePassword}
+                error={errors.password?.message}
+                isInvalid={!!errors.password}
+              />
+            </View>
+
+            <FormError message={formError} />
+
+            <View
+              style={[styles.buttonsContainer, { marginBottom: spacing.xl }]}
+            >
+              <Button
+                title="Авторизоваться"
+                onPress={handleLogin}
+                variant="primary"
+                disabled={!isValid || Object.keys(errors).length > 0}
+                loading={isSubmitting}
+              />
+
+              <Button
+                title="Регистрация"
+                onPress={handleRegisterPress}
+                variant="secondary"
+              />
+            </View>
+
+            <ForgotPasswordLink onPress={handleForgotPassword} />
           </View>
-
-          <FormError message={formError} />
-
-          <View style={[styles.buttonsContainer, { marginBottom: spacing.xl }]}>
-            <Button
-              title="Авторизоваться"
-              onPress={handleLogin}
-              variant="primary"
-              disabled={!isValid || Object.keys(errors).length > 0}
-              loading={isSubmitting}
-            />
-
-            <Button
-              title="Регистрация"
-              onPress={handleRegistration}
-              variant="secondary"
-              loading={isSubmitting}
-            />
-          </View>
-
-          <ForgotPasswordLink onPress={handleForgotPassword} />
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -119,11 +132,16 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    minHeight: '100%',
+  },
   content: {
     flex: 1,
     paddingTop: 80, // Увеличиваем отступ сверху
     paddingBottom: 40,
     justifyContent: 'space-between',
+    minHeight: '100%',
   },
   formContainer: {
     // marginBottom будет установлен динамически

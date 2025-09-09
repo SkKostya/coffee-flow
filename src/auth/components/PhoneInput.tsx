@@ -79,7 +79,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       errorMessage={error}
       containerStyle={containerStyle}
       labelStyle={labelStyle}
-      errorStyle={errorStyle}
+      errorStyle={error ? errorStyle : { height: 0 }}
       {...maskedInputProps}
       placeholder="+7 (___) ___-__-__"
       keyboardType="phone-pad"

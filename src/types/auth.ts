@@ -16,13 +16,26 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegistrationCredentials {
+  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
+export interface User {
+  id: string;
+  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  name: string; // computed field: firstName + lastName
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface AuthResponse {
   success: boolean;
   message?: string;
   token?: string;
-  user?: {
-    id: string;
-    phoneNumber: string;
-    name?: string;
-  };
+  user?: User;
 }

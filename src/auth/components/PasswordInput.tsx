@@ -84,7 +84,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
       containerStyle={containerStyle}
       inputStyle={inputStyle}
       labelStyle={labelStyle}
-      errorStyle={errorStyle}
+      errorStyle={error ? errorStyle : { height: 0 }}
       // Используем цвета темы React Native Elements
       inputContainerStyle={[
         {

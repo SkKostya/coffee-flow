@@ -1,5 +1,16 @@
-export { authSchema, errorMessages } from '../validation/validationSchema';
-export type { AuthFormData } from '../validation/validationSchema';
+export {
+  authSchema,
+  errorMessages,
+  newPasswordSchema,
+  registrationSchema,
+  resetPasswordSchema,
+} from '../validation/validationSchema';
+export type {
+  AuthFormData,
+  NewPasswordFormData,
+  RegistrationFormData,
+  ResetPasswordFormData,
+} from '../validation/validationSchema';
 export { default as Button } from './Button';
 export { default as CoffeeLogo } from './CoffeeLogo';
 export { default as ForgotPasswordLink } from './ForgotPasswordLink';
