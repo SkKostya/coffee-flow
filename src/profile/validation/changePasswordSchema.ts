@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const changePasswordSchema = z
   .object({
+    currentPassword: z.string().min(1, 'Введите текущий пароль'),
     newPassword: z
       .string()
       .min(1, 'Введите новый пароль')
@@ -22,6 +23,9 @@ export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 // Сообщения об ошибках для UI
 export const changePasswordErrorMessages = {
+  currentPassword: {
+    required: 'Введите текущий пароль',
+  },
   newPassword: {
     required: 'Введите новый пароль',
     minLength: 'Пароль должен содержать минимум 8 символов',

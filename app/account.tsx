@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ListItem, Text } from '@rneui/themed';
-import { router, Stack } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { DeleteAccountModal } from '../src/profile';
+import { useProfileContext } from '../src/shared/contexts/ProfileContext';
 import { useColors } from '../src/shared/hooks/useColors';
 
 export default function AccountScreen() {
   const colors = useColors();
+  const { profile, isLoading, error, refetch } = useProfileContext();
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const styles = StyleSheet.create({
@@ -97,6 +99,36 @@ export default function AccountScreen() {
     deleteIcon: {
       color: colors.error.main,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.backgrounds.primary,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.backgrounds.primary,
+      padding: 20,
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.error.main,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    retryButton: {
+      backgroundColor: colors.primary.main,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      color: colors.texts.inverse,
+      fontSize: 16,
+      fontWeight: '600',
+    },
   });
 
   const handleEdit = () => {
@@ -119,12 +151,50 @@ export default function AccountScreen() {
     setIsDeleteModalVisible(false);
   };
 
-  const handleConfirmDelete = () => {
-    // TODO: Реализовать удаление аккаунта
+  const handleConfirmDelete = async () => {
+    // Удаление аккаунта теперь обрабатывается в DeleteAccountModal
     console.log('Confirm delete account');
     setIsDeleteModalVisible(false);
-    // Здесь будет логика удаления аккаунта
   };
+
+  // Обновляем данные профиля при фокусе на экране
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  // Состояние загрузки
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary.main} />
+          <Text style={{ marginTop: 16, color: colors.texts.secondary }}>
+            Загрузка данных...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Состояние ошибки
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Ошибка загрузки данных: {error}</Text>
+          <View style={styles.retryButton}>
+            <Text style={styles.retryButtonText} onPress={refetch}>
+              Повторить
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -155,11 +225,35 @@ export default function AccountScreen() {
         <View style={styles.section}>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Имя</Text>
-            <Text style={styles.infoValue}>Аружан</Text>
+            <Text style={styles.infoValue}>
+              {profile
+                ? `${profile.firstName} ${profile.lastName}`
+                : 'Не указано'}
+            </Text>
           </View>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Номер телефона</Text>
-            <Text style={styles.infoValue}>+7 (777) 777 77-77</Text>
+            <Text style={styles.infoValue}>
+              {profile?.phoneNumber || 'Не указано'}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>
+              {profile?.email || 'Не указано'}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Статус</Text>
+            <Text style={styles.infoValue}>
+              {profile?.isActive ? 'Активен' : 'Неактивен'}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Телефон подтвержден</Text>
+            <Text style={styles.infoValue}>
+              {profile?.isPhoneVerified ? 'Да' : 'Нет'}
+            </Text>
           </View>
         </View>
 

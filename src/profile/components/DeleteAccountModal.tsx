@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Overlay, Text } from '@rneui/themed';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useProfileContext } from '../../shared/contexts/ProfileContext';
 import { useColors } from '../../shared/hooks/useColors';
 
 interface DeleteAccountModalProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
 }
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
@@ -16,6 +17,33 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   onConfirm,
 }) => {
   const colors = useColors();
+  const { deleteAccount } = useProfileContext();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      setError(null);
+
+      // Для удаления аккаунта нужен пароль, но в текущей форме его нет
+      // Пока используем пустую строку, в реальном приложении нужно запросить пароль
+      const result = await deleteAccount('');
+
+      if (result.success) {
+        onConfirm?.();
+        onClose();
+      } else {
+        setError(result.error || 'Ошибка удаления аккаунта');
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Ошибка удаления аккаунта';
+      setError(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     modalOverlay: {
@@ -89,6 +117,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       borderRadius: 8,
       justifyContent: 'center',
       alignItems: 'center',
+      opacity: isDeleting ? 0.5 : 1,
     },
     cancelButtonText: {
       color: colors.texts.inverse,
@@ -99,6 +128,12 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       color: colors.error.main,
       fontSize: 16,
       fontWeight: '600',
+    },
+    errorText: {
+      color: colors.error.main,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 16,
     },
   });
 
@@ -141,13 +176,26 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
           </View>
         </View>
 
+        {/* Error Message */}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         {/* Modal Buttons */}
         <View style={styles.modalButtons}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={onClose}
+            disabled={isDeleting}
+          >
             <Text style={styles.cancelButtonText}>Отменить</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={onConfirm}>
-            <Text style={styles.deleteButtonText}>Да, удалить</Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleConfirm}
+            disabled={isDeleting}
+          >
+            <Text style={styles.deleteButtonText}>
+              {isDeleting ? 'Удаление...' : 'Да, удалить'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

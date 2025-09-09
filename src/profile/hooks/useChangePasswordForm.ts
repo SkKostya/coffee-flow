@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useProfileContext } from '../../shared/contexts/ProfileContext';
 import {
   ChangePasswordFormData,
   changePasswordSchema,
@@ -15,6 +16,7 @@ interface UseChangePasswordFormProps {
 export const useChangePasswordForm = ({
   onSubmit,
 }: UseChangePasswordFormProps = {}) => {
+  const { changePassword } = useProfileContext();
   const [formError, setFormError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -29,11 +31,13 @@ export const useChangePasswordForm = ({
     resolver: zodResolver(changePasswordSchema),
     mode: 'onChange',
     defaultValues: {
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     },
   });
 
+  const currentPassword = watch('currentPassword');
   const newPassword = watch('newPassword');
   const confirmPassword = watch('confirmPassword');
 
@@ -50,7 +54,18 @@ export const useChangePasswordForm = ({
         return result;
       }
 
-      console.log('Form submitted:', data);
+      // Используем глобальное состояние для изменения пароля
+      const result = await changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      });
+
+      if (!result.success) {
+        setFormError(result.error || 'Ошибка изменения пароля');
+        return { success: false, error: result.error };
+      }
+
       return { success: true };
     } catch (error) {
       console.error('Form submission error:', error);
@@ -60,6 +75,11 @@ export const useChangePasswordForm = ({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const updateCurrentPassword = (text: string) => {
+    setFormError('');
+    setValue('currentPassword', text, { shouldValidate: true });
   };
 
   const updateNewPassword = (text: string) => {
@@ -74,6 +94,7 @@ export const useChangePasswordForm = ({
 
   const resetForm = () => {
     reset({
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     });
@@ -84,6 +105,7 @@ export const useChangePasswordForm = ({
 
   return {
     control,
+    currentPassword,
     newPassword,
     confirmPassword,
     errors,
@@ -92,6 +114,7 @@ export const useChangePasswordForm = ({
     formError,
     hasChanges,
     setValue,
+    updateCurrentPassword,
     updateNewPassword,
     updateConfirmPassword,
     handleSubmit: handleSubmit(handleFormSubmit),

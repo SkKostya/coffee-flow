@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { RegistrationCredentials } from '../../types/auth';
@@ -41,7 +42,7 @@ export const useRegistrationForm = () => {
       setFormError('');
 
       const credentials: RegistrationCredentials = {
-        phoneNumber: data.phoneNumber,
+        phoneNumber: '+' + data.phoneNumber.replace(/\D/g, ''),
         firstName: data.firstName,
         lastName: data.lastName,
         password: data.password,
@@ -49,8 +50,8 @@ export const useRegistrationForm = () => {
 
       const response = await authApi.signup(credentials);
 
-      if (response.success && response.token) {
-        await login(response);
+      if (response.client) {
+        router.navigate('/auth/login');
         return { success: true, data: response };
       } else {
         const errorMessage = response.message || 'Ошибка регистрации';

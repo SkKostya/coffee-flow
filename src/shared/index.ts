@@ -1,3 +1,6 @@
+// Экспорт API
+export * from './api';
+
 // Экспорт компонентов
 export * from './components';
 
@@ -8,6 +11,7 @@ export * from './hooks';
 export * from './constants';
 
 // Экспорт контекстов
+export * from './contexts/ProfileContext';
 export * from './contexts/ThemeContext';
 
 // Экспорт темы

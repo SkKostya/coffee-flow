@@ -6,6 +6,7 @@ import FormScreen from '../src/shared/components/FormScreen';
 
 export default function ChangePasswordScreen() {
   const {
+    currentPassword,
     newPassword,
     confirmPassword,
     errors,
@@ -13,6 +14,7 @@ export default function ChangePasswordScreen() {
     isSubmitting,
     formError,
     hasChanges,
+    updateCurrentPassword,
     updateNewPassword,
     updateConfirmPassword,
     handleSubmit,
@@ -46,6 +48,16 @@ export default function ChangePasswordScreen() {
       isSubmitting={isSubmitting}
       formError={formError}
     >
+      <FormField
+        label="Текущий пароль"
+        value={currentPassword}
+        onChangeText={updateCurrentPassword}
+        placeholder="Введите текущий пароль"
+        error={errors.currentPassword?.message}
+        secureTextEntry
+        autoCapitalize="none"
+      />
+
       <FormField
         label="Введите новый пароль"
         value={newPassword}

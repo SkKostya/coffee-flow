@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Overlay, Text } from '@rneui/themed';
-import React from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useMaskedInputProps } from 'react-native-mask-input';
@@ -15,7 +15,7 @@ import {
 interface AddCardModalProps {
   isVisible: boolean;
   onClose: () => void;
-  onSubmit: (data: AddCardFormData) => void;
+  onSubmit?: (data: AddCardFormData) => void;
 }
 
 const AddCardModal: React.FC<AddCardModalProps> = ({
@@ -24,6 +24,8 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
   onSubmit,
 }) => {
   const colors = useColors();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     control,
@@ -105,17 +107,47 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
       paddingVertical: 12,
       justifyContent: 'center',
       alignItems: 'center',
+      opacity: isSubmitting ? 0.5 : 1,
     },
     addButtonText: {
       color: colors.texts.inverse,
       fontSize: 16,
       fontWeight: '600',
     },
+    errorText: {
+      color: colors.error.main,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
   });
 
-  const handleFormSubmit = (data: AddCardFormData) => {
-    onSubmit(data);
-    handleClose();
+  const handleFormSubmit = async (data: AddCardFormData) => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      if (onSubmit) {
+        onSubmit(data);
+        handleClose();
+        return;
+      }
+
+      // Здесь можно добавить API вызов для добавления карты
+      // Пока просто имитируем успешное добавление
+      console.log('Adding card:', data);
+
+      // Имитация задержки API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      handleClose();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Ошибка добавления карты';
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -214,13 +246,21 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
           </View>
         </View>
 
+        {/* Error Message */}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         {/* Add Button */}
         <TouchableOpacity
-          style={[styles.addButton, !isValid && { opacity: 0.5 }]}
+          style={[
+            styles.addButton,
+            (!isValid || isSubmitting) && { opacity: 0.5 },
+          ]}
           onPress={handleSubmit(handleFormSubmit)}
-          disabled={!isValid}
+          disabled={!isValid || isSubmitting}
         >
-          <Text style={styles.addButtonText}>Добавить</Text>
+          <Text style={styles.addButtonText}>
+            {isSubmitting ? 'Добавление...' : 'Добавить'}
+          </Text>
         </TouchableOpacity>
       </View>
     </Overlay>

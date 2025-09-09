@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Overlay, Text } from '@rneui/themed';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useColors } from '../../shared/hooks/useColors';
 
@@ -8,7 +8,7 @@ interface DeleteCardModalProps {
   isVisible: boolean;
   cardNumber: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
 }
 
 const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
@@ -18,6 +18,31 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
   onConfirm,
 }) => {
   const colors = useColors();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      setError(null);
+
+      // Здесь можно добавить API вызов для удаления карты
+      // Пока просто имитируем успешное удаление
+      console.log('Deleting card:', cardNumber);
+
+      // Имитация задержки API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      onConfirm?.();
+      onClose();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Ошибка удаления карты';
+      setError(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     modalOverlay: {
@@ -73,6 +98,7 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
       paddingVertical: 12,
       justifyContent: 'center',
       alignItems: 'center',
+      opacity: isDeleting ? 0.5 : 1,
     },
     cancelButtonText: {
       color: colors.texts.inverse,
@@ -83,6 +109,12 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
       color: colors.texts.inverse,
       fontSize: 16,
       fontWeight: '600',
+    },
+    errorText: {
+      color: colors.error.main,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 16,
     },
   });
 
@@ -114,13 +146,26 @@ const DeleteCardModal: React.FC<DeleteCardModalProps> = ({
           </Text>
         </View>
 
+        {/* Error Message */}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         {/* Modal Buttons */}
         <View style={styles.modalButtons}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={onClose}
+            disabled={isDeleting}
+          >
             <Text style={styles.cancelButtonText}>Отменить</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={onConfirm}>
-            <Text style={styles.deleteButtonText}>Да, удалить</Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleConfirm}
+            disabled={isDeleting}
+          >
+            <Text style={styles.deleteButtonText}>
+              {isDeleting ? 'Удаление...' : 'Да, удалить'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
