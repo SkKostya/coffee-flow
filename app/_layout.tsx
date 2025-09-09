@@ -1,6 +1,7 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AuthProvider } from '../src/auth/contexts';
 import ThemeProvider from '../src/shared/contexts/ThemeContext';
 import { useColors } from '../src/shared/hooks/useColors';
 import CoffeeFlowThemeProvider from '../src/shared/theme/ThemeProvider';
@@ -26,7 +27,9 @@ export default function RootLayout() {
       <BottomSheetModalProvider>
         <ThemeProvider>
           <CoffeeFlowThemeProvider>
-            <LayoutStack />
+            <AuthProvider>
+              <LayoutStack />
+            </AuthProvider>
           </CoffeeFlowThemeProvider>
         </ThemeProvider>
       </BottomSheetModalProvider>

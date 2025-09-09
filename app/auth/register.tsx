@@ -1,11 +1,12 @@
 import { Button, Text } from '@rneui/themed';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -17,11 +18,16 @@ import {
   InputField,
   PasswordInput,
   PhoneInput,
-  useRegistrationForm,
-} from '../../src/auth';
+} from '../../src/auth/components';
+import { useRegistrationForm } from '../../src/auth/hooks';
 
 const RegisterScreen: React.FC = () => {
   const colors = useColors();
+
+  // Refs для навигации между полями
+  const firstNameRef = useRef<TextInput>(null);
+  const lastNameRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const {
     phoneNumber,
@@ -41,6 +47,23 @@ const RegisterScreen: React.FC = () => {
 
   const handleLoginPress = () => {
     router.navigate('/auth/login');
+  };
+
+  // Обработчики для навигации между полями
+  const focusFirstName = () => {
+    firstNameRef.current?.focus();
+  };
+
+  const focusLastName = () => {
+    lastNameRef.current?.focus();
+  };
+
+  const focusPassword = () => {
+    passwordRef.current?.focus();
+  };
+
+  const handleSubmit = () => {
+    handleRegistration();
   };
 
   return (
@@ -67,8 +90,6 @@ const RegisterScreen: React.FC = () => {
             Создайте аккаунт для заказа кофе
           </Text>
 
-          {formError && <FormError message={formError} />}
-
           <View style={styles.form}>
             <PhoneInput
               label="Номер телефона"
@@ -76,34 +97,47 @@ const RegisterScreen: React.FC = () => {
               onChangeText={updatePhoneNumber}
               error={errors.phoneNumber?.message}
               isInvalid={!!errors.phoneNumber}
+              returnKeyType="next"
+              onSubmitEditing={focusFirstName}
             />
 
             <InputField
+              ref={firstNameRef}
               label="Имя"
               placeholder="Введите ваше имя"
               value={firstName}
               onChangeText={updateFirstName}
               error={errors.firstName?.message}
               isInvalid={!!errors.firstName}
+              returnKeyType="next"
+              onSubmitEditing={focusLastName}
             />
 
             <InputField
+              ref={lastNameRef}
               label="Фамилия"
               placeholder="Введите вашу фамилию"
               value={lastName}
               onChangeText={updateLastName}
               error={errors.lastName?.message}
               isInvalid={!!errors.lastName}
+              returnKeyType="next"
+              onSubmitEditing={focusPassword}
             />
 
             <PasswordInput
+              ref={passwordRef}
               label="Пароль"
               placeholder="Введите пароль"
               value={password}
               onChangeText={updatePassword}
               error={errors.password?.message}
               isInvalid={!!errors.password}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
             />
+
+            <FormError message={formError} />
 
             <AuthButton
               title="Зарегистрироваться"
@@ -111,7 +145,7 @@ const RegisterScreen: React.FC = () => {
               variant="primary"
               disabled={!isValid || isSubmitting}
               loading={isSubmitting}
-              style={styles.submitButton}
+              style={styles.saveButton}
             />
 
             <View style={styles.loginContainer}>
@@ -171,10 +205,6 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
   },
-  submitButton: {
-    marginTop: 24,
-    marginBottom: 24,
-  },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -189,6 +219,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 24,
+  },
+  saveButton: {
+    marginTop: 16,
   },
 });
 

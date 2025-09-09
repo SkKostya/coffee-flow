@@ -11,6 +11,7 @@ export type {
   RegistrationFormData,
   ResetPasswordFormData,
 } from '../validation/validationSchema';
+export { default as AuthStatus } from './AuthStatus';
 export { default as Button } from './Button';
 export { default as CoffeeLogo } from './CoffeeLogo';
 export { default as ForgotPasswordLink } from './ForgotPasswordLink';

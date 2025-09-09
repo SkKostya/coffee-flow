@@ -1,10 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { LoginCredentials } from '../../types/auth';
+import { useAuthContext } from '../contexts/AuthContext';
+import { authApi } from '../services/authApi';
 import { AuthFormData, authSchema } from '../validation/validationSchema';
 
 export const useAuthForm = () => {
   const [formError, setFormError] = useState<string>('');
+  const { login } = useAuthContext();
 
   const {
     control,
@@ -25,22 +29,38 @@ export const useAuthForm = () => {
   const phoneNumber = watch('phoneNumber');
   const password = watch('password');
 
-  const onSubmit = async (data: AuthFormData) => {
+  const onSubmitLogin = async (data: AuthFormData) => {
     try {
       setFormError('');
-      console.log('Form submitted:', data);
-      // Здесь будет логика отправки на сервер
-      return { success: true };
+
+      const credentials: LoginCredentials = {
+        phoneNumber: data.phoneNumber,
+        password: data.password,
+      };
+
+      const response = await authApi.signin(credentials);
+      console.log('response', response);
+
+      if (response.accessToken) {
+        await login(response);
+        return { success: true, data: response };
+      } else {
+        const errorMessage = response.message || 'Ошибка авторизации';
+        setFormError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
     } catch (error) {
       console.error('Form submission error:', error);
-      const errorMessage = 'Произошла ошибка при отправке';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Произошла ошибка при авторизации';
       setFormError(errorMessage);
       return { success: false, error: errorMessage };
     }
   };
 
-  const handleLogin = handleSubmit(onSubmit);
-  const handleRegistration = handleSubmit(onSubmit);
+  const handleLogin = handleSubmit(onSubmitLogin);
 
   const updatePhoneNumber = (text: string) => {
     setFormError('');
@@ -64,7 +84,6 @@ export const useAuthForm = () => {
     updatePhoneNumber,
     updatePassword,
     handleLogin,
-    handleRegistration,
     reset,
   };
 };

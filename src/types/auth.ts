@@ -1,13 +1,15 @@
 export interface AuthState {
   phoneNumber: string;
   password: string;
+  isLoading: boolean;
+  error: string | null;
 }
 
 export interface AuthActions {
   setPhoneNumber: (phoneNumber: string) => void;
   setPassword: (password: string) => void;
-  handleLogin: () => void;
-  handleRegistration: () => void;
+  handleLogin: () => Promise<void>;
+  handleRegistration: () => Promise<void>;
   handleForgotPassword: () => void;
 }
 
@@ -25,17 +27,17 @@ export interface RegistrationCredentials {
 
 export interface User {
   id: string;
+  isActive: boolean;
+  isPhoneVerified: boolean;
   phoneNumber: string;
   firstName: string;
   lastName: string;
-  name: string; // computed field: firstName + lastName
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthResponse {
-  success: boolean;
   message?: string;
-  token?: string;
-  user?: User;
+  accessToken?: string;
+  client?: User;
 }

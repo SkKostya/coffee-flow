@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { AuthStatus } from '../src/auth/components';
 import { useTheme } from '../src/shared/contexts/ThemeContext';
 import { useColors } from '../src/shared/hooks';
 
@@ -101,6 +102,11 @@ export default function Index() {
 
         <Text style={styles.title}>Coffee Flow ☕</Text>
 
+        <AuthStatus
+          onLoginPress={() => router.navigate('/auth/login')}
+          onLogoutPress={() => router.navigate('/')}
+        />
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.navigate('/coffee-shops')}
@@ -168,6 +174,15 @@ export default function Index() {
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
             Профиль
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={() => router.navigate('/city-demo')}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            Выбор города
           </Text>
         </TouchableOpacity>
 

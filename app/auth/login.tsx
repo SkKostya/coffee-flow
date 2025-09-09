@@ -1,5 +1,5 @@
 import { Stack, router } from 'expo-router';
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  TextInput,
   View,
 } from 'react-native';
 import {
@@ -17,10 +18,15 @@ import {
   PasswordInput,
   PhoneInput,
 } from '../../src/auth/components';
-import { useAuthForm, useColors } from '../../src/shared/hooks';
+import { useAuthForm } from '../../src/auth/hooks';
+import { useColors } from '../../src/shared/hooks';
 
 export default function AuthScreen() {
   const colors = useColors();
+
+  // Ref для навигации между полями
+  const passwordRef = useRef<TextInput>(null);
+
   const {
     phoneNumber,
     password,
@@ -31,7 +37,6 @@ export default function AuthScreen() {
     updatePhoneNumber,
     updatePassword,
     handleLogin,
-    handleRegistration,
   } = useAuthForm();
 
   // Фиксированные размеры для мобильных устройств
@@ -44,6 +49,15 @@ export default function AuthScreen() {
 
   const handleRegisterPress = () => {
     router.navigate('/auth/register');
+  };
+
+  // Обработчики для навигации между полями
+  const focusPassword = () => {
+    passwordRef.current?.focus();
+  };
+
+  const handleSubmit = () => {
+    handleLogin();
   };
 
   return (
@@ -85,15 +99,20 @@ export default function AuthScreen() {
                 onChangeText={updatePhoneNumber}
                 error={errors.phoneNumber?.message}
                 isInvalid={!!errors.phoneNumber}
+                returnKeyType="next"
+                onSubmitEditing={focusPassword}
               />
 
               <PasswordInput
+                ref={passwordRef}
                 label="Пароль"
                 placeholder="Введите пароль"
                 value={password}
                 onChangeText={updatePassword}
                 error={errors.password?.message}
                 isInvalid={!!errors.password}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
               />
             </View>
 

@@ -1,6 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { RegistrationCredentials } from '../../types/auth';
+import { useAuthContext } from '../contexts/AuthContext';
+import { authApi } from '../services/authApi';
 import {
   RegistrationFormData,
   registrationSchema,
@@ -8,6 +11,7 @@ import {
 
 export const useRegistrationForm = () => {
   const [formError, setFormError] = useState<string>('');
+  const { login } = useAuthContext();
 
   const {
     control,
@@ -32,21 +36,39 @@ export const useRegistrationForm = () => {
   const lastName = watch('lastName');
   const password = watch('password');
 
-  const onSubmit = async (data: RegistrationFormData) => {
+  const onSubmitRegistration = async (data: RegistrationFormData) => {
     try {
       setFormError('');
-      console.log('Registration form submitted:', data);
-      // Здесь будет логика отправки на сервер
-      return { success: true };
+
+      const credentials: RegistrationCredentials = {
+        phoneNumber: data.phoneNumber,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+      };
+
+      const response = await authApi.signup(credentials);
+
+      if (response.success && response.token) {
+        await login(response);
+        return { success: true, data: response };
+      } else {
+        const errorMessage = response.message || 'Ошибка регистрации';
+        setFormError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
     } catch (error) {
-      console.error('Registration form submission error:', error);
-      const errorMessage = 'Произошла ошибка при регистрации';
+      console.error('Form submission error:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Произошла ошибка при регистрации';
       setFormError(errorMessage);
       return { success: false, error: errorMessage };
     }
   };
 
-  const handleRegistration = handleSubmit(onSubmit);
+  const handleRegistration = handleSubmit(onSubmitRegistration);
 
   const updatePhoneNumber = (text: string) => {
     setFormError('');

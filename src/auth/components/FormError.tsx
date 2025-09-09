@@ -6,9 +6,10 @@ import { useColors } from '../../shared/hooks/useColors';
 
 interface FormErrorProps {
   message?: string;
+  description?: string;
 }
 
-const FormError: React.FC<FormErrorProps> = ({ message }) => {
+const FormError: React.FC<FormErrorProps> = ({ message, description }) => {
   const colors = useColors();
 
   // Фиксированные размеры для мобильных устройств
@@ -19,12 +20,12 @@ const FormError: React.FC<FormErrorProps> = ({ message }) => {
 
   // Стили для контейнера ошибки
   const containerStyle: ViewStyle = {
+    marginHorizontal: 0,
     borderRadius: formSizes.borderRadius,
     padding: formSizes.gap,
-    marginBottom: formSizes.gap,
     borderWidth: 1,
     // Добавляем тень для лучшего внешнего вида
-    shadowColor: colors.colors.error[500],
+    shadowColor: `${colors.colors.error[500]}10`,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -36,7 +37,7 @@ const FormError: React.FC<FormErrorProps> = ({ message }) => {
     color: colors.colors.error[500],
     fontSize: typography.caption,
     fontWeight: '500',
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: typography.caption * 1.4,
   };
 
@@ -61,10 +62,14 @@ const FormError: React.FC<FormErrorProps> = ({ message }) => {
         <Text
           style={[textStyle, { fontSize: typography.body, fontWeight: '600' }]}
         >
-          Ошибка
+          {message}
         </Text>
       </View>
-      <Text style={[textStyle, { marginTop: 8 }]}>{message}</Text>
+      {description && (
+        <Text style={[textStyle, { marginTop: 8, marginLeft: 32 }]}>
+          {description}
+        </Text>
+      )}
     </Card>
   );
 };
@@ -76,8 +81,6 @@ const styles = StyleSheet.create({
   errorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
   },
   errorIcon: {
     marginRight: 8,

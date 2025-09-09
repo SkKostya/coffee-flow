@@ -1,6 +1,7 @@
+import { darkMapTheme, lightMapTheme } from '@/src/shared/theme/mapThemeColors';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { router } from 'expo-router';
-import React, { useMemo, useRef, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -10,8 +11,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { CitySelector } from '../../src/shared/components';
 import { useTheme } from '../../src/shared/contexts/ThemeContext';
+import useCitySelection from '../../src/shared/hooks/useCitySelection';
 import { useColors } from '../../src/shared/hooks/useColors';
+import { KAZAKHSTAN_CITIES } from '../../src/types/city';
 
 const coffeeShops = [
   {
@@ -44,12 +49,48 @@ function CoffeeShops() {
   const { isDark } = useTheme();
   const colors = useColors();
   const [query, setQuery] = useState('');
+
+  // Получаем параметры из навигации
+  const params = useLocalSearchParams();
+  const selectedCityIdFromParams = params.selectedCityId as string;
+
+  // Управление выбором города
+  const { selectedCity, selectCity } = useCitySelection({
+    initialCityId: selectedCityIdFromParams || 'almaty', // По умолчанию Алматы
+  });
+
+  // Обновляем выбранный город при получении параметров
+  useEffect(() => {
+    if (
+      selectedCityIdFromParams &&
+      selectedCityIdFromParams !== selectedCity?.id
+    ) {
+      const city = KAZAKHSTAN_CITIES.find(
+        (c) => c.id === selectedCityIdFromParams
+      );
+      if (city) {
+        selectCity(city);
+      }
+    }
+  }, [selectedCityIdFromParams, selectedCity?.id, selectCity]);
+
   const filtered = coffeeShops.filter((shop) =>
     shop.name.toLowerCase().includes(query.toLowerCase())
   );
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['10%', '35%', '80%'], []);
+
+  // Обработка выбора города
+  const handleCitySelect = () => {
+    router.navigate({
+      pathname: '/city-selection',
+      params: {
+        selectedCityId: selectedCity?.id,
+        returnTo: '/coffee-shops',
+      },
+    });
+  };
 
   const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -70,6 +111,9 @@ function CoffeeShops() {
       fontWeight: '700',
       marginBottom: 10,
       color: colors.primary.main,
+    },
+    citySelector: {
+      marginBottom: 12,
     },
     search: {
       marginBottom: 12,
@@ -103,7 +147,7 @@ function CoffeeShops() {
   return (
     <View style={styles.container}>
       {/* Карта занимает фон */}
-      {/* <MapView
+      <MapView
         provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject}
         customMapStyle={isDark ? darkMapTheme : lightMapTheme}
@@ -128,7 +172,7 @@ function CoffeeShops() {
             }
           />
         ))}
-      </MapView> */}
+      </MapView>
 
       {/* Список в bottom sheet */}
       <BottomSheet
@@ -140,6 +184,14 @@ function CoffeeShops() {
       >
         <BottomSheetView style={styles.sheetContent}>
           <Text style={styles.title}>Кофейни рядом</Text>
+
+          {/* Селектор города */}
+          <CitySelector
+            selectedCity={selectedCity}
+            onPress={handleCitySelect}
+            style={styles.citySelector}
+          />
+
           <TextInput
             style={styles.search}
             placeholder="Поиск кофейни"
