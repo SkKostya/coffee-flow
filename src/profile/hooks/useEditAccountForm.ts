@@ -1,5 +1,7 @@
+import { formatPhoneNumber } from '@/src/shared/helpers/specific-tools';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useProfileContext } from '../../shared/contexts/ProfileContext';
 import {
@@ -10,17 +12,15 @@ import {
 interface UseEditAccountFormProps {
   initialFirstName?: string;
   initialLastName?: string;
+  initialEmail?: string;
   initialPhone?: string;
-  onSubmit?: (
-    data: EditAccountFormData
-  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useEditAccountForm = ({
   initialFirstName = '',
   initialLastName = '',
+  initialEmail = '',
   initialPhone = '',
-  onSubmit,
 }: UseEditAccountFormProps = {}) => {
   const { updateProfile } = useProfileContext();
   const [formError, setFormError] = useState<string>('');
@@ -29,7 +29,8 @@ export const useEditAccountForm = ({
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid, isDirty },
+    formState: { errors },
+    getValues,
     setValue,
     watch,
     reset,
@@ -39,32 +40,45 @@ export const useEditAccountForm = ({
     defaultValues: {
       firstName: initialFirstName,
       lastName: initialLastName,
+      email: initialEmail,
       phoneNumber: initialPhone,
     },
   });
 
   const firstName = watch('firstName');
   const lastName = watch('lastName');
+  const email = watch('email');
   const phoneNumber = watch('phoneNumber');
 
-  const handleFormSubmit = async (data: EditAccountFormData) => {
+  const hasChanges = useMemo(() => {
+    return (
+      firstName !== initialFirstName ||
+      lastName !== initialLastName ||
+      email !== initialEmail ||
+      phoneNumber !== initialPhone
+    );
+  }, [
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    initialFirstName,
+    initialLastName,
+    initialEmail,
+    initialPhone,
+  ]);
+
+  const handleFormSubmit = async () => {
+    const data = getValues();
     try {
       setFormError('');
       setIsSubmitting(true);
-
-      if (onSubmit) {
-        const result = await onSubmit(data);
-        if (!result.success && result.error) {
-          setFormError(result.error);
-        }
-        return result;
-      }
 
       // Используем глобальное состояние для обновления профиля
       const result = await updateProfile({
         firstName: data.firstName,
         lastName: data.lastName,
-        email: '', // Email не используется в текущей форме
+        email: data.email || '',
       });
 
       if (!result.success) {
@@ -72,6 +86,7 @@ export const useEditAccountForm = ({
         return { success: false, error: result.error };
       }
 
+      router.back();
       return { success: true };
     } catch (error) {
       console.error('Form submission error:', error);
@@ -93,6 +108,11 @@ export const useEditAccountForm = ({
     setValue('lastName', text, { shouldValidate: true });
   };
 
+  const updateEmail = (text: string) => {
+    setFormError('');
+    setValue('email', text, { shouldValidate: true });
+  };
+
   const updatePhoneNumber = (text: string) => {
     setFormError('');
     setValue('phoneNumber', text, { shouldValidate: true });
@@ -102,26 +122,27 @@ export const useEditAccountForm = ({
     reset({
       firstName: initialFirstName,
       lastName: initialLastName,
-      phoneNumber: initialPhone,
+      email: initialEmail,
+      phoneNumber: formatPhoneNumber(initialPhone),
     });
     setFormError('');
   };
-
-  const hasChanges = isDirty;
 
   return {
     control,
     firstName,
     lastName,
+    email,
     phoneNumber,
     errors,
-    isValid,
+    isValid: Object.keys(errors).length === 0,
     isSubmitting,
     formError,
     hasChanges,
     setValue,
     updateFirstName,
     updateLastName,
+    updateEmail,
     updatePhoneNumber,
     handleSubmit: handleSubmit(handleFormSubmit),
     reset: resetForm,

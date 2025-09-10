@@ -1,4 +1,6 @@
+import { TOKEN_KEY, USER_KEY } from '@/src/auth/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, ListItem, Text } from '@rneui/themed';
 import { router, Stack } from 'expo-router';
 import React from 'react';
@@ -10,7 +12,11 @@ const isAuthenticated = true;
 export default function ProfileScreen() {
   const colors = useColors();
 
-  const handleLogout = () => {};
+  const handleLogout = () => {
+    AsyncStorage.removeItem(TOKEN_KEY);
+    AsyncStorage.removeItem(USER_KEY);
+    router.navigate('/auth/login');
+  };
 
   const styles = StyleSheet.create({
     container: {

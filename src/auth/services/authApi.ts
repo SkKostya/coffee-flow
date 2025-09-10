@@ -40,7 +40,6 @@ export const authApi = {
 
       return response.data!;
     } catch (error) {
-      console.error('Ошибка авторизации:', error);
       throw error;
     }
   },

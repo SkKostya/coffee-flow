@@ -137,7 +137,11 @@ const RegisterScreen: React.FC = () => {
               onSubmitEditing={handleSubmit}
             />
 
-            <FormError message={formError} />
+            {formError && (
+              <View style={{ marginBottom: 16 }}>
+                <FormError message={formError} />
+              </View>
+            )}
 
             <AuthButton
               title="Зарегистрироваться"
@@ -145,7 +149,6 @@ const RegisterScreen: React.FC = () => {
               variant="primary"
               disabled={!isValid || isSubmitting}
               loading={isSubmitting}
-              style={styles.saveButton}
             />
 
             <View style={styles.loginContainer}>
@@ -219,9 +222,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 24,
-  },
-  saveButton: {
-    marginTop: 16,
   },
 });
 

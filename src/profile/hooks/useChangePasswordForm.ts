@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useProfileContext } from '../../shared/contexts/ProfileContext';
@@ -7,15 +8,7 @@ import {
   changePasswordSchema,
 } from '../validation/changePasswordSchema';
 
-interface UseChangePasswordFormProps {
-  onSubmit?: (
-    data: ChangePasswordFormData
-  ) => Promise<{ success: boolean; error?: string }>;
-}
-
-export const useChangePasswordForm = ({
-  onSubmit,
-}: UseChangePasswordFormProps = {}) => {
+export const useChangePasswordForm = () => {
   const { changePassword } = useProfileContext();
   const [formError, setFormError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +16,7 @@ export const useChangePasswordForm = ({
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid, isDirty },
+    formState: { errors },
     setValue,
     watch,
     reset,
@@ -46,14 +39,6 @@ export const useChangePasswordForm = ({
       setFormError('');
       setIsSubmitting(true);
 
-      if (onSubmit) {
-        const result = await onSubmit(data);
-        if (!result.success && result.error) {
-          setFormError(result.error);
-        }
-        return result;
-      }
-
       // Используем глобальное состояние для изменения пароля
       const result = await changePassword({
         currentPassword: data.currentPassword,
@@ -66,6 +51,7 @@ export const useChangePasswordForm = ({
         return { success: false, error: result.error };
       }
 
+      router.back();
       return { success: true };
     } catch (error) {
       console.error('Form submission error:', error);
@@ -101,18 +87,15 @@ export const useChangePasswordForm = ({
     setFormError('');
   };
 
-  const hasChanges = isDirty;
-
   return {
     control,
     currentPassword,
     newPassword,
     confirmPassword,
     errors,
-    isValid,
+    isValid: Object.keys(errors).length === 0,
     isSubmitting,
     formError,
-    hasChanges,
     setValue,
     updateCurrentPassword,
     updateNewPassword,

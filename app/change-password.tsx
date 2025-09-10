@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import React from 'react';
 import { useChangePasswordForm } from '../src/profile';
 import FormField from '../src/shared/components/FormField';
@@ -13,38 +12,18 @@ export default function ChangePasswordScreen() {
     isValid,
     isSubmitting,
     formError,
-    hasChanges,
     updateCurrentPassword,
     updateNewPassword,
     updateConfirmPassword,
     handleSubmit,
-  } = useChangePasswordForm({
-    onSubmit: async (data) => {
-      // TODO: Реализовать изменение пароля на сервере
-      console.log('Changing password:', data);
-      return { success: true };
-    },
-  });
-
-  const handleSave = async () => {
-    try {
-      await handleSubmit();
-      // Если форма валидна и нет ошибок, переходим назад
-      if (isValid && !formError) {
-        router.back();
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-    }
-  };
+  } = useChangePasswordForm();
 
   return (
     <FormScreen
       title="Изменение пароля"
       saveButtonText="Сохранить"
-      onSave={handleSave}
+      onSave={handleSubmit}
       isValid={isValid}
-      hasChanges={hasChanges}
       isSubmitting={isSubmitting}
       formError={formError}
     >
@@ -55,6 +34,7 @@ export default function ChangePasswordScreen() {
         placeholder="Введите текущий пароль"
         error={errors.currentPassword?.message}
         secureTextEntry
+        returnKeyType="next"
         autoCapitalize="none"
       />
 
@@ -65,6 +45,7 @@ export default function ChangePasswordScreen() {
         placeholder="Введите новый пароль"
         error={errors.newPassword?.message}
         secureTextEntry
+        returnKeyType="next"
         autoCapitalize="none"
       />
 
@@ -75,6 +56,7 @@ export default function ChangePasswordScreen() {
         placeholder="Повторите пароль"
         error={errors.confirmPassword?.message}
         secureTextEntry
+        returnKeyType="done"
         autoCapitalize="none"
       />
     </FormScreen>

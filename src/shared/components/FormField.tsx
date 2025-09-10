@@ -1,9 +1,9 @@
-import { Input, Text } from '@rneui/themed';
+import { Input, InputProps, Text } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useColors } from '../hooks/useColors';
 
-interface FormFieldProps {
+interface FormFieldProps extends InputProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -14,6 +14,7 @@ interface FormFieldProps {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   maskedInputProps?: any;
   containerStyle?: ViewStyle;
+  disabled?: boolean;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -27,6 +28,8 @@ const FormField: React.FC<FormFieldProps> = ({
   autoCapitalize = 'sentences',
   maskedInputProps,
   containerStyle,
+  disabled = false,
+  ...inputProps
 }) => {
   const colors = useColors();
 
@@ -61,26 +64,33 @@ const FormField: React.FC<FormFieldProps> = ({
     },
   });
 
-  const inputProps = maskedInputProps || {
-    value,
-    onChangeText,
-    placeholder,
-    secureTextEntry,
-    keyboardType,
-    autoCapitalize,
-  };
+  const props = maskedInputProps
+    ? {
+        ...inputProps,
+        ...maskedInputProps,
+      }
+    : {
+        ...inputProps,
+        value,
+        onChangeText,
+        placeholder,
+        secureTextEntry,
+        keyboardType,
+        autoCapitalize,
+      };
 
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={styles.label}>{label}</Text>
       <Input
-        {...inputProps}
+        {...props}
         inputStyle={styles.input}
         containerStyle={{ paddingHorizontal: 0 }}
         inputContainerStyle={styles.inputContainerStyle}
         style={{ color: colors.texts.primary }}
         errorStyle={{ height: 0 }}
         errorMessage={null}
+        disabled={disabled}
       />
       {error && <Text style={styles.fieldError}>{error}</Text>}
     </View>

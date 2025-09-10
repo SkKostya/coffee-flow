@@ -140,7 +140,8 @@ export class ApiClient {
       }
 
       return apiResponse;
-    } catch (error) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error(`${requestConfig.url}:`, error);
 
       let apiError: ApiError;
@@ -150,10 +151,7 @@ export class ApiClient {
         apiError = error as ApiError;
       } else {
         apiError = {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Произошла неизвестная ошибка',
+          message: error.message || 'Произошла неизвестная ошибка',
         };
       }
 

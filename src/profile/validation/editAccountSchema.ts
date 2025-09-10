@@ -13,6 +13,15 @@ export const editAccountSchema = z.object({
     .min(2, 'Фамилия должна содержать минимум 2 символа')
     .max(50, 'Фамилия слишком длинная')
     .regex(/^[а-яА-ЯёЁa-zA-Z]+$/, 'Фамилия может содержать только буквы'),
+  email: z
+    .string()
+    .regex(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      'Неверный формат email адреса'
+    )
+    .max(100, 'Email слишком длинный')
+    .or(z.literal(''))
+    .nullable(),
   phoneNumber: z
     .string()
     .min(1, 'Введите номер телефона')
@@ -20,7 +29,7 @@ export const editAccountSchema = z.object({
       /^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$/,
       'Неверный формат номера телефона'
     )
-    .transform((val) => val.replace(/\s/g, '')), // Убираем пробелы для API
+    .transform((val) => '+' + val.replace(/\D/g, '')), // Убираем пробелы для API
 });
 
 export type EditAccountFormData = z.infer<typeof editAccountSchema>;
@@ -38,6 +47,12 @@ export const editAccountErrorMessages = {
     minLength: 'Фамилия должна содержать минимум 2 символа',
     maxLength: 'Фамилия слишком длинная',
     format: 'Фамилия может содержать только буквы',
+  },
+  email: {
+    required: 'Введите email адрес',
+    format: 'Неверный формат email адреса',
+    maxLength: 'Email слишком длинный',
+    example: 'Пример: user@example.com',
   },
   phoneNumber: {
     required: 'Введите номер телефона',

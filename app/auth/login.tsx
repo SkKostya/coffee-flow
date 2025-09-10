@@ -56,10 +56,6 @@ export default function AuthScreen() {
     passwordRef.current?.focus();
   };
 
-  const handleSubmit = () => {
-    handleLogin();
-  };
-
   return (
     <SafeAreaView
       style={[
@@ -112,11 +108,15 @@ export default function AuthScreen() {
                 error={errors.password?.message}
                 isInvalid={!!errors.password}
                 returnKeyType="done"
-                onSubmitEditing={handleSubmit}
+                onSubmitEditing={handleLogin}
               />
             </View>
 
-            <FormError message={formError} />
+            {formError && (
+              <View style={{ marginBottom: 16 }}>
+                <FormError message={formError} />
+              </View>
+            )}
 
             <View
               style={[styles.buttonsContainer, { marginBottom: spacing.xl }]}

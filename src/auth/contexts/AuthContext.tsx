@@ -23,8 +23,8 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const TOKEN_KEY = '@coffee_flow_token';
-const USER_KEY = '@coffee_flow_user';
+export const TOKEN_KEY = '@coffee_flow_token';
+export const USER_KEY = '@coffee_flow_user';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

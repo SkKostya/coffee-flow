@@ -5,7 +5,7 @@ export const authSchema = z.object({
     .string()
     .min(1, 'Введите номер телефона')
     .regex(/^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$/, 'Неверный формат номера')
-    .transform((val) => val.replace(/\s/g, '')), // Убираем пробелы для API
+    .transform((val) => '+' + val.replace(/\D/g, '')), // Убираем пробелы для API
   password: z
     .string()
     .min(1, 'Введите пароль')
@@ -22,7 +22,7 @@ export const registrationSchema = z.object({
     .string()
     .min(1, 'Введите номер телефона')
     .regex(/^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$/, 'Неверный формат номера')
-    .transform((val) => val.replace(/\s/g, '')), // Убираем пробелы для API
+    .transform((val) => '+' + val.replace(/\D/g, '')), // Убираем пробелы для API
   firstName: z
     .string()
     .min(1, 'Введите имя')
@@ -57,7 +57,7 @@ export const resetPasswordSchema = z.object({
     .string()
     .min(1, 'Введите номер телефона')
     .regex(/^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$/, 'Неверный формат номера')
-    .transform((val) => val.replace(/\s/g, '')), // Убираем пробелы для API
+    .transform((val) => '+' + val.replace(/\D/g, '')), // Убираем пробелы для API
 });
 
 export const newPasswordSchema = z

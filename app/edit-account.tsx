@@ -1,6 +1,12 @@
-import { router } from 'expo-router';
+import { formatPhoneNumber } from '@/src/shared/helpers/specific-tools';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+} from 'react-native';
 import { useMaskedInputProps } from 'react-native-mask-input';
 import { useEditAccountForm } from '../src/profile';
 import FormField from '../src/shared/components/FormField';
@@ -15,6 +21,7 @@ export default function EditAccountScreen() {
   const {
     firstName,
     lastName,
+    email,
     phoneNumber,
     errors,
     isValid,
@@ -23,32 +30,24 @@ export default function EditAccountScreen() {
     hasChanges,
     updateFirstName,
     updateLastName,
+    updateEmail,
     updatePhoneNumber,
     handleSubmit,
     setValue,
   } = useEditAccountForm({
     initialFirstName: '',
     initialLastName: '',
+    initialEmail: '',
     initialPhone: '',
-    onSubmit: async (data) => {
-      // TODO: Реализовать сохранение данных на сервер
-      console.log('Saving account data:', data);
-      return { success: true };
-    },
   });
 
   // Обновляем форму при загрузке данных профиля
   useEffect(() => {
-    console.log('🔄 Profile data changed:', { profile, isLoading });
     if (profile && !isLoading) {
-      console.log('📝 Updating form with profile data:', {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phoneNumber: profile.phoneNumber,
-      });
       setValue('firstName', profile.firstName || '');
       setValue('lastName', profile.lastName || '');
-      setValue('phoneNumber', profile.phoneNumber || '');
+      setValue('email', profile.email || '');
+      setValue('phoneNumber', formatPhoneNumber(profile.phoneNumber || ''));
     }
   }, [profile, isLoading, setValue]);
 
@@ -77,18 +76,6 @@ export default function EditAccountScreen() {
     onChangeText: updatePhoneNumber,
   });
 
-  const handleSave = async () => {
-    try {
-      await handleSubmit();
-      // Если форма валидна и нет ошибок, переходим назад
-      if (isValid && !formError) {
-        router.back();
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-    }
-  };
-
   // Показываем индикатор загрузки пока данные профиля не загружены
   if (isLoading) {
     return (
@@ -106,40 +93,71 @@ export default function EditAccountScreen() {
   }
 
   return (
-    <FormScreen
-      title="Изменение учетной записи"
-      saveButtonText="Сохранить"
-      onSave={handleSave}
-      isValid={isValid}
-      hasChanges={hasChanges}
-      isSubmitting={isSubmitting}
-      formError={formError}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <FormField
-        label="Имя"
-        value={firstName}
-        onChangeText={updateFirstName}
-        placeholder="Введите имя"
-        error={errors.firstName?.message}
-      />
+      <ScrollView
+        contentContainerStyle={{
+          flex: 1,
+          minHeight: '100%',
+          paddingBottom: 40,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <FormScreen
+          title="Изменение учетной записи"
+          saveButtonText="Сохранить"
+          onSave={handleSubmit}
+          isValid={isValid}
+          hasChanges={hasChanges}
+          isSubmitting={isSubmitting}
+          formError={formError}
+        >
+          <FormField
+            label="Имя"
+            value={firstName}
+            onChangeText={updateFirstName}
+            placeholder="Введите имя"
+            error={errors.firstName?.message}
+            returnKeyType="next"
+          />
 
-      <FormField
-        label="Фамилия"
-        value={lastName}
-        onChangeText={updateLastName}
-        placeholder="Введите фамилию"
-        error={errors.lastName?.message}
-      />
+          <FormField
+            label="Фамилия"
+            value={lastName}
+            onChangeText={updateLastName}
+            placeholder="Введите фамилию"
+            error={errors.lastName?.message}
+            returnKeyType="next"
+          />
 
-      <FormField
-        label="Номер телефона"
-        value={phoneNumber}
-        onChangeText={updatePhoneNumber}
-        placeholder="+7 (___) ___-__-__"
-        error={errors.phoneNumber?.message}
-        keyboardType="phone-pad"
-        maskedInputProps={maskedInputProps}
-      />
-    </FormScreen>
+          <FormField
+            label="Email адрес"
+            value={email || ''}
+            onChangeText={updateEmail}
+            placeholder="Введите email адрес"
+            error={errors.email?.message}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            returnKeyType="next"
+          />
+
+          <FormField
+            label="Номер телефона"
+            value={phoneNumber}
+            onChangeText={updatePhoneNumber}
+            placeholder="+7 (___) ___-__-__"
+            error={errors.phoneNumber?.message}
+            keyboardType="phone-pad"
+            maskedInputProps={maskedInputProps}
+            disabled={true}
+            returnKeyType="done"
+          />
+        </FormScreen>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

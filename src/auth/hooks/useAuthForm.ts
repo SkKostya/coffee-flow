@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { LoginCredentials } from '../../types/auth';
 import { useAuthContext } from '../contexts/AuthContext';
 import { authApi } from '../services/authApi';
 import { AuthFormData, authSchema } from '../validation/validationSchema';
@@ -32,17 +32,14 @@ export const useAuthForm = () => {
   const onSubmitLogin = async (data: AuthFormData) => {
     try {
       setFormError('');
-
-      const credentials: LoginCredentials = {
+      const response = await authApi.signin({
         phoneNumber: data.phoneNumber,
         password: data.password,
-      };
-
-      const response = await authApi.signin(credentials);
-      console.log('response', response);
+      });
 
       if (response.accessToken) {
         await login(response);
+        router.navigate('/coffee-shops');
         return { success: true, data: response };
       } else {
         const errorMessage = response.message || 'Ошибка авторизации';
@@ -50,7 +47,6 @@ export const useAuthForm = () => {
         return { success: false, error: errorMessage };
       }
     } catch (error) {
-      console.error('Form submission error:', error);
       const errorMessage =
         error instanceof Error
           ? error.message

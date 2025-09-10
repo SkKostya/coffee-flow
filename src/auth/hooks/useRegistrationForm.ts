@@ -2,8 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { RegistrationCredentials } from '../../types/auth';
-import { useAuthContext } from '../contexts/AuthContext';
 import { authApi } from '../services/authApi';
 import {
   RegistrationFormData,
@@ -12,7 +10,6 @@ import {
 
 export const useRegistrationForm = () => {
   const [formError, setFormError] = useState<string>('');
-  const { login } = useAuthContext();
 
   const {
     control,
@@ -40,15 +37,7 @@ export const useRegistrationForm = () => {
   const onSubmitRegistration = async (data: RegistrationFormData) => {
     try {
       setFormError('');
-
-      const credentials: RegistrationCredentials = {
-        phoneNumber: '+' + data.phoneNumber.replace(/\D/g, ''),
-        firstName: data.firstName,
-        lastName: data.lastName,
-        password: data.password,
-      };
-
-      const response = await authApi.signup(credentials);
+      const response = await authApi.signup(data);
 
       if (response.client) {
         router.navigate('/auth/login');

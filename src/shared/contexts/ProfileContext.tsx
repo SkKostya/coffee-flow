@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 import React, {
   createContext,
   useCallback,
@@ -5,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { TOKEN_KEY, USER_KEY } from '../../auth/contexts/AuthContext';
 import { profileApi } from '../../profile/services/profileApi';
 import { UserProfile } from '../../profile/types/api';
 
@@ -12,6 +15,7 @@ interface ProfileContextType {
   profile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
+  logout: () => void;
   refetch: () => Promise<void>;
   updateProfile: (data: {
     firstName: string;
@@ -42,32 +46,32 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const logout = useCallback(() => {
+    setProfile(null);
+    setError(null);
+    AsyncStorage.removeItem(TOKEN_KEY);
+    AsyncStorage.removeItem(USER_KEY);
+    router.navigate('/auth/login');
+  }, []);
+
   // Загрузка профиля
   const loadProfile = useCallback(async () => {
     try {
-      console.log('🔄 Загружаем профиль из глобального состояния...');
       setIsLoading(true);
       setError(null);
 
       const response = await profileApi.getProfile();
 
       if (response.success && response.data) {
-        console.log(
-          '✅ Профиль загружен в глобальное состояние:',
-          response.data
-        );
         setProfile(response.data);
       } else {
-        console.log('❌ Ошибка в ответе API:', response.error);
         setError(response.error || 'Ошибка загрузки профиля');
       }
     } catch (err) {
-      console.log('💥 Ошибка при загрузке профиля:', err);
       const errorMessage =
         err instanceof Error ? err.message : 'Ошибка загрузки профиля';
       setError(errorMessage);
     } finally {
-      console.log('🏁 Завершение загрузки профиля');
       setIsLoading(false);
     }
   }, []);
@@ -131,11 +135,11 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({
   const deleteAccount = useCallback(async (password: string) => {
     try {
       setError(null);
-
       const response = await profileApi.deleteAccount({ password });
 
       if (response.success) {
         setProfile(null);
+        logout();
         return { success: true };
       } else {
         const errorMessage = response.error || 'Ошибка удаления аккаунта';
@@ -152,7 +156,6 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({
 
   // Очистка профиля (при выходе)
   const clearProfile = useCallback(() => {
-    console.log('🧹 Очищаем профиль из глобального состояния');
     setProfile(null);
     setError(null);
   }, []);
@@ -166,6 +169,7 @@ export const ProfileProvider: React.FC<ProfileProviderProps> = ({
     profile,
     isLoading,
     error,
+    logout,
     refetch: loadProfile,
     updateProfile,
     changePassword,

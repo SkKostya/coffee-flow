@@ -1,3 +1,4 @@
+import { formatPhoneNumber } from '@/src/shared/helpers/specific-tools';
 import { Ionicons } from '@expo/vector-icons';
 import { ListItem, Text } from '@rneui/themed';
 import { router, Stack, useFocusEffect } from 'expo-router';
@@ -151,12 +152,6 @@ export default function AccountScreen() {
     setIsDeleteModalVisible(false);
   };
 
-  const handleConfirmDelete = async () => {
-    // Удаление аккаунта теперь обрабатывается в DeleteAccountModal
-    console.log('Confirm delete account');
-    setIsDeleteModalVisible(false);
-  };
-
   // Обновляем данные профиля при фокусе на экране
   useFocusEffect(
     useCallback(() => {
@@ -234,7 +229,9 @@ export default function AccountScreen() {
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>Номер телефона</Text>
             <Text style={styles.infoValue}>
-              {profile?.phoneNumber || 'Не указано'}
+              {profile?.phoneNumber
+                ? formatPhoneNumber(profile.phoneNumber)
+                : 'Не указано'}
             </Text>
           </View>
           <View style={styles.infoItem}>
@@ -331,7 +328,6 @@ export default function AccountScreen() {
       <DeleteAccountModal
         isVisible={isDeleteModalVisible}
         onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
       />
     </View>
   );
