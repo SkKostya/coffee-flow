@@ -3,8 +3,8 @@ import { Overlay, Text } from '@rneui/themed';
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import FormField from '../../shared/components/FormField';
-import { useProfileContext } from '../../shared/contexts/ProfileContext';
 import { useColors } from '../../shared/hooks/useColors';
+import { useProfile } from '../../store';
 
 interface DeleteAccountModalProps {
   isVisible: boolean;
@@ -16,7 +16,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   onClose,
 }) => {
   const colors = useColors();
-  const { deleteAccount } = useProfileContext();
+  const { deleteAccount } = useProfile();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState('');
@@ -38,13 +38,9 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       setIsDeleting(true);
       setError(null);
 
-      const result = await deleteAccount(password);
+      await deleteAccount({ password });
 
-      if (result.success) {
-        handleClose();
-      } else {
-        setError(result.error || 'Ошибка удаления аккаунта');
-      }
+      handleClose();
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Ошибка удаления аккаунта';

@@ -10,9 +10,9 @@ export * from './hooks';
 // Экспорт констант
 export * from './constants';
 
-// Экспорт контекстов
-export * from './contexts/ProfileContext';
-export * from './contexts/ThemeContext';
+// Экспорт контекстов (устарели, используйте Redux store)
+// export * from './contexts/ProfileContext';
+// export * from './contexts/ThemeContext';
 
 // Экспорт темы
 export * from './theme';

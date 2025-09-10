@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../../store';
 import { authApi } from '../services/authApi';
 import { AuthFormData, authSchema } from '../validation/validationSchema';
 
 export const useAuthForm = () => {
   const [formError, setFormError] = useState<string>('');
-  const { login } = useAuthContext();
+  const { login } = useAuth();
 
   const {
     control,

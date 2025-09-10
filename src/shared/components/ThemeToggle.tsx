@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../store';
 import useColors from '../hooks/useColors';
 
 const ThemeToggle: React.FC = () => {

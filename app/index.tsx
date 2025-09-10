@@ -7,8 +7,8 @@ import {
   View,
 } from 'react-native';
 import { AuthStatus } from '../src/auth/components';
-import { useTheme } from '../src/shared/contexts/ThemeContext';
 import { useColors } from '../src/shared/hooks';
+import { useTheme } from '../src/store';
 
 export default function Index() {
   const colors = useColors();

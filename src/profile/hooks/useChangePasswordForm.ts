@@ -2,14 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useProfileContext } from '../../shared/contexts/ProfileContext';
+import { useProfile } from '../../store';
 import {
   ChangePasswordFormData,
   changePasswordSchema,
 } from '../validation/changePasswordSchema';
 
 export const useChangePasswordForm = () => {
-  const { changePassword } = useProfileContext();
+  const { changePassword } = useProfile();
   const [formError, setFormError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,16 +40,11 @@ export const useChangePasswordForm = () => {
       setIsSubmitting(true);
 
       // Используем глобальное состояние для изменения пароля
-      const result = await changePassword({
+      await changePassword({
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
         confirmPassword: data.confirmPassword,
       });
-
-      if (!result.success) {
-        setFormError(result.error || 'Ошибка изменения пароля');
-        return { success: false, error: result.error };
-      }
 
       router.back();
       return { success: true };

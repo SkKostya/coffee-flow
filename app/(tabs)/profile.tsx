@@ -1,4 +1,4 @@
-import { TOKEN_KEY, USER_KEY } from '@/src/auth/contexts/AuthContext';
+import { TOKEN_KEY, USER_KEY } from '@/src/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, ListItem, Text } from '@rneui/themed';

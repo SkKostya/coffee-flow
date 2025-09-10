@@ -5,12 +5,12 @@ import { router, Stack, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { DeleteAccountModal } from '../src/profile';
-import { useProfileContext } from '../src/shared/contexts/ProfileContext';
 import { useColors } from '../src/shared/hooks/useColors';
+import { useProfile } from '../src/store';
 
 export default function AccountScreen() {
   const colors = useColors();
-  const { profile, isLoading, error, refetch } = useProfileContext();
+  const { profile, isLoading, error, loadProfile: refetch } = useProfile();
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const styles = StyleSheet.create({

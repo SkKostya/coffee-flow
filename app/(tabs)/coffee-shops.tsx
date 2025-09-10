@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { CitySelector } from '../../src/shared/components';
-import { useTheme } from '../../src/shared/contexts/ThemeContext';
 import useCitySelection from '../../src/shared/hooks/useCitySelection';
 import { useColors } from '../../src/shared/hooks/useColors';
+import { useTheme } from '../../src/store';
 import { KAZAKHSTAN_CITIES } from '../../src/types/city';
 
 const coffeeShops = [

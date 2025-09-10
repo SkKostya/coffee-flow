@@ -2,7 +2,7 @@ import { Button } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useColors } from '../../shared/hooks/useColors';
-import { useAuthContext } from '../contexts/AuthContext';
+import { useAuth } from '../../store';
 
 interface AuthStatusProps {
   onLoginPress?: () => void;
@@ -13,7 +13,7 @@ const AuthStatus: React.FC<AuthStatusProps> = ({
   onLoginPress,
   onLogoutPress,
 }) => {
-  const { user, isAuthenticated, logout } = useAuthContext();
+  const { user, isAuthenticated, logout } = useAuth();
   const colors = useColors();
 
   const handleLogout = async () => {

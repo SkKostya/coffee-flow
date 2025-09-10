@@ -1,10 +1,10 @@
+import { useTheme } from '../../store';
 import { UseColorsReturn } from '../../types/colors';
 import Colors, {
   ColorSchemes,
   getColor,
   getColorWithOpacity,
 } from '../constants/Colors';
-import { useTheme } from '../contexts/ThemeContext';
 
 export const useColors = (): UseColorsReturn => {
   const { isDark } = useTheme();

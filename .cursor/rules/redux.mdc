@@ -1,0 +1,423 @@
+---
+description: Использование глобального состояния Redux Toolkit
+alwaysApply: true
+---
+
+# Coffee Flow Redux Rules
+
+## Правила для работы с глобальным состоянием
+
+### Основные принципы
+
+- **ВСЕГДА используйте Redux Toolkit** для управления глобальным состоянием
+- **ОБЯЗАТЕЛЬНО используйте типизированные хуки** для доступа к состоянию
+- **ОБЯЗАТЕЛЬНО используйте селекторы** для извлечения данных из store
+- **ОБЯЗАТЕЛЬНО используйте async thunks** для асинхронных операций
+- Избегайте прямого обращения к store через useSelector/useDispatch
+- Следуйте принципам Redux Toolkit для создания слайсов
+
+### Структура Redux store
+
+```
+src/store/
+├── index.ts                    # Основной store и экспорты
+├── ReduxProvider.tsx           # React Provider
+├── AppInitializer.tsx          # Инициализация приложения
+├── hooks.ts                    # Базовые типизированные хуки
+├── types.ts                    # Глобальные Redux типы
+├── slices/                     # Redux slices
+│   ├── authSlice.ts           # Аутентификация
+│   ├── profileSlice.ts        # Профиль пользователя
+│   └── themeSlice.ts          # Тема приложения
+├── selectors/                  # Селекторы
+│   ├── authSelectors.ts       # Селекторы auth
+│   ├── profileSelectors.ts    # Селекторы profile
+│   └── themeSelectors.ts      # Селекторы theme
+└── hooks/                      # Специализированные хуки
+    ├── useAuth.ts             # Хук аутентификации
+    ├── useProfile.ts          # Хук профиля
+    ├── useTheme.ts            # Хук темы
+    └── useAppInitialization.ts # Хук инициализации
+```
+
+### Использование Redux хуков
+
+#### 1. Аутентификация
+
+```typescript
+// ✅ ПРАВИЛЬНО - используйте типизированный хук
+import { useAuth } from '../src/store';
+
+const MyComponent = () => {
+  const { user, isAuthenticated, login, logout, isLoading, error } = useAuth();
+
+  const handleLogin = async () => {
+    try {
+      await login({ phone: '+7...', password: '...' });
+    } catch (err) {
+      // Обработка ошибки
+    }
+  };
+
+  return (
+    <Button
+      title={isAuthenticated ? 'Выйти' : 'Войти'}
+      onPress={isAuthenticated ? logout : handleLogin}
+      loading={isLoading}
+    />
+  );
+};
+
+// ❌ НЕПРАВИЛЬНО - прямое обращение к store
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../src/store';
+
+const MyComponent = () => {
+  const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
+  // Сложно и не типизировано
+};
+```
+
+#### 2. Профиль пользователя
+
+```typescript
+// ✅ ПРАВИЛЬНО - используйте типизированный хук
+import { useProfile } from '../src/store';
+
+const ProfileScreen = () => {
+  const {
+    profile,
+    isLoading,
+    error,
+    updateProfile,
+    changePassword,
+    loadProfile,
+  } = useProfile();
+
+  const handleUpdateProfile = async (data: ProfileData) => {
+    try {
+      await updateProfile(data);
+    } catch (err) {
+      // Обработка ошибки
+    }
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
+
+  return (
+    <View>
+      <Text>{profile?.name}</Text>
+      <Button title="Обновить" onPress={() => handleUpdateProfile(data)} />
+    </View>
+  );
+};
+```
+
+#### 3. Тема приложения
+
+```typescript
+// ✅ ПРАВИЛЬНО - используйте типизированный хук
+import { useTheme } from '../src/store';
+
+const ThemeToggle = () => {
+  const { theme, isDark, toggleTheme, colors } = useTheme();
+
+  return (
+    <Button
+      title={isDark ? 'Светлая тема' : 'Темная тема'}
+      onPress={toggleTheme}
+      buttonStyle={{ backgroundColor: colors.primary.main }}
+    />
+  );
+};
+```
+
+### Создание новых слайсов
+
+#### 1. Структура слайса
+
+```typescript
+// src/store/slices/exampleSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+
+// Типы
+interface ExampleState {
+  data: ExampleData | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface ExampleData {
+  id: string;
+  name: string;
+}
+
+// Начальное состояние
+const initialState: ExampleState = {
+  data: null,
+  isLoading: false,
+  error: null,
+};
+
+// Async thunks
+export const fetchExampleData = createAsyncThunk(
+  'example/fetchData',
+  async (id: string) => {
+    const response = await api.getExampleData(id);
+    return response.data;
+  }
+);
+
+// Слайс
+const exampleSlice = createSlice({
+  name: 'example',
+  initialState,
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchExampleData.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchExampleData.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchExampleData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Ошибка загрузки';
+      });
+  },
+});
+
+export const { clearError, setLoading } = exampleSlice.actions;
+export default exampleSlice.reducer;
+```
+
+#### 2. Селекторы
+
+```typescript
+// src/store/selectors/exampleSelectors.ts
+import { RootState } from '../index';
+
+export const selectExampleData = (state: RootState) => state.example.data;
+export const selectExampleLoading = (state: RootState) =>
+  state.example.isLoading;
+export const selectExampleError = (state: RootState) => state.example.error;
+
+// Мемоизированные селекторы
+import { createSelector } from '@reduxjs/toolkit';
+
+export const selectExampleInfo = createSelector(
+  [selectExampleData, selectExampleLoading],
+  (data, isLoading) => ({
+    hasData: !!data,
+    isLoading,
+    name: data?.name || 'Неизвестно',
+  })
+);
+```
+
+#### 3. Специализированный хук
+
+```typescript
+// src/store/hooks/useExample.ts
+import { useCallback } from 'react';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import {
+  fetchExampleData,
+  clearError,
+  setLoading,
+} from '../slices/exampleSlice';
+import {
+  selectExampleData,
+  selectExampleLoading,
+  selectExampleError,
+} from '../selectors/exampleSelectors';
+
+export const useExample = () => {
+  const dispatch = useAppDispatch();
+
+  const data = useAppSelector(selectExampleData);
+  const isLoading = useAppSelector(selectExampleLoading);
+  const error = useAppSelector(selectExampleError);
+
+  const loadData = useCallback(
+    (id: string) => {
+      dispatch(fetchExampleData(id));
+    },
+    [dispatch]
+  );
+
+  const clearErrorState = useCallback(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  return {
+    data,
+    isLoading,
+    error,
+    loadData,
+    clearError: clearErrorState,
+  };
+};
+```
+
+### Правила работы с состоянием
+
+#### 1. Иммутабельность
+
+```typescript
+// ✅ ПРАВИЛЬНО - Redux Toolkit автоматически обеспечивает иммутабельность
+const exampleSlice = createSlice({
+  name: 'example',
+  initialState,
+  reducers: {
+    updateData: (state, action: PayloadAction<Partial<ExampleData>>) => {
+      // Redux Toolkit использует Immer под капотом
+      state.data = { ...state.data, ...action.payload };
+    },
+  },
+});
+
+// ❌ НЕПРАВИЛЬНО - мутация состояния
+const exampleSlice = createSlice({
+  name: 'example',
+  initialState,
+  reducers: {
+    updateData: (state, action) => {
+      state.data.name = action.payload.name; // Мутация!
+    },
+  },
+});
+```
+
+#### 2. Обработка ошибок
+
+```typescript
+// ✅ ПРАВИЛЬНО - централизованная обработка ошибок
+export const fetchData = createAsyncThunk(
+  'example/fetchData',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const response = await api.fetchData(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue({
+        message: error.message || 'Ошибка загрузки данных',
+        code: error.code || 'UNKNOWN_ERROR',
+      });
+    }
+  }
+);
+
+// В компоненте
+const MyComponent = () => {
+  const { data, error, loadData } = useExample();
+
+  const handleLoad = async () => {
+    try {
+      await loadData('123');
+    } catch (err) {
+      // Ошибка уже обработана в thunk
+      console.error('Failed to load data:', err);
+    }
+  };
+};
+```
+
+#### 3. Загрузка данных
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование состояний загрузки
+const MyComponent = () => {
+  const { data, isLoading, error, loadData } = useExample();
+
+  useEffect(() => {
+    loadData('123');
+  }, [loadData]);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorMessage error={error} onRetry={() => loadData('123')} />;
+  }
+
+  return <DataDisplay data={data} />;
+};
+```
+
+### Интеграция с React Native Elements
+
+```typescript
+// ✅ ПРАВИЛЬНО - использование Redux с React Native Elements
+import { Button, Card, Text } from '@rneui/themed';
+import { useTheme } from '../src/store';
+
+const ThemedComponent = () => {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <Card containerStyle={{ backgroundColor: colors.backgrounds.elevated }}>
+      <Card.Title style={{ color: colors.texts.primary }}>Заголовок</Card.Title>
+      <Button
+        title="Действие"
+        color="primary"
+        buttonStyle={{ backgroundColor: colors.primary.main }}
+      />
+    </Card>
+  );
+};
+```
+
+### Персистентность данных
+
+```typescript
+// ✅ ПРАВИЛЬНО - настройка персистентности в store
+import { persistStore, persistReducer } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['auth', 'theme'], // Только эти слайсы сохраняются
+  blacklist: ['profile'], // Этот слайс не сохраняется
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+```
+
+### Запрещено
+
+- ❌ Прямое обращение к store через useSelector/useDispatch
+- ❌ Мутация состояния в reducers
+- ❌ Создание слайсов без типизации
+- ❌ Игнорирование обработки ошибок в async thunks
+- ❌ Создание компонентов без использования Redux хуков
+- ❌ Смешивание локального состояния с глобальным без необходимости
+
+### Рекомендуется
+
+- ✅ **ВСЕГДА используйте типизированные Redux хуки** для доступа к состоянию
+- ✅ **ОБЯЗАТЕЛЬНО используйте селекторы** для извлечения данных
+- ✅ **ОБЯЗАТЕЛЬНО используйте async thunks** для асинхронных операций
+- ✅ Создавайте специализированные хуки для каждого слайса
+- ✅ Используйте мемоизированные селекторы для оптимизации
+- ✅ Обрабатывайте все состояния (loading, error, success)
+- ✅ Следуйте принципам Redux Toolkit
+- ✅ Используйте TypeScript для полной типизации
+
+### Заключение
+
+Следуя этим правилам, вы создадите предсказуемое, типизированное и масштабируемое глобальное состояние с помощью Redux Toolkit. **Помните**: ВСЕГДА используйте типизированные Redux хуки, селекторы и async thunks для работы с состоянием!

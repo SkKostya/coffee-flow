@@ -11,12 +11,12 @@ import { useMaskedInputProps } from 'react-native-mask-input';
 import { useEditAccountForm } from '../src/profile';
 import FormField from '../src/shared/components/FormField';
 import FormScreen from '../src/shared/components/FormScreen';
-import { useProfileContext } from '../src/shared/contexts/ProfileContext';
 import { useColors } from '../src/shared/hooks/useColors';
+import { useProfile } from '../src/store';
 
 export default function EditAccountScreen() {
   const colors = useColors();
-  const { profile, isLoading } = useProfileContext();
+  const { profile, isLoading } = useProfile();
 
   const {
     firstName,

@@ -99,10 +99,10 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
             value={tab.id}
             title={tab.label}
             titleStyle={isActive ? activeLabelStyle : inactiveLabelStyle}
-            icon={({ size }: { size: number }) => (
+            icon={() => (
               <Ionicons
                 name={iconName}
-                size={size}
+                size={24}
                 color={isActive ? colors.primary.main : colors.texts.secondary}
               />
             )}

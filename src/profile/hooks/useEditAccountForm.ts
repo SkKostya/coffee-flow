@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useProfileContext } from '../../shared/contexts/ProfileContext';
+import { useProfile } from '../../store';
 import {
   EditAccountFormData,
   editAccountSchema,
@@ -22,7 +22,7 @@ export const useEditAccountForm = ({
   initialEmail = '',
   initialPhone = '',
 }: UseEditAccountFormProps = {}) => {
-  const { updateProfile } = useProfileContext();
+  const { updateProfile } = useProfile();
   const [formError, setFormError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,16 +75,11 @@ export const useEditAccountForm = ({
       setIsSubmitting(true);
 
       // Используем глобальное состояние для обновления профиля
-      const result = await updateProfile({
+      await updateProfile({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email || '',
       });
-
-      if (!result.success) {
-        setFormError(result.error || 'Ошибка обновления профиля');
-        return { success: false, error: result.error };
-      }
 
       router.back();
       return { success: true };
