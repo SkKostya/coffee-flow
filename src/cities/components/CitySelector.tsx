@@ -2,9 +2,8 @@ import { Icon, Text } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import type { City } from '../../types';
-import { useColors } from '../hooks/useColors';
-import { useCoffeeFlowTheme } from '../theme';
+import { useColors } from '../../shared/hooks/useColors';
+import type { City } from '../types';
 
 interface CitySelectorProps {
   selectedCity: City | null;
@@ -21,7 +20,6 @@ const CitySelector: React.FC<CitySelectorProps> = ({
   disabled = false,
   style,
 }) => {
-  const { theme } = useCoffeeFlowTheme();
   const colors = useColors();
 
   return (
@@ -51,11 +49,13 @@ const CitySelector: React.FC<CitySelectorProps> = ({
               },
             ]}
           >
-            {selectedCity ? selectedCity.name : placeholder}
+            {selectedCity
+              ? selectedCity.nameRu || selectedCity.name
+              : placeholder}
           </Text>
           {selectedCity && (
             <Text style={[styles.region, { color: colors.texts.secondary }]}>
-              {selectedCity.region}
+              {selectedCity.name}
             </Text>
           )}
         </View>

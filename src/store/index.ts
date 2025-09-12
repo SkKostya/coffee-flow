@@ -4,6 +4,8 @@ import { persistReducer, persistStore } from 'redux-persist';
 
 // Импорты слайсов
 import authReducer from './slices/authSlice';
+import citiesReducer from './slices/citiesSlice';
+import generalReducer from './slices/generalSlice';
 import profileReducer from './slices/profileSlice';
 import themeReducer from './slices/themeSlice';
 
@@ -18,6 +20,8 @@ const persistConfig = {
 // Корневой редьюсер
 const rootReducer = combineReducers({
   auth: authReducer,
+  cities: citiesReducer,
+  general: generalReducer,
   profile: profileReducer,
   theme: themeReducer,
 });

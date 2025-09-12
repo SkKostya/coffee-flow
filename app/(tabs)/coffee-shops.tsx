@@ -1,3 +1,4 @@
+import { CitySelector } from '@/src/cities';
 import { darkMapTheme, lightMapTheme } from '@/src/shared/theme/mapThemeColors';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -12,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { CitySelector } from '../../src/shared/components';
 import useCitySelection from '../../src/shared/hooks/useCitySelection';
 import { useColors } from '../../src/shared/hooks/useColors';
 import { useTheme } from '../../src/store';

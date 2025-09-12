@@ -1,10 +1,22 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { City, CitySelectionHook } from '../../types';
-import { KAZAKHSTAN_CITIES } from '../../types/city';
+import type { City } from '../../cities/types';
+import { KAZAKHSTAN_CITIES } from '../../cities/types';
 
 interface UseCitySelectionParams {
   initialCityId?: string;
   onCityChange?: (city: City | null) => void;
+}
+
+interface CitySelectionHook {
+  selectedCity: City | null;
+  availableCities: City[];
+  searchQuery: string;
+  isLoading: boolean;
+  error: string | null;
+  selectCity: (city: City) => void;
+  searchCities: (query: string) => void;
+  clearSearch: () => void;
+  loadCities: () => Promise<void>;
 }
 
 const useCitySelection = ({
@@ -32,8 +44,7 @@ const useCitySelection = ({
     return KAZAKHSTAN_CITIES.filter(
       (city) =>
         city.name.toLowerCase().includes(query) ||
-        city.nameEn.toLowerCase().includes(query) ||
-        city.region.toLowerCase().includes(query)
+        city.nameRu.toLowerCase().includes(query)
     );
   }, [searchQuery]);
 

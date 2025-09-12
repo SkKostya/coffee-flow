@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Button, Divider, Icon, SearchBar, Text } from '@rneui/themed';
+import { SearchBar, Text } from '@rneui/themed';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   StatusBar,
   StyleSheet,
@@ -11,44 +12,86 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import type { City } from '../src/cities';
+import {
+  CityEmptyState,
+  CityItem,
+  CitySeparator,
+  KAZAKHSTAN_CITIES,
+  useCities,
+} from '../src/cities';
 import { useColors } from '../src/shared/hooks/useColors';
-import type { City } from '../src/types';
-import { KAZAKHSTAN_CITIES } from '../src/types/city';
 
 const CitySelectionScreen: React.FC = () => {
   const colors = useColors();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Redux хук для работы с городами
+  const {
+    citiesForDisplay,
+    selectedCity,
+    isLoading,
+    isSearching,
+    error,
+    loadCities,
+    searchCities,
+    selectCity,
+    clearSearch,
+    clearError,
+  } = useCities();
 
   // Получаем параметры из навигации
   const params = useLocalSearchParams();
   const selectedCityId = params.selectedCityId as string;
   const returnTo = params.returnTo as string;
 
+  // Загружаем города при монтировании компонента
+  useEffect(() => {
+    loadCities();
+  }, [loadCities]);
+
+  // Обработка поиска с дебаунсом
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        searchCities(searchQuery);
+      } else {
+        clearSearch();
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, searchCities, clearSearch]);
+
   // Фильтрация городов по поисковому запросу
   const filteredCities = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return KAZAKHSTAN_CITIES;
+    // Если есть результаты поиска, используем их
+    if (searchQuery.trim() && citiesForDisplay.length > 0) {
+      return citiesForDisplay;
     }
 
-    const query = searchQuery.toLowerCase();
-    return KAZAKHSTAN_CITIES.filter(
-      (city) =>
-        city.name.toLowerCase().includes(query) ||
-        city.nameEn.toLowerCase().includes(query) ||
-        city.region.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+    // Если нет результатов поиска, но есть общий список городов
+    if (!searchQuery.trim() && citiesForDisplay.length > 0) {
+      return citiesForDisplay;
+    }
+
+    // Fallback на предустановленные города
+    return KAZAKHSTAN_CITIES;
+  }, [citiesForDisplay, searchQuery]);
 
   // Обработка выбора города
   const handleCitySelect = useCallback(
     (city: City) => {
+      // Сохраняем выбранный город в Redux
+      selectCity(city);
+
       // Передаем выбранный город через параметры навигации
       if (returnTo) {
         router.navigate({
           pathname: returnTo as any,
           params: {
             selectedCityId: city.id,
-            selectedCityName: city.name,
+            selectedCityName: city.nameRu || city.name,
           },
         });
       } else {
@@ -56,7 +99,7 @@ const CitySelectionScreen: React.FC = () => {
         router.back();
       }
     },
-    [returnTo]
+    [returnTo, selectCity]
   );
 
   // Обработка поиска
@@ -67,7 +110,8 @@ const CitySelectionScreen: React.FC = () => {
   // Очистка поиска
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
-  }, []);
+    clearSearch();
+  }, [clearSearch]);
 
   // Обработка возврата
   const handleGoBack = useCallback(() => {
@@ -75,93 +119,30 @@ const CitySelectionScreen: React.FC = () => {
   }, []);
 
   // Рендер элемента города
-  const renderCityItem = useCallback(
-    ({ item: city }: { item: City }) => {
-      const isSelected = selectedCityId === city.id;
+  const renderCityItem = ({ item: city }: { item: City }) => {
+    const isSelected =
+      selectedCityId === city.id || selectedCity?.id === city.id;
 
-      return (
-        <TouchableOpacity
-          style={[
-            styles.cityItem,
-            {
-              backgroundColor: colors.backgrounds.elevated,
-            },
-          ]}
-          onPress={() => handleCitySelect(city)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.cityContent}>
-            <View style={styles.cityInfo}>
-              <Text
-                style={[
-                  styles.cityName,
-                  {
-                    color: colors.texts.primary,
-                    fontWeight: isSelected ? '600' : '400',
-                  },
-                ]}
-              >
-                {city.name}
-              </Text>
-              <Text
-                style={[styles.cityRegion, { color: colors.texts.secondary }]}
-              >
-                {city.region}
-              </Text>
-            </View>
-            {isSelected && (
-              <Icon
-                name="checkmark-circle"
-                type="ionicon"
-                color={colors.primary.main}
-                size={24}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
-      );
-    },
-    [selectedCityId, colors, handleCitySelect]
-  );
+    return (
+      <CityItem
+        city={city}
+        isSelected={isSelected}
+        onPress={handleCitySelect}
+      />
+    );
+  };
 
   // Рендер разделителя
-  const renderSeparator = useCallback(
-    () => (
-      <Divider
-        style={[styles.separator, { backgroundColor: colors.borders.primary }]}
-      />
-    ),
-    [colors.borders.primary]
-  );
+  const renderSeparator = () => <CitySeparator />;
 
   // Рендер пустого состояния
-  const renderEmptyState = useCallback(
-    () => (
-      <View style={styles.emptyState}>
-        <Icon
-          name="search"
-          type="ionicon"
-          color={colors.texts.secondary}
-          size={48}
-        />
-        <Text style={[styles.emptyTitle, { color: colors.texts.primary }]}>
-          Город не найден
-        </Text>
-        <Text
-          style={[styles.emptyDescription, { color: colors.texts.secondary }]}
-        >
-          Попробуйте изменить поисковый запрос
-        </Text>
-        <Button
-          title="Очистить поиск"
-          type="outline"
-          color="primary"
-          onPress={handleClearSearch}
-          buttonStyle={styles.clearButton}
-        />
-      </View>
-    ),
-    [colors, handleClearSearch]
+  const renderEmptyState = () => (
+    <CityEmptyState
+      searchQuery={searchQuery}
+      error={error}
+      onClearSearch={handleClearSearch}
+      onRetry={loadCities}
+    />
   );
 
   return (
@@ -225,6 +206,16 @@ const CitySelectionScreen: React.FC = () => {
           showCancel={false}
           round
         />
+        {(isLoading || isSearching) && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={colors.primary.main} />
+            <Text
+              style={[styles.loadingText, { color: colors.texts.secondary }]}
+            >
+              {isLoading ? 'Загрузка...' : 'Поиск...'}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Список городов */}
@@ -288,51 +279,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  cityItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginVertical: 2,
-  },
-  cityContent: {
+  loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cityInfo: {
-    flex: 1,
-  },
-  cityName: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  cityRegion: {
-    fontSize: 14,
-  },
-  separator: {
-    height: 1,
-    marginLeft: 16,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 64,
-    paddingHorizontal: 32,
+    paddingVertical: 8,
   },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyDescription: {
+  loadingText: {
+    marginLeft: 8,
     fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  clearButton: {
-    paddingHorizontal: 24,
   },
 });
 
