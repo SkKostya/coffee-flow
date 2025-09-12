@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@rneui/themed';
 import { router, Stack } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import {
   AddCardModal,
   DeleteCardModal,
@@ -10,27 +10,34 @@ import {
 } from '../src/profile';
 import type { AddCardFormData } from '../src/profile/validation/addCardSchema';
 import { useColors } from '../src/shared/hooks/useColors';
-
-interface PaymentMethod {
-  id: string;
-  cardNumber: string;
-  lastFourDigits: string;
-}
+import { usePaymentMethods } from '../src/store';
+import type { CreatePaymentMethodRequest } from '../src/types';
 
 export default function PaymentMethodsScreen() {
   const colors = useColors();
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    {
-      id: '1',
-      cardNumber: '8668',
-      lastFourDigits: '8668',
-    },
-  ]);
+
+  // Redux hooks
+  const {
+    methods: paymentMethods,
+    defaultMethod,
+    info,
+    loadingStates,
+    loadPaymentMethods,
+    createPaymentMethod,
+    deletePaymentMethod,
+    setDefaultPaymentMethod,
+    clearError,
+  } = usePaymentMethods();
 
   // Modal states
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<string>('');
+
+  // Загружаем методы оплаты при монтировании компонента
+  useEffect(() => {
+    loadPaymentMethods();
+  }, [loadPaymentMethods]);
 
   const styles = StyleSheet.create({
     container: {
@@ -67,34 +74,53 @@ export default function PaymentMethodsScreen() {
     setIsDeleteModalVisible(true);
   };
 
-  const handleConfirmDelete = () => {
-    setPaymentMethods((prev) =>
-      prev.filter((card) => card.id !== cardToDelete)
-    );
-    setIsDeleteModalVisible(false);
-    setCardToDelete('');
+  const handleConfirmDelete = async () => {
+    try {
+      await deletePaymentMethod(cardToDelete);
+      setIsDeleteModalVisible(false);
+      setCardToDelete('');
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось удалить метод оплаты');
+    }
   };
 
   const handleAddNewCard = () => {
     setIsAddModalVisible(true);
   };
 
-  const handleAddCardSubmit = (data: AddCardFormData) => {
-    // Данные уже валидированы в модалке
-    const lastFourDigits = data.cardNumber.slice(-4);
-    const newCard: PaymentMethod = {
-      id: Date.now().toString(),
-      cardNumber: data.cardNumber,
-      lastFourDigits,
-    };
+  const handleAddCardSubmit = async (data: AddCardFormData) => {
+    try {
+      // Парсим дату истечения из формата MM/YY
+      const [expiryMonth, expiryYear] = data.expiryDate.split('/');
 
-    setPaymentMethods((prev) => [...prev, newCard]);
-    setIsAddModalVisible(false);
+      const createData: CreatePaymentMethodRequest = {
+        type: 'card',
+        cardNumber: data.cardNumber,
+        cardHolderName: 'Card Holder', // Пока заглушка, можно добавить поле в форму
+        expiryMonth: expiryMonth || '12',
+        expiryYear: `20${expiryYear}` || '2028',
+        cardBrand: 'visa', // Пока заглушка, можно определить по номеру карты
+        isDefault: paymentMethods.length === 0, // Первая карта по умолчанию
+      };
+
+      await createPaymentMethod(createData);
+      setIsAddModalVisible(false);
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось добавить метод оплаты');
+    }
   };
 
   const handleCardPress = (cardId: string) => {
     // TODO: Реализовать редактирование карты
     console.log('Edit card:', cardId);
+  };
+
+  const handleSetDefault = async (cardId: string) => {
+    try {
+      await setDefaultPaymentMethod(cardId);
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось установить метод оплаты по умолчанию');
+    }
   };
 
   return (
@@ -115,15 +141,44 @@ export default function PaymentMethodsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
+        {/* Loading State */}
+        {loadingStates.isLoading && (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text>Загрузка методов оплаты...</Text>
+          </View>
+        )}
+
+        {/* Error State */}
+        {info.error && (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text style={{ color: colors.error.main, textAlign: 'center' }}>
+              {info.error}
+            </Text>
+          </View>
+        )}
+
+        {/* Empty State */}
+        {!loadingStates.isLoading && !info.error && info.isEmpty && (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text
+              style={{ color: colors.texts.secondary, textAlign: 'center' }}
+            >
+              У вас пока нет сохраненных методов оплаты
+            </Text>
+          </View>
+        )}
+
         {/* Saved Payment Methods */}
-        {paymentMethods.map((card) => (
-          <PaymentMethodCard
-            key={card.id}
-            cardNumber={card.lastFourDigits}
-            onDelete={() => handleDeleteCard(card.id)}
-            onPress={() => handleCardPress(card.id)}
-          />
-        ))}
+        {!loadingStates.isLoading &&
+          !info.error &&
+          paymentMethods.map((card) => (
+            <PaymentMethodCard
+              key={card.id}
+              cardNumber={card.cardNumber.replace('**** ', '')} // Извлекаем последние 4 цифры
+              onDelete={() => handleDeleteCard(card.id)}
+              onPress={() => handleCardPress(card.id)}
+            />
+          ))}
 
         {/* Add New Card */}
         <PaymentMethodCard isAddNew cardNumber="" onPress={handleAddNewCard} />
@@ -132,7 +187,10 @@ export default function PaymentMethodsScreen() {
       {/* Delete Card Modal */}
       <DeleteCardModal
         isVisible={isDeleteModalVisible}
-        cardNumber={cardToDelete}
+        cardNumber={
+          paymentMethods.find((card) => card.id === cardToDelete)?.cardNumber ||
+          ''
+        }
         onClose={() => {
           setIsDeleteModalVisible(false);
           setCardToDelete('');

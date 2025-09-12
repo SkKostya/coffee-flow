@@ -10,6 +10,7 @@ export { default as ReduxProvider } from './ReduxProvider';
 export * from './hooks/useAppInitialization';
 export * from './hooks/useAuth';
 export * from './hooks/useCoffeeShops';
+export * from './hooks/usePaymentMethods';
 export * from './hooks/useProducts';
 export * from './hooks/useProfile';
 export * from './hooks/useTheme';

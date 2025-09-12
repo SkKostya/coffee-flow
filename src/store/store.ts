@@ -6,6 +6,7 @@ import { persistReducer, persistStore } from 'redux-persist';
 import authReducer from './slices/authSlice';
 import coffeeShopsReducer from './slices/coffeeShopsSlice';
 import generalReducer from './slices/generalSlice';
+import paymentMethodsReducer from './slices/paymentMethodsSlice';
 import productsReducer from './slices/productsSlice';
 import profileReducer from './slices/profileSlice';
 import themeReducer from './slices/themeSlice';
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   coffeeShops: coffeeShopsReducer,
   general: generalReducer,
+  paymentMethods: paymentMethodsReducer,
   products: productsReducer,
   profile: profileReducer,
   theme: themeReducer,

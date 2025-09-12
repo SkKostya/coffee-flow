@@ -4,7 +4,6 @@ import { Overlay, Text } from '@rneui/themed';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useMaskedInputProps } from 'react-native-mask-input';
 import FormField from '../../shared/components/FormField';
 import { useColors } from '../../shared/hooks/useColors';
 import {
@@ -42,37 +41,31 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
     },
   });
 
-  const cardNumberMaskedProps = useMaskedInputProps({
-    mask: [
-      /\d/,
-      /\d/,
-      /\d/,
-      /\d/,
-      ' ',
-      /\d/,
-      /\d/,
-      /\d/,
-      /\d/,
-      ' ',
-      /\d/,
-      /\d/,
-      /\d/,
-      /\d/,
-      ' ',
-      /\d/,
-      /\d/,
-      /\d/,
-      /\d/,
-    ],
-  });
+  const cardNumberMask = [
+    /\d/,
+    /\d/,
+    /\d/,
+    /\d/,
+    ' ',
+    /\d/,
+    /\d/,
+    /\d/,
+    /\d/,
+    ' ',
+    /\d/,
+    /\d/,
+    /\d/,
+    /\d/,
+    ' ',
+    /\d/,
+    /\d/,
+    /\d/,
+    /\d/,
+  ];
 
-  const expiryDateMaskedProps = useMaskedInputProps({
-    mask: [/\d/, /\d/, '/', /\d/, /\d/],
-  });
+  const expiryDateMask = [/\d/, /\d/, '/', /\d/, /\d/];
 
-  const cvcMaskedProps = useMaskedInputProps({
-    mask: [/\d/, /\d/, /\d/, /\d/],
-  });
+  const cvcMask = [/\d/, /\d/, /\d/, /\d/];
 
   const styles = StyleSheet.create({
     modalOverlay: {
@@ -191,7 +184,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
                   error={errors.cardNumber?.message}
                   keyboardType="numeric"
                   maskedInputProps={{
-                    ...cardNumberMaskedProps,
+                    mask: cardNumberMask,
                     value,
                     onChangeText: onChange,
                   }}
@@ -214,7 +207,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
                     error={errors.expiryDate?.message}
                     keyboardType="numeric"
                     maskedInputProps={{
-                      ...expiryDateMaskedProps,
+                      mask: expiryDateMask,
                       value,
                       onChangeText: onChange,
                     }}
@@ -235,7 +228,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
                     error={errors.cvc?.message}
                     keyboardType="numeric"
                     maskedInputProps={{
-                      ...cvcMaskedProps,
+                      mask: cvcMask,
                       value,
                       onChangeText: onChange,
                     }}
