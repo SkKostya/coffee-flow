@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { City } from '../../cities/types';
-import { KAZAKHSTAN_CITIES } from '../../cities/types';
+import { useGeneral } from '../../store/hooks/useGeneral';
 
 interface UseCitySelectionParams {
   initialCityId?: string;
@@ -23,30 +23,23 @@ const useCitySelection = ({
   initialCityId,
   onCityChange,
 }: UseCitySelectionParams = {}): CitySelectionHook => {
-  // Находим начальный город
-  const initialCity = useMemo(() => {
-    if (!initialCityId) return null;
-    return KAZAKHSTAN_CITIES.find((city) => city.id === initialCityId) || null;
-  }, [initialCityId]);
-
-  const [selectedCity, setSelectedCity] = useState<City | null>(initialCity);
+  const { cities, isLoading, error } = useGeneral();
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Фильтрация городов по поисковому запросу
-  const availableCities = useMemo(() => {
+  const filteredCities = useMemo(() => {
     if (!searchQuery.trim()) {
-      return KAZAKHSTAN_CITIES;
+      return cities;
     }
 
     const query = searchQuery.toLowerCase();
-    return KAZAKHSTAN_CITIES.filter(
+    return cities.filter(
       (city) =>
         city.name.toLowerCase().includes(query) ||
         city.nameRu.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [cities, searchQuery]);
 
   // Выбор города
   const selectCity = useCallback(
@@ -73,32 +66,35 @@ const useCitySelection = ({
     setError(null);
   }, []);
 
-  // Загрузка городов (для будущего API)
-  const loadCities = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Здесь будет загрузка городов с API
-      // Пока используем статический список
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка загрузки городов');
-    } finally {
-      setIsLoading(false);
+  // Инициализация выбранного города по ID или выбор первого доступного
+  useMemo(() => {
+    if (cities.length > 0) {
+      if (initialCityId) {
+        // Ищем город по переданному ID
+        const city = cities.find((city) => city.id === initialCityId);
+        if (city && city !== selectedCity) {
+          setSelectedCity(city);
+        }
+      } else if (!selectedCity) {
+        // Если нет initialCityId и нет выбранного города, выбираем первый активный
+        const firstActiveCity = cities.find((city) => city.isActive);
+        if (firstActiveCity) {
+          setSelectedCity(firstActiveCity);
+        }
+      }
     }
-  }, []);
+  }, [initialCityId, cities, selectedCity]);
 
   return {
     selectedCity,
-    availableCities,
+    availableCities: filteredCities,
     searchQuery,
     isLoading,
     error,
     selectCity,
     searchCities,
     clearSearch,
-    loadCities,
+    loadCities: () => Promise.resolve(), // Города уже загружаются в useGeneral
   };
 };
 

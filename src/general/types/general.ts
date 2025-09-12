@@ -25,9 +25,33 @@ export interface CategoryApiResponse {
   updatedAt: string;
 }
 
+export interface City {
+  id: string;
+  name: string;
+  nameRu: string;
+  latitude: string;
+  longitude: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Тип для API ответа города
+export interface CityApiResponse {
+  id: string;
+  name: string;
+  nameRu: string;
+  latitude: number;
+  longitude: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Redux состояние для общих данных
 export interface GeneralState {
   categories: Category[];
+  cities: City[];
   isLoading: boolean;
   error: string | null;
 }
@@ -40,17 +64,14 @@ export interface GeneralActions {
   clearError: () => void;
 }
 
-// Утилиты для работы с категориями
-export const mapCategoryApiResponse = (
-  apiCategory: CategoryApiResponse
-): Category => ({
-  id: apiCategory.id,
-  name: apiCategory.name,
-  nameRu: apiCategory.nameRu,
-  description: apiCategory.description,
-  iconUrl: apiCategory.iconUrl,
-  sortOrder: apiCategory.sortOrder,
-  isActive: apiCategory.isActive,
-  createdAt: apiCategory.createdAt,
-  updatedAt: apiCategory.updatedAt,
+// Утилиты для работы с городами
+export const mapCityApiResponse = (apiCity: CityApiResponse): City => ({
+  id: apiCity.id,
+  name: apiCity.name,
+  nameRu: apiCity.nameRu,
+  latitude: apiCity.latitude.toString(),
+  longitude: apiCity.longitude.toString(),
+  isActive: apiCity.isActive,
+  createdAt: apiCity.createdAt,
+  updatedAt: apiCity.updatedAt,
 });

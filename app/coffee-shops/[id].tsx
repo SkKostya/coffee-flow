@@ -1,6 +1,13 @@
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { MenuProduct } from '../../src/coffee-shops';
 import {
   calculateSectionOffsets,
@@ -10,9 +17,6 @@ import {
   createSearchState,
   EmptySearchResults,
   getActiveCategoryByScrollPosition,
-  mockCategories,
-  mockCoffeeShop,
-  mockProducts,
   ProductSection,
   scrollToCategory,
   SearchHeader,
@@ -20,6 +24,8 @@ import {
 } from '../../src/coffee-shops';
 import type { CategoryTab } from '../../src/coffee-shops/types/categories';
 import { useColors } from '../../src/shared';
+import { useCoffeeShops, useProducts } from '../../src/store';
+import { useGeneral } from '../../src/store/hooks/useGeneral';
 
 // Состояние компонента
 interface CoffeeShopScreenState {
@@ -36,26 +42,63 @@ export default function CoffeeShopScreen() {
   const colors = useColors();
   const scrollViewRef = useRef<ScrollView>(null);
 
+  // Получаем ID кофейни из параметров
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  // Redux хуки
+  const {
+    selected: coffeeShop,
+    loadById,
+    isLoading: isCoffeeShopLoading,
+    error: coffeeShopError,
+  } = useCoffeeShops();
+  const {
+    products,
+    loadProducts,
+    isLoading: isProductsLoading,
+    error: productsError,
+  } = useProducts();
+  const { activeCategories } = useGeneral();
+
   // Состояние компонента
   const [state, setState] = useState<CoffeeShopScreenState>({
     searchQuery: '',
     isSearchActive: false,
-    activeCategoryId: mockCategories[0]?.id || '',
-    categories: mockCategories.map((cat) => ({
+    activeCategoryId: activeCategories[0]?.id || '',
+    categories: activeCategories.map((cat: any) => ({
       id: cat.id,
-      name: cat.name,
-      isActive: cat.id === (mockCategories[0]?.id || ''),
-      isVisible: cat.products.length > 0,
+      name: cat.nameRu,
+      isActive: cat.id === (activeCategories[0]?.id || ''),
+      isVisible: true, // Все категории видимы по умолчанию
     })),
     filteredProducts: [],
     scrollY: 0,
     sectionOffsets: {},
   });
 
+  // Преобразуем продукты в MenuProduct
+  const menuProducts = products.map((product: any) => ({
+    id: product.id,
+    name: product.name,
+    nameRu: product.nameRu,
+    description: product.description || '',
+    price: product.price,
+    image: product.imageUrl || '',
+    isAvailable: product.isAvailable,
+    coffeeShopId: product.partnerId || '',
+    coffeeShopName: coffeeShop?.name || '',
+    categoryId: product.categoryId,
+    category: product.category || {
+      id: product.categoryId,
+      name: '',
+      nameRu: '',
+    },
+  }));
+
   // Дебаунс функция для поиска
   const debouncedSearch = useRef(
     createSearchDebounce((query: string) => {
-      const searchState = createSearchState(query, mockProducts);
+      const searchState = createSearchState(query, menuProducts);
       setState((prev) => ({
         ...prev,
         searchQuery: query,
@@ -121,51 +164,80 @@ export default function CoffeeShopScreen() {
     }));
   }, []);
 
+  // Загружаем данные кофейни при монтировании
+  useEffect(() => {
+    if (id) {
+      loadById({ id });
+      loadProducts({ id });
+    }
+  }, [id, loadById, loadProducts]);
+
+  // Обновляем категории при изменении данных
+  useEffect(() => {
+    if (activeCategories.length > 0) {
+      setState((prev) => ({
+        ...prev,
+        activeCategoryId: activeCategories[0]?.id || '',
+        categories: activeCategories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.nameRu,
+          isActive: cat.id === (activeCategories[0]?.id || ''),
+          isVisible: true,
+        })),
+      }));
+    }
+  }, [activeCategories]);
+
   // Инициализация смещений секций
   useEffect(() => {
-    const offsets = calculateSectionOffsets(
-      mockCategories,
-      100, // header height
-      60, // category header height
-      200 // interior image height
-    );
-
-    setState((prev) => ({
-      ...prev,
-      sectionOffsets: offsets,
-    }));
-  }, []);
-
-  // Обработчик скролла для автоматического переключения категорий
-  const handleScroll = useCallback((event: any) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-
-    setState((prev) => {
-      const newActiveCategoryId = getActiveCategoryByScrollPosition(
-        scrollY,
-        mockCategories,
-        prev.sectionOffsets
+    if (activeCategories.length > 0) {
+      const offsets = calculateSectionOffsets(
+        activeCategories,
+        100, // header height
+        60, // category header height
+        200 // interior image height
       );
 
-      // Обновляем активную категорию только если она изменилась
-      if (newActiveCategoryId !== prev.activeCategoryId) {
+      setState((prev) => ({
+        ...prev,
+        sectionOffsets: offsets,
+      }));
+    }
+  }, [activeCategories]);
+
+  // Обработчик скролла для автоматического переключения категорий
+  const handleScroll = useCallback(
+    (event: any) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+
+      setState((prev) => {
+        const newActiveCategoryId = getActiveCategoryByScrollPosition(
+          scrollY,
+          activeCategories,
+          prev.sectionOffsets
+        );
+
+        // Обновляем активную категорию только если она изменилась
+        if (newActiveCategoryId !== prev.activeCategoryId) {
+          return {
+            ...prev,
+            scrollY,
+            activeCategoryId: newActiveCategoryId,
+            categories: prev.categories.map((cat) => ({
+              ...cat,
+              isActive: cat.id === newActiveCategoryId,
+            })),
+          };
+        }
+
         return {
           ...prev,
           scrollY,
-          activeCategoryId: newActiveCategoryId,
-          categories: prev.categories.map((cat) => ({
-            ...cat,
-            isActive: cat.id === newActiveCategoryId,
-          })),
         };
-      }
-
-      return {
-        ...prev,
-        scrollY,
-      };
-    });
-  }, []);
+      });
+    },
+    [activeCategories]
+  );
 
   // Обновленный обработчик нажатия на категорию с прокруткой
   const handleCategoryPressWithScroll = useCallback((categoryId: string) => {
@@ -215,9 +287,9 @@ export default function CoffeeShopScreen() {
       {/* Основная шапка кофейни */}
       {!state.isSearchActive && (
         <CoffeeShopHeader
-          name={mockCoffeeShop.name}
-          address={mockCoffeeShop.address}
-          logo={mockCoffeeShop.logo}
+          name={coffeeShop?.name || 'Загрузка...'}
+          address={coffeeShop?.address || ''}
+          logo={coffeeShop?.logoUrl || ''}
           onBackPress={handleBackPress}
           onSearchPress={handleSearchPress}
         />
@@ -254,10 +326,34 @@ export default function CoffeeShopScreen() {
         {/* Изображение интерьера кофейни */}
         {!state.isSearchActive && (
           <Image
-            source={{ uri: mockCoffeeShop.interiorImage }}
+            source={{
+              uri:
+                coffeeShop?.bannerUrl || 'https://via.placeholder.com/400x200',
+            }}
             style={styles.interiorImage}
             resizeMode="cover"
           />
+        )}
+
+        {/* Состояние загрузки */}
+        {(isCoffeeShopLoading || isProductsLoading) && (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={colors.primary.main} />
+            <Text style={{ marginTop: 10, color: colors.texts.secondary }}>
+              Загрузка данных...
+            </Text>
+          </View>
+        )}
+
+        {/* Состояние ошибки */}
+        {(coffeeShopError || productsError) && (
+          <View style={{ padding: 20, alignItems: 'center' }}>
+            <Text
+              style={{ color: colors.colors.error[500], textAlign: 'center' }}
+            >
+              Ошибка загрузки: {coffeeShopError || productsError}
+            </Text>
+          </View>
         )}
 
         {/* Результаты поиска */}
@@ -285,9 +381,15 @@ export default function CoffeeShopScreen() {
 
         {/* Секции продуктов по категориям */}
         {!state.isSearchActive &&
-          mockCategories
-            .filter((category) => category.products.length > 0)
-            .map((category) => (
+          activeCategories
+            .map((category: any) => ({
+              ...category,
+              products: menuProducts.filter(
+                (product) => product.categoryId === category.id
+              ),
+            }))
+            .filter((category: any) => category.products.length > 0)
+            .map((category: any) => (
               <ProductSection
                 key={category.id}
                 category={category}

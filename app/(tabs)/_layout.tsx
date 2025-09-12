@@ -39,7 +39,10 @@ export default function TabsLayout() {
         },
       })}
     >
-      <Tabs.Screen name="coffee-shops" options={{ title: 'Кофейни' }} />
+      <Tabs.Screen
+        name="coffee-shops"
+        options={{ title: 'Кофейни', headerShown: false }}
+      />
       <Tabs.Screen name="favorites" options={{ title: 'Избранное' }} />
       <Tabs.Screen name="orders" options={{ title: 'Заказы' }} />
       <Tabs.Screen name="profile" options={{ title: 'Профиль' }} />

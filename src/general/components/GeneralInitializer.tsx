@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { useGeneral } from '../hooks';
+import { useGeneral } from '../../store/hooks/useGeneral';
 
 interface GeneralInitializerProps {
   children: React.ReactNode;
@@ -12,12 +12,17 @@ interface GeneralInitializerProps {
 const GeneralInitializer: React.FC<GeneralInitializerProps> = ({
   children,
 }) => {
-  const { loadCategories } = useGeneral();
+  const { loadCategories, loadCities } = useGeneral();
 
   // Загружаем категории при монтировании
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
+
+  // Загружаем города при монтировании
+  useEffect(() => {
+    loadCities();
+  }, [loadCities]);
 
   return <>{children}</>;
 };

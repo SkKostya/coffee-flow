@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generalApi } from '../../general/services';
-import type { Category, GeneralState } from '../../general/types';
+import type { Category, City, GeneralState } from '../../general/types';
 
 // Типы для ошибок
 interface GeneralError {
@@ -11,6 +11,7 @@ interface GeneralError {
 // Начальное состояние
 const initialState: GeneralState = {
   categories: [],
+  cities: [],
   isLoading: false,
   error: null,
 };
@@ -50,6 +51,23 @@ export const fetchCategoryById = createAsyncThunk<
   }
 });
 
+export const fetchCities = createAsyncThunk<
+  City[],
+  void,
+  { rejectValue: GeneralError }
+>('general/fetchCities', async (_, { rejectWithValue }) => {
+  try {
+    const cities = await generalApi.getCities();
+    return cities;
+  } catch (error) {
+    return rejectWithValue({
+      message:
+        error instanceof Error ? error.message : 'Ошибка загрузки городов',
+      code: 'FETCH_CITIES_ERROR',
+    });
+  }
+});
+
 // Слайс
 const generalSlice = createSlice({
   name: 'general',
@@ -57,6 +75,9 @@ const generalSlice = createSlice({
   reducers: {
     setCategories: (state, action: PayloadAction<Category[]>) => {
       state.categories = action.payload;
+    },
+    setCities: (state, action: PayloadAction<City[]>) => {
+      state.cities = action.payload;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -103,10 +124,23 @@ const generalSlice = createSlice({
       .addCase(fetchCategoryById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || 'Ошибка загрузки категории';
+      })
+      // fetchCities
+      .addCase(fetchCities.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchCities.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.cities = action.payload;
+      })
+      .addCase(fetchCities.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Ошибка загрузки городов';
       });
   },
 });
 
-export const { setCategories, setLoading, setError, clearError } =
+export const { setCategories, setCities, setLoading, setError, clearError } =
   generalSlice.actions;
 export default generalSlice.reducer;

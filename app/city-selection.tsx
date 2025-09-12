@@ -13,32 +13,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { City } from '../src/cities';
-import {
-  CityEmptyState,
-  CityItem,
-  CitySeparator,
-  KAZAKHSTAN_CITIES,
-  useCities,
-} from '../src/cities';
+import { CityEmptyState, CityItem, CitySeparator } from '../src/cities';
 import { useColors } from '../src/shared/hooks/useColors';
+import { useGeneral } from '../src/store/hooks/useGeneral';
 
 const CitySelectionScreen: React.FC = () => {
   const colors = useColors();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Redux хук для работы с городами
-  const {
-    citiesForDisplay,
-    selectedCity,
-    isLoading,
-    isSearching,
-    error,
-    loadCities,
-    searchCities,
-    selectCity,
-    clearSearch,
-    clearError,
-  } = useCities();
+  // Redux хук для работы с общими данными
+  const { cities, isLoading, error, loadCities } = useGeneral();
 
   // Получаем параметры из навигации
   const params = useLocalSearchParams();
@@ -50,40 +34,26 @@ const CitySelectionScreen: React.FC = () => {
     loadCities();
   }, [loadCities]);
 
-  // Обработка поиска с дебаунсом
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchQuery.trim()) {
-        searchCities(searchQuery);
-      } else {
-        clearSearch();
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, searchCities, clearSearch]);
+  // Поиск происходит локально через filteredCities
 
   // Фильтрация городов по поисковому запросу
   const filteredCities = useMemo(() => {
-    // Если есть результаты поиска, используем их
-    if (searchQuery.trim() && citiesForDisplay.length > 0) {
-      return citiesForDisplay;
+    if (!searchQuery.trim()) {
+      return cities;
     }
 
-    // Если нет результатов поиска, но есть общий список городов
-    if (!searchQuery.trim() && citiesForDisplay.length > 0) {
-      return citiesForDisplay;
-    }
-
-    // Fallback на предустановленные города
-    return KAZAKHSTAN_CITIES;
-  }, [citiesForDisplay, searchQuery]);
+    const query = searchQuery.toLowerCase();
+    return cities.filter(
+      (city: City) =>
+        city.name.toLowerCase().includes(query) ||
+        city.nameRu.toLowerCase().includes(query)
+    );
+  }, [cities, searchQuery]);
 
   // Обработка выбора города
   const handleCitySelect = useCallback(
     (city: City) => {
-      // Сохраняем выбранный город в Redux
-      selectCity(city);
+      // TODO: Сохранить выбранный город в глобальном состоянии
 
       // Передаем выбранный город через параметры навигации
       if (returnTo) {
@@ -99,7 +69,7 @@ const CitySelectionScreen: React.FC = () => {
         router.back();
       }
     },
-    [returnTo, selectCity]
+    [returnTo]
   );
 
   // Обработка поиска
@@ -110,8 +80,7 @@ const CitySelectionScreen: React.FC = () => {
   // Очистка поиска
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
-    clearSearch();
-  }, [clearSearch]);
+  }, []);
 
   // Обработка возврата
   const handleGoBack = useCallback(() => {
@@ -120,8 +89,7 @@ const CitySelectionScreen: React.FC = () => {
 
   // Рендер элемента города
   const renderCityItem = ({ item: city }: { item: City }) => {
-    const isSelected =
-      selectedCityId === city.id || selectedCity?.id === city.id;
+    const isSelected = selectedCityId === city.id;
 
     return (
       <CityItem
@@ -206,13 +174,13 @@ const CitySelectionScreen: React.FC = () => {
           showCancel={false}
           round
         />
-        {(isLoading || isSearching) && (
+        {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.primary.main} />
             <Text
               style={[styles.loadingText, { color: colors.texts.secondary }]}
             >
-              {isLoading ? 'Загрузка...' : 'Поиск...'}
+              Загрузка...
             </Text>
           </View>
         )}

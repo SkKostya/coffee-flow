@@ -1,9 +1,12 @@
 import { apiClient } from '../../shared/api';
+import { mapCategoryApiResponse } from '../helpers';
 import type {
   Category,
   CategoryApiResponse,
-  mapCategoryApiResponse,
+  City,
+  CityApiResponse,
 } from '../types';
+import { mapCityApiResponse } from '../types/general';
 
 /**
  * API сервис для работы с общими данными
@@ -39,6 +42,19 @@ export class GeneralApi {
     }
 
     return mapCategoryApiResponse(response.data);
+  }
+
+  /**
+   * Получить список всех городов
+   */
+  async getCities(): Promise<City[]> {
+    const response = await apiClient.get<CityApiResponse[]>('/cities');
+
+    if (!response.success) {
+      throw new Error(response.error || 'Ошибка загрузки городов');
+    }
+
+    return response.data?.map((apiCity) => mapCityApiResponse(apiCity)) || [];
   }
 }
 
