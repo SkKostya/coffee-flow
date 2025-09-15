@@ -4,6 +4,7 @@ import { persistReducer, persistStore } from 'redux-persist';
 
 // Импорты слайсов
 import authReducer from './slices/authSlice';
+import cartReducer from './slices/cartSlice';
 import coffeeShopsReducer from './slices/coffeeShopsSlice';
 import generalReducer from './slices/generalSlice';
 import paymentMethodsReducer from './slices/paymentMethodsSlice';
@@ -22,6 +23,7 @@ const persistConfig = {
 // Корневой редьюсер
 const rootReducer = combineReducers({
   auth: authReducer,
+  cart: cartReducer,
   coffeeShops: coffeeShopsReducer,
   general: generalReducer,
   paymentMethods: paymentMethodsReducer,

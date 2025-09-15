@@ -9,6 +9,10 @@ export { default as ReduxProvider } from './ReduxProvider';
 // Экспорт всех хуков
 export * from './hooks/useAppInitialization';
 export * from './hooks/useAuth';
+export * from './hooks/useCart';
+export * from './hooks/useCartErrorHandling';
+export * from './hooks/useCartItem';
+export * from './hooks/useCartOptimization';
 export * from './hooks/useCoffeeShops';
 export * from './hooks/usePaymentMethods';
 export * from './hooks/useProducts';

@@ -1,5 +1,10 @@
-// Экспорт всех хуков
+// src/store/hooks/index.ts
+// Экспорт всех хуков store
+
 export { useAppDispatch, useAppSelector } from '../hooks';
-export { useAuth } from './useAuth';
-export { useProfile } from './useProfile';
-export { useTheme } from './useTheme';
+
+// Хуки корзины
+export { useCart } from './useCart';
+export { useCartErrorHandling } from './useCartErrorHandling';
+export { useCartItem } from './useCartItem';
+export { useCartOptimization } from './useCartOptimization';
