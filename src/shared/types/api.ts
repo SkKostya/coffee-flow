@@ -32,6 +32,7 @@ export interface RequestOptions {
   method?: HttpMethod;
   headers?: Record<string, string>;
   body?: string;
+  params?: Record<string, unknown>;
   timeout?: number;
 }
 

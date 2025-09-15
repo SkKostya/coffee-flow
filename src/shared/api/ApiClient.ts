@@ -73,7 +73,22 @@ export class ApiClient {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.config.baseUrl}${endpoint}`;
+    let url = `${this.config.baseUrl}${endpoint}`;
+
+    // Добавляем query параметры если они есть
+    if (options.params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
     const token = await this.getAuthToken();
 
     // Подготавливаем конфигурацию запроса
@@ -81,6 +96,7 @@ export class ApiClient {
       method: options.method || 'GET',
       url,
       data: options.body,
+      params: options.params,
       headers: {
         ...this.config.defaultHeaders,
         ...options.headers,

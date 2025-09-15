@@ -15,6 +15,7 @@ export * from './hooks/useCartItem';
 export * from './hooks/useCartOptimization';
 export * from './hooks/useCoffeeShops';
 export * from './hooks/useFavorites';
+export * from './hooks/useOrders';
 export * from './hooks/usePaymentMethods';
 export * from './hooks/useProducts';
 export * from './hooks/useProfile';

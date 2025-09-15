@@ -53,13 +53,6 @@ export default function ProfileScreen() {
       color: colors.error.main,
       marginLeft: 12,
     },
-    versionText: {
-      textAlign: 'center',
-      color: colors.texts.secondary,
-      fontSize: 12,
-      marginTop: 20,
-      marginBottom: 30,
-    },
   });
 
   const menuItems = [
@@ -86,24 +79,6 @@ export default function ProfileScreen() {
       title: 'История заказов',
       icon: 'time-outline',
       onPress: () => router.navigate('/orders'),
-    },
-    {
-      id: 'notifications',
-      title: 'Уведомления',
-      icon: 'notifications-outline',
-      onPress: () => {},
-    },
-    {
-      id: 'faq',
-      title: 'Часто задаваемые вопросы',
-      icon: 'help-circle-outline',
-      onPress: () => {},
-    },
-    {
-      id: 'support',
-      title: 'Служба поддержки',
-      icon: 'headset-outline',
-      onPress: () => {},
     },
   ];
 
@@ -208,8 +183,6 @@ export default function ProfileScreen() {
           )}
         </View>
       </View>
-
-      <Text style={styles.versionText}>Версия 10.4.97</Text>
     </ScrollView>
   );
 }
