@@ -1,123 +1,42 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@rneui/themed';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { DeleteOrderModal } from '../src/favorites';
-import type { RepeatOrder, RepeatOrderItem } from '../src/shared';
 import { RepeatOrderCard, useColors } from '../src/shared';
-
-// Пример данных для демонстрации
-const exampleRepeatOrder: RepeatOrder = {
-  id: 'repeat-1-1234567890',
-  items: [
-    {
-      id: '1',
-      name: 'Капучино',
-      basePrice: 990,
-      image: 'https://example.com/cappuccino1.jpg',
-      size: 'М - 400 мл',
-      quantity: 2,
-      customizations: [
-        {
-          id: 'caramel-syrup',
-          name: 'Сироп Карамель',
-          type: 'add',
-          price: 100,
-          isSelected: true,
-        },
-        {
-          id: 'ice',
-          name: 'Лёд',
-          type: 'remove',
-          price: 0,
-          isSelected: false,
-        },
-      ],
-      totalPrice: 1090, // 990 + 100 за сироп
-    },
-    {
-      id: '2',
-      name: 'Капучино',
-      basePrice: 990,
-      image: 'https://example.com/cappuccino2.jpg',
-      size: 'М - 400 мл',
-      quantity: 2,
-      customizations: [],
-      totalPrice: 990,
-    },
-  ],
-  coffeeShopId: '1',
-  coffeeShopName: 'Coffee BOOM',
-  totalAmount: 4160, // (1090 * 2) + (990 * 2)
-  originalOrderId: '1',
-};
+import { useRepeatOrder } from '../src/store';
 
 export default function RepeatOrderPage() {
   const colors = useColors();
-  const [items, setItems] = useState<RepeatOrderItem[]>(
-    exampleRepeatOrder.items
-  );
+  const { orderId, favoriteOrderId } = useLocalSearchParams<{
+    orderId?: string;
+    favoriteOrderId?: string;
+  }>();
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const updateQuantity = useCallback((itemId: string, quantity: number) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, quantity } : item
-      )
-    );
-  }, []);
+  // Используем хук для управления состоянием повторного заказа
+  const {
+    items,
+    originalOrder,
+    totalAmount,
+    isLoading,
+    error,
+    updateQuantity,
+    toggleCustomization,
+    removeItem,
+    submitOrder,
+    deleteFromFavorites,
+    clearError,
+  } = useRepeatOrder({
+    orderId,
+    favoriteOrderId,
+  });
 
-  const toggleCustomization = useCallback(
-    (itemId: string, customizationId: string) => {
-      setItems((prevItems) =>
-        prevItems.map((item) => {
-          if (item.id === itemId) {
-            const updatedCustomizations = item.customizations.map(
-              (customization) =>
-                customization.id === customizationId
-                  ? { ...customization, isSelected: !customization.isSelected }
-                  : customization
-            );
-
-            // Пересчитываем общую цену товара
-            const basePrice = item.basePrice;
-            const customizationPrice = updatedCustomizations
-              .filter((c) => c.isSelected)
-              .reduce((sum, c) => sum + c.price, 0);
-            const totalPrice = basePrice + customizationPrice;
-
-            return {
-              ...item,
-              customizations: updatedCustomizations,
-              totalPrice,
-            };
-          }
-          return item;
-        })
-      );
-    },
-    []
-  );
-
-  const calculateTotalAmount = useCallback(() => {
-    return items.reduce(
-      (total, item) => total + item.totalPrice * item.quantity,
-      0
-    );
-  }, [items]);
-
-  const handleConfirmOrder = useCallback(() => {
-    const updatedOrder: RepeatOrder = {
-      ...exampleRepeatOrder,
-      items,
-      totalAmount: calculateTotalAmount(),
-    };
-    console.log('Заказ подтвержден:', updatedOrder);
-    // Здесь должна быть логика подтверждения заказа
-    // Например, навигация к корзине или экрану оплаты
-    router.push('/cart');
-  }, [items, calculateTotalAmount]);
+  const handleConfirmOrder = useCallback(async () => {
+    await submitOrder();
+  }, [submitOrder]);
 
   const handleCancel = useCallback(() => {
     console.log('Отмена заказа');
@@ -128,12 +47,10 @@ export default function RepeatOrderPage() {
     setShowDeleteModal(true);
   }, []);
 
-  const handleConfirmDelete = useCallback(() => {
-    console.log('Удаление из избранного подтверждено');
-    // Здесь должна быть логика удаления заказа из избранного
+  const handleConfirmDelete = useCallback(async () => {
+    await deleteFromFavorites();
     setShowDeleteModal(false);
-    router.back();
-  }, []);
+  }, [deleteFromFavorites]);
 
   const handleCloseModal = useCallback(() => {
     setShowDeleteModal(false);
@@ -142,6 +59,102 @@ export default function RepeatOrderPage() {
   const formatPrice = (price: number): string => {
     return `${price.toLocaleString('ru-RU')} 〒`;
   };
+
+  // Показываем загрузку
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.backgrounds.primary },
+        ]}
+      >
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: colors.texts.primary }]}>
+            Загрузка заказа...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Показываем ошибку
+  if (error) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.backgrounds.primary },
+        ]}
+      >
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={64} color={colors.error.main} />
+          <Text style={[styles.errorTitle, { color: colors.texts.primary }]}>
+            Ошибка загрузки
+          </Text>
+          <Text
+            style={[styles.errorMessage, { color: colors.texts.secondary }]}
+          >
+            {error}
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.retryButton,
+              { backgroundColor: colors.primary.main },
+            ]}
+            onPress={clearError}
+          >
+            <Text
+              style={[styles.retryButtonText, { color: colors.texts.primary }]}
+            >
+              Попробовать снова
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Показываем пустое состояние
+  if (!originalOrder || items.length === 0) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.backgrounds.primary },
+        ]}
+      >
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name="cart-outline"
+            size={64}
+            color={colors.texts.disabled}
+          />
+          <Text style={[styles.emptyTitle, { color: colors.texts.primary }]}>
+            Заказ не найден
+          </Text>
+          <Text
+            style={[styles.emptyMessage, { color: colors.texts.secondary }]}
+          >
+            Не удалось загрузить данные заказа
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.backButton,
+              { backgroundColor: colors.primary.main },
+            ]}
+            onPress={handleCancel}
+          >
+            <Text
+              style={[styles.backButtonText, { color: colors.texts.primary }]}
+            >
+              Назад
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -154,7 +167,10 @@ export default function RepeatOrderPage() {
       <View
         style={[styles.header, { backgroundColor: colors.backgrounds.neutral }]}
       >
-        <TouchableOpacity style={styles.backButton} onPress={handleCancel}>
+        <TouchableOpacity
+          style={styles.backButtonHeader}
+          onPress={handleCancel}
+        >
           <Ionicons name="arrow-back" size={24} color={colors.texts.primary} />
         </TouchableOpacity>
 
@@ -193,7 +209,7 @@ export default function RepeatOrderPage() {
           <Text
             style={[styles.coffeeShopName, { color: colors.texts.primary }]}
           >
-            {exampleRepeatOrder.coffeeShopName}
+            {originalOrder.coffeeShopName}
           </Text>
           <Text
             style={[
@@ -211,7 +227,7 @@ export default function RepeatOrderPage() {
         style={styles.itemsContainer}
         showsVerticalScrollIndicator={false}
       >
-        {items.map((item) => (
+        {items.map((item: any) => (
           <RepeatOrderCard
             key={item.id}
             item={item}
@@ -228,7 +244,7 @@ export default function RepeatOrderPage() {
             Итого:
           </Text>
           <Text style={[styles.totalAmount, { color: colors.texts.primary }]}>
-            {formatPrice(calculateTotalAmount())}
+            {formatPrice(totalAmount)}
           </Text>
         </View>
 
@@ -286,7 +302,7 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     marginBottom: 16,
   },
-  backButton: {
+  backButtonHeader: {
     padding: 8,
   },
   headerContent: {
@@ -377,6 +393,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Новые стили для состояний
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  retryButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  backButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
     fontSize: 16,
     fontWeight: '600',
   },

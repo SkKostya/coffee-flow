@@ -16,3 +16,9 @@ export {
   useFavoriteProducts,
   useFavorites,
 } from './useFavorites';
+
+// Хуки заказов
+export { useOrders } from './useOrders';
+
+// Хуки повторных заказов
+export { useRepeatOrder } from './useRepeatOrder';

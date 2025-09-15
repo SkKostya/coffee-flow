@@ -19,6 +19,7 @@ export * from './hooks/useOrders';
 export * from './hooks/usePaymentMethods';
 export * from './hooks/useProducts';
 export * from './hooks/useProfile';
+export * from './hooks/useRepeatOrder';
 export * from './hooks/useTheme';
 
 // Экспорт селекторов

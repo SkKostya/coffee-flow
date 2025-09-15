@@ -2,12 +2,13 @@
 
 export interface PaymentMethod {
   id: string;
-  type: 'card';
-  cardNumber: string;
-  cardHolderName: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cardBrand: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
+  type: 'card' | 'kaspi' | 'cash';
+  name?: string;
+  cardNumber?: string;
+  cardHolderName?: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+  cardBrand?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
   isDefault: boolean;
   isActive: boolean;
   clientId: string;
