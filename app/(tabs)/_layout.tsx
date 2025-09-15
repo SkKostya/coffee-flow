@@ -13,8 +13,7 @@ export default function TabsLayout() {
           borderColor: colors.borders.subtle,
           backgroundColor: colors.backgrounds.neutral,
           height: 80,
-          paddingBottom: 15,
-          paddingTop: 5,
+          paddingBottom: 18,
         },
         tabBarActiveTintColor: colors.primary.main,
         headerStyle: {
@@ -33,7 +32,7 @@ export default function TabsLayout() {
           if (route.name === 'coffee-shops') iconName = 'cafe-outline';
           if (route.name === 'favorites') iconName = 'heart-outline';
           if (route.name === 'profile') iconName = 'person-outline';
-          if (route.name === 'orders') iconName = 'list-outline';
+          if (route.name === 'cart') iconName = 'cart-outline';
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -43,8 +42,8 @@ export default function TabsLayout() {
         name="coffee-shops"
         options={{ title: 'Кофейни', headerShown: false }}
       />
+      <Tabs.Screen name="cart" options={{ title: 'Корзина' }} />
       <Tabs.Screen name="favorites" options={{ title: 'Избранное' }} />
-      <Tabs.Screen name="orders" options={{ title: 'Заказы' }} />
       <Tabs.Screen name="profile" options={{ title: 'Профиль' }} />
     </Tabs>
   );

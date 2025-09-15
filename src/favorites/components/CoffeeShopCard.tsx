@@ -2,17 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button, Card, ListItem, Text } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { Product, ProductCard, useColors } from '../../shared';
-import type { CoffeeShop } from '../../types';
+import { ProductCard, useColors } from '../../shared';
+import type { CoffeeShop, FavoriteProductWithShop } from '../../types';
 
 interface CoffeeShopCardProps {
   coffeeShop: CoffeeShop;
-  shopProducts: Product[];
+  shopProducts: FavoriteProductWithShop[];
   isExpanded: boolean;
   onToggleExpand: () => void;
   onOpenMenu: () => void;
   onFavoriteToggle: (productId: string) => void;
-  onProductPress: (product: Product) => void;
+  onProductPress: (product: FavoriteProductWithShop) => void;
 }
 
 const CoffeeShopCard: React.FC<CoffeeShopCardProps> = ({
@@ -108,7 +108,16 @@ const CoffeeShopCard: React.FC<CoffeeShopCardProps> = ({
         {shopProducts.map((product) => (
           <ProductCard
             key={product.id}
-            product={product}
+            product={{
+              id: product.id,
+              name: product.nameRu || product.name,
+              price: product.price,
+              image: product.imageUrl,
+              category: 'coffee', // Можно добавить в API
+              isFavorite: product.isFavorite,
+              coffeeShopId: product.coffeeShopId,
+              coffeeShopName: product.coffeeShopName,
+            }}
             onFavoritePress={() => onFavoriteToggle(product.id)}
             onProductPress={() => onProductPress(product)}
           />

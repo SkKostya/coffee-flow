@@ -8,3 +8,11 @@ export { useCart } from './useCart';
 export { useCartErrorHandling } from './useCartErrorHandling';
 export { useCartItem } from './useCartItem';
 export { useCartOptimization } from './useCartOptimization';
+
+// Хуки избранного
+export {
+  useFavoriteItem,
+  useFavoriteOrders,
+  useFavoriteProducts,
+  useFavorites,
+} from './useFavorites';

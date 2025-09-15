@@ -1,6 +1,7 @@
 // app/cart.tsx
+import { CartListOptimized, formatPrice } from '@/src/cart';
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,9 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { CartListOptimized } from '../src/cart/components';
-import { formatPrice } from '../src/cart/utils/cartUtils';
-import type { Product, RepeatOrderItem } from '../src/shared';
+import type { Product } from '../../src/shared';
 import {
   EmptyState,
   ErrorBoundary,
@@ -22,55 +21,8 @@ import {
   LoadingSpinner,
   ProductCard,
   useColors,
-} from '../src/shared';
-import { useCart, useCartErrorHandling } from '../src/store';
-
-// Данные корзины с кастомизациями
-const cartItems: RepeatOrderItem[] = [
-  {
-    id: '1',
-    name: 'Капучино',
-    basePrice: 990,
-    image: 'https://images.unsplash.com/photo-1604909052743-92f47e4c4f18',
-    size: 'М - 400 мл',
-    quantity: 1,
-    totalPrice: 1090,
-    customizations: [
-      {
-        id: '1-1',
-        name: 'Сироп Карамель',
-        type: 'add',
-        price: 100,
-        isSelected: true,
-      },
-      {
-        id: '1-2',
-        name: 'Лёд',
-        type: 'remove',
-        price: 0,
-        isSelected: true,
-      },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Капучино',
-    basePrice: 990,
-    image: 'https://images.unsplash.com/photo-1604909052743-92f47e4c4f18',
-    size: 'М - 400 мл',
-    quantity: 2,
-    totalPrice: 1090,
-    customizations: [
-      {
-        id: '2-1',
-        name: 'Сироп Карамель',
-        type: 'add',
-        price: 100,
-        isSelected: true,
-      },
-    ],
-  },
-];
+} from '../../src/shared';
+import { useCart, useCartErrorHandling } from '../../src/store';
 
 // Рекомендуемые продукты
 const suggestedProducts: Product[] = [
@@ -105,14 +57,6 @@ const suggestedProducts: Product[] = [
     coffeeShopName: 'Coffee BOOM',
   },
 ];
-
-// Информация о кофейне
-const coffeeShop = {
-  id: 'coffee-boom',
-  name: 'Coffee BOOM',
-  address: 'ул. Каныша Сатпаева, 30/5 к4',
-  logo: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24',
-};
 
 const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
   const colors = useColors();
@@ -429,7 +373,6 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
   if (isLoading && !cart) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ headerShown: true, title: 'Корзина' }} />
         <LoadingSpinner
           size="large"
           message="Загрузка корзины..."
@@ -442,7 +385,6 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
   if (error || cartError) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ headerShown: true, title: 'Корзина' }} />
         <ErrorMessage
           error={error || cartError || 'Произошла неизвестная ошибка'}
           onRetry={handleRetry}
@@ -456,12 +398,11 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
   if (isEmpty) {
     return (
       <View style={styles.container}>
-        <Stack.Screen options={{ headerShown: true, title: 'Корзина' }} />
         <EmptyState
           icon="cart-outline"
           title="Корзина пуста"
           message="Добавьте товары из меню кофейни"
-          actionText="Перейти к меню"
+          actionText="Назад"
           onAction={() => router.back()}
         />
       </View>
@@ -480,25 +421,6 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
         />
       }
     >
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: 'Корзина',
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={handleClearCart}
-              style={styles.clearButton}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={24}
-                color={colors.texts.secondary}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
       {/* Информация о кофейне */}
       {partner && (
         <View style={styles.coffeeShopSection}>

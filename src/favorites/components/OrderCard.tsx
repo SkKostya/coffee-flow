@@ -2,10 +2,10 @@ import { Button, Card, Text } from '@rneui/themed';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useColors } from '../../shared';
-import type { Order } from '../types';
+import type { FavoriteOrderWithShop } from '../../types';
 
 interface OrderCardProps {
-  order: Order;
+  order: FavoriteOrderWithShop;
   onDetailsPress: () => void;
   onRepeatPress: () => void;
 }
@@ -30,7 +30,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
   };
 
   const getOrderItemsText = (): string => {
-    if (order.items.length === 0) return '';
+    if (order.items.length === 0) return 'Заказ';
     if (order.items.length === 1) return order.items[0].name;
     if (order.items.length === 2) {
       return `${order.items[0].name}, ${order.items[1].name}`;
@@ -82,7 +82,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
 
         <View style={styles.priceContainer}>
           <Text style={[styles.price, { color: colors.texts.primary }]}>
-            {formatPrice(order.total)}
+            {formatPrice(order.totalAmount)}
           </Text>
         </View>
 

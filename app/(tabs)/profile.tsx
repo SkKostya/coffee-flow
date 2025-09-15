@@ -2,7 +2,7 @@ import { TOKEN_KEY, USER_KEY } from '@/src/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, ListItem, Text } from '@rneui/themed';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useColors } from '../../src/shared/hooks/useColors';
@@ -22,18 +22,6 @@ export default function ProfileScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.backgrounds.primary,
-    },
-    header: {
-      paddingTop: 42,
-      paddingBottom: 18,
-      marginBottom: 16,
-      backgroundColor: colors.backgrounds.neutral,
-    },
-    title: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      textAlign: 'center',
-      color: colors.texts.primary,
     },
     loginButton: {
       marginHorizontal: 20,
@@ -125,12 +113,6 @@ export default function ProfileScreen() {
       contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
     >
       <View>
-        <Stack.Screen options={{ headerShown: false }} />
-
-        <View style={styles.header}>
-          <Text style={styles.title}>Профиль</Text>
-        </View>
-
         {!isAuthenticated && (
           <View style={styles.loginButton}>
             <Button

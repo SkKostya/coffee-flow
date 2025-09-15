@@ -1,45 +1,27 @@
 import { Text } from '@rneui/themed';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import type { Order } from '../../src/favorites';
-import { CoffeeShopCard, OrderCard } from '../../src/favorites';
-import { useColors, type Product } from '../../src/shared';
-import type { CoffeeShop } from '../../src/types';
+import React, { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  CoffeeShopCard,
+  EmptyFavoritesState,
+  ErrorState,
+  OrderCard,
+} from '../../src/favorites';
+import { useColors } from '../../src/shared';
+import {
+  useFavoriteOrders,
+  useFavoriteProducts,
+  useFavorites,
+} from '../../src/store';
+import type {
+  CoffeeShop,
+  FavoriteOrderWithShop,
+  FavoriteProductWithShop,
+} from '../../src/types';
 
-// Пример данных для демонстрации
-const favoriteOrders: Order[] = [
-  {
-    id: '1',
-    items: [
-      { id: '1', name: 'Американо', price: 1200, quantity: 1 },
-      { id: '2', name: 'Круасан', price: 2090, quantity: 1 },
-    ],
-    total: 3290,
-    status: 'delivered',
-    createdAt: new Date('2024-01-15T10:30:00'),
-    updatedAt: new Date('2024-01-15T11:00:00'),
-    coffeeShopId: '1',
-    coffeeShopName: 'Coffee BOOM',
-    coffeeShopAddress: 'ул. Каныша Сатпаева, 30/5 к4',
-  },
-  {
-    id: '2',
-    items: [
-      { id: '3', name: 'Американо', price: 1200, quantity: 1 },
-      { id: '4', name: 'Круасан', price: 2090, quantity: 1 },
-    ],
-    total: 3290,
-    status: 'delivered',
-    createdAt: new Date('2024-01-14T15:20:00'),
-    updatedAt: new Date('2024-01-14T16:00:00'),
-    coffeeShopId: '1',
-    coffeeShopName: 'Coffee BOOM',
-    coffeeShopAddress: 'ул. Каныша Сатпаева, 30/5 к4',
-  },
-];
-
-const favoriteCoffeeShops: CoffeeShop[] = [
+// Временные данные для демонстрации (будут заменены на реальные данные из Redux)
+const mockCoffeeShops: CoffeeShop[] = [
   {
     id: '1',
     name: 'Coffee BOOM',
@@ -68,44 +50,52 @@ const favoriteCoffeeShops: CoffeeShop[] = [
   },
 ];
 
-const favoriteProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Капучино',
-    price: 990,
-    image: 'https://example.com/cappuccino1.jpg',
-    category: 'coffee',
-    isFavorite: true,
-    coffeeShopId: '2',
-    coffeeShopName: 'URBO coffee',
-  },
-  {
-    id: '2',
-    name: 'Капучино',
-    price: 990,
-    image: 'https://example.com/cappuccino2.jpg',
-    category: 'coffee',
-    isFavorite: true,
-    coffeeShopId: '2',
-    coffeeShopName: 'URBO coffee',
-  },
-  {
-    id: '3',
-    name: 'Капучино',
-    price: 990,
-    image: 'https://example.com/cappuccino3.jpg',
-    category: 'coffee',
-    isFavorite: true,
-    coffeeShopId: '2',
-    coffeeShopName: 'URBO coffee',
-  },
-];
-
 export default function FavoritesScreen() {
   const colors = useColors();
   const [expandedCoffeeShops, setExpandedCoffeeShops] = useState<Set<string>>(
     new Set(['2']) // URBO coffee развернута по умолчанию
   );
+
+  // Redux хуки
+  const { favorites, isLoading, error, loadFavorites, clearError } =
+    useFavorites();
+  const { toggleProduct } = useFavoriteProducts();
+  const { toggleOrder } = useFavoriteOrders();
+
+  // Получаем данные через селекторы
+  const favoriteProducts = useFavorites()
+    .favorites.filter((fav) => fav.type === 'product' && fav.product)
+    .map((fav) => ({
+      ...fav.product!,
+      coffeeShopId: fav.product!.partner.id,
+      coffeeShopName: fav.product!.partner.name,
+      isFavorite: true,
+    }));
+
+  const favoriteOrders = useFavorites()
+    .favorites.filter((fav) => fav.type === 'order' && fav.order)
+    .map((fav) => ({
+      ...fav.order!,
+      coffeeShopId: fav.order!.partner.id,
+      coffeeShopName: fav.order!.partner.name,
+      coffeeShopAddress: '', // Нужно будет получать из API кофеен
+      items: [], // Нужно будет получать из API заказов
+      createdAt: new Date(fav.createdAt),
+      updatedAt: new Date(fav.createdAt),
+    }));
+
+  // Автоматическая загрузка при монтировании (без retry)
+  useEffect(() => {
+    loadFavorites();
+  }, []); // Пустой массив зависимостей - выполняется только при монтировании
+
+  // Обработка ошибок
+  useEffect(() => {
+    if (error) {
+      console.error('Ошибка загрузки избранного:', error);
+      // Здесь можно показать уведомление об ошибке
+    }
+  }, [error]);
 
   const handleToggleExpand = (coffeeShopId: string) => {
     const newExpanded = new Set(expandedCoffeeShops);
@@ -124,65 +114,148 @@ export default function FavoritesScreen() {
     });
   };
 
-  const handleOrderDetails = (order: Order) => {
+  const handleOrderDetails = (order: FavoriteOrderWithShop) => {
     // Навигация к деталям заказа
     console.log('Детали заказа:', order.id);
   };
 
-  const handleRepeatOrder = (order: Order) => {
+  const handleRepeatOrder = (order: FavoriteOrderWithShop) => {
     // Навигация к повтору заказа
     router.push('/repeat-order');
   };
 
-  const handleProductPress = (product: Product) => {
+  const handleProductPress = (product: FavoriteProductWithShop) => {
     // Навигация к продукту
     console.log('Продукт нажат:', product.name);
   };
 
-  const handleFavoriteToggle = (productId: string) => {
-    // Переключение избранного
-    console.log('Избранное переключено для продукта:', productId);
+  const handleFavoriteToggle = async (productId: string) => {
+    try {
+      await toggleProduct(productId);
+    } catch (err) {
+      console.error('Ошибка переключения избранного:', err);
+    }
   };
+
+  const handleRefresh = () => {
+    loadFavorites();
+  };
+
+  // Группировка продуктов по кофейням
+  const productsByShop = favoriteProducts.reduce((acc, product) => {
+    const shopId = product.coffeeShopId;
+    if (!acc[shopId]) {
+      acc[shopId] = {
+        shop: mockCoffeeShops.find((shop) => shop.id === shopId) || {
+          id: shopId,
+          name: product.coffeeShopName,
+          rating: 0,
+          status: 'open' as const,
+          address: '',
+          distance: 0,
+          image: '',
+          workingHours: { open: '00:00', close: '00:00' },
+        },
+        products: [],
+      };
+    }
+    acc[shopId].products.push(product);
+    return acc;
+  }, {} as Record<string, { shop: CoffeeShop; products: FavoriteProductWithShop[] }>);
+
+  // Проверка на пустое состояние - показываем только если загрузка завершена и данных нет
+  const isEmpty = favorites.length === 0 && !isLoading;
+
+  // Если есть ошибка
+  if (error) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ErrorState
+          error={error}
+          onRetry={handleRefresh}
+          onDismiss={clearError}
+        />
+      </View>
+    );
+  }
+
+  // Если пустое состояние
+  if (isEmpty) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <EmptyFavoritesState type="all" onActionPress={() => loadFavorites()} />
+      </View>
+    );
+  }
+
+  // Если загружается и нет данных - показываем индикатор загрузки
+  if (isLoading && favorites.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          <Text style={[styles.loadingText, { color: colors.texts.secondary }]}>
+            Загрузка избранного...
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isLoading}
+          onRefresh={handleRefresh}
+          colors={[colors.primary.main]}
+          tintColor={colors.primary.main}
+        />
+      }
     >
       {/* Секция "Избранные заказы" */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.texts.secondary }]}>
-          Избранные заказы
-        </Text>
-        {favoriteOrders.map((order) => (
-          <OrderCard
-            key={order.id}
-            order={order}
-            onDetailsPress={() => handleOrderDetails(order)}
-            onRepeatPress={() => handleRepeatOrder(order)}
-          />
-        ))}
-      </View>
+      {favoriteOrders.length > 0 && (
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: colors.texts.secondary }]}
+          >
+            Избранные заказы
+          </Text>
+          {favoriteOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onDetailsPress={() => handleOrderDetails(order)}
+              onRepeatPress={() => handleRepeatOrder(order)}
+            />
+          ))}
+        </View>
+      )}
 
       {/* Секция "Избранные позиции" */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.texts.secondary }]}>
-          Избранные позиции
-        </Text>
+      {favoriteProducts.length > 0 && (
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: colors.texts.secondary }]}
+          >
+            Избранные позиции
+          </Text>
 
-        {/* Кофейни */}
-        {favoriteCoffeeShops.map((coffeeShop) => (
-          <CoffeeShopCard
-            key={coffeeShop.id}
-            coffeeShop={coffeeShop}
-            shopProducts={favoriteProducts}
-            onFavoriteToggle={handleFavoriteToggle}
-            onProductPress={handleProductPress}
-            isExpanded={expandedCoffeeShops.has(coffeeShop.id)}
-            onToggleExpand={() => handleToggleExpand(coffeeShop.id)}
-            onOpenMenu={() => handleOpenMenu(coffeeShop)}
-          />
-        ))}
-      </View>
+          {/* Кофейни */}
+          {Object.values(productsByShop).map(({ shop, products }) => (
+            <CoffeeShopCard
+              key={shop.id}
+              coffeeShop={shop}
+              shopProducts={products}
+              onFavoriteToggle={handleFavoriteToggle}
+              onProductPress={handleProductPress}
+              isExpanded={expandedCoffeeShops.has(shop.id)}
+              onToggleExpand={() => handleToggleExpand(shop.id)}
+              onOpenMenu={() => handleOpenMenu(shop)}
+            />
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -199,5 +272,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontStyle: 'italic',
   },
 });

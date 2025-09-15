@@ -1,4 +1,5 @@
 // app/orders.tsx
+import { Stack } from 'expo-router';
 import React from 'react';
 import {
   ScrollView,
@@ -7,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useColors } from '../../src/shared/hooks/useColors';
+import { useColors } from '../src/shared/hooks/useColors';
 
 const orders = [
   {
@@ -62,6 +63,8 @@ export default function OrdersScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      <Stack.Screen options={{ headerShown: true, title: 'Заказы' }} />
+
       {orders.map((order) => (
         <TouchableOpacity key={order.id} style={styles.card}>
           <View style={styles.row}>
