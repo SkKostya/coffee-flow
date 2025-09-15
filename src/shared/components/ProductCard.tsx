@@ -49,11 +49,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
       <Card containerStyle={cardStyle}>
         {/* Изображение продукта */}
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: product.image }}
-            style={styles.productImage}
-            resizeMode="cover"
-          />
+          {product.image && (
+            <Image
+              source={{ uri: product.image }}
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          )}
 
           {/* Кнопка избранного */}
           <TouchableOpacity

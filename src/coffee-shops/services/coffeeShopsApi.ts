@@ -35,9 +35,6 @@ export class CoffeeShopsApiService {
       }
 
       const url = `${this.baseEndpoint}/nearby?${queryParams.toString()}`;
-      console.log('CoffeeShopsApiService.getNearby - Request URL:', url);
-      console.log('CoffeeShopsApiService.getNearby - Params:', params);
-
       const response = await apiClient.get<NearbyCoffeeShopsResponse>(url);
 
       if (!response.success || !response.data) {
@@ -46,7 +43,6 @@ export class CoffeeShopsApiService {
 
       return response.data;
     } catch (error) {
-      console.error('CoffeeShopsApiService.getNearby error:', error);
       throw this.handleError(error);
     }
   }

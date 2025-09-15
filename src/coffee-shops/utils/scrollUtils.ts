@@ -1,11 +1,11 @@
-import type { ProductCategory } from '../types';
+import type { Category } from '../../general/types';
 
 /**
  * Определяет, какая категория должна быть активной на основе позиции скролла
  */
 export const getActiveCategoryByScrollPosition = (
   scrollY: number,
-  categories: ProductCategory[],
+  categories: Category[],
   sectionOffsets: Record<string, number>
 ): string => {
   // Находим категорию, которая ближе всего к верху экрана
@@ -36,7 +36,8 @@ export const getActiveCategoryByScrollPosition = (
  * Вычисляет смещения секций относительно начала контента
  */
 export const calculateSectionOffsets = (
-  categories: ProductCategory[],
+  categories: Category[],
+  productsByCategory: Record<string, any[]>,
   headerHeight: number = 0,
   categoryHeaderHeight: number = 0,
   interiorImageHeight: number = 0
@@ -47,7 +48,8 @@ export const calculateSectionOffsets = (
   categories.forEach((category) => {
     offsets[category.id] = currentOffset;
     // Используем функцию для точного расчета высоты секции
-    const sectionHeight = calculateSectionHeight(category.products.length);
+    const productsCount = productsByCategory[category.id]?.length || 0;
+    const sectionHeight = calculateSectionHeight(productsCount);
     currentOffset += sectionHeight;
   });
 

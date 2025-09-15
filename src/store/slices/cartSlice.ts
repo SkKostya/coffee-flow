@@ -37,10 +37,7 @@ export const loadCart = createAsyncThunk<
   { rejectValue: CartError }
 >('cart/loadCart', async (_, { rejectWithValue }) => {
   try {
-    const cart = await cartApiService.getCart({
-      includePartner: true,
-      includeProducts: true,
-    });
+    const cart = await cartApiService.getCart();
     return cart;
   } catch (error) {
     const cartError = error as CartError;

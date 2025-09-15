@@ -58,45 +58,47 @@ export default function CoffeeShopScreen() {
     isLoading: isProductsLoading,
     error: productsError,
   } = useProducts();
-  const { activeCategories } = useGeneral();
+  const {
+    activeCategories,
+    categories: allCategories,
+    loadCategories,
+    isLoading: isCategoriesLoading,
+  } = useGeneral();
 
   // Состояние компонента
   const [state, setState] = useState<CoffeeShopScreenState>({
     searchQuery: '',
     isSearchActive: false,
-    activeCategoryId: activeCategories[0]?.id || '',
-    categories: activeCategories.map((cat: any) => ({
-      id: cat.id,
-      name: cat.nameRu,
-      isActive: cat.id === (activeCategories[0]?.id || ''),
-      isVisible: true, // Все категории видимы по умолчанию
-    })),
+    activeCategoryId: '',
+    categories: [],
     filteredProducts: [],
     scrollY: 0,
     sectionOffsets: {},
   });
 
   // Преобразуем продукты в MenuProduct
-  const menuProducts = products.map((product: any) => ({
-    id: product.id,
-    name: product.name,
-    nameRu: product.nameRu,
-    description: product.description || '',
-    price: product.price,
-    image: product.imageUrl || '',
-    isAvailable: product.isAvailable,
-    coffeeShopId: product.partnerId || '',
-    coffeeShopName: coffeeShop?.name || '',
-    categoryId: product.categoryId,
-    category: product.category || {
-      id: product.categoryId,
-      name: '',
-      nameRu: '',
-    },
-  }));
+  const menuProducts = React.useMemo(() => {
+    return products.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      nameRu: product.nameRu,
+      description: product.description || '',
+      price: product.price,
+      image: product.imageUrl || '',
+      isAvailable: product.isAvailable,
+      coffeeShopId: product.partnerId || '',
+      coffeeShopName: coffeeShop?.name || '',
+      categoryId: product.categoryId,
+      category: product.category || {
+        id: product.categoryId,
+        name: '',
+        nameRu: '',
+      },
+    }));
+  }, [products, coffeeShop?.name]);
 
   // Дебаунс функция для поиска
-  const debouncedSearch = useRef(
+  const debouncedSearch = useCallback(
     createSearchDebounce((query: string) => {
       const searchState = createSearchState(query, menuProducts);
       setState((prev) => ({
@@ -105,8 +107,9 @@ export default function CoffeeShopScreen() {
         isSearchActive: searchState.isActive,
         filteredProducts: searchState.filteredProducts,
       }));
-    }, 300)
-  ).current;
+    }, 300),
+    [menuProducts]
+  );
 
   // Обработчики событий
   const handleSearchChange = useCallback(
@@ -169,41 +172,94 @@ export default function CoffeeShopScreen() {
     if (id) {
       loadById({ id });
       loadProducts({ id });
+      loadCategories(); // Загружаем категории
     }
-  }, [id, loadById, loadProducts]);
+  }, [id, loadById, loadProducts, loadCategories]);
 
   // Обновляем категории при изменении данных
   useEffect(() => {
-    if (activeCategories.length > 0) {
-      setState((prev) => ({
-        ...prev,
-        activeCategoryId: activeCategories[0]?.id || '',
-        categories: activeCategories.map((cat: any) => ({
-          id: cat.id,
-          name: cat.nameRu,
-          isActive: cat.id === (activeCategories[0]?.id || ''),
-          isVisible: true,
-        })),
+    // Если нет активных категорий, но есть все категории, используем все
+    const categoriesToUse =
+      activeCategories && activeCategories.length > 0
+        ? activeCategories
+        : allCategories;
+
+    if (categoriesToUse && categoriesToUse.length > 0) {
+      const mappedCategories = categoriesToUse.map((cat: any) => ({
+        id: cat.id,
+        name: cat.nameRu,
+        isActive: cat.id === (categoriesToUse[0]?.id || ''),
+        isVisible: true,
       }));
+
+      setState((prev) => {
+        // Проверяем, изменились ли категории
+        const hasChanged =
+          prev.categories.length !== mappedCategories.length ||
+          prev.categories.some(
+            (cat, index) =>
+              cat.id !== mappedCategories[index]?.id ||
+              cat.isActive !== mappedCategories[index]?.isActive
+          );
+
+        if (!hasChanged) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          activeCategoryId: categoriesToUse[0]?.id || '',
+          categories: mappedCategories,
+        };
+      });
     }
-  }, [activeCategories]);
+  }, [activeCategories, allCategories]);
 
   // Инициализация смещений секций
   useEffect(() => {
-    if (activeCategories.length > 0) {
+    const categoriesToUse =
+      activeCategories && activeCategories.length > 0
+        ? activeCategories
+        : allCategories;
+
+    if (
+      categoriesToUse &&
+      categoriesToUse.length > 0 &&
+      menuProducts.length > 0
+    ) {
+      // Группируем продукты по категориям
+      const productsByCategory: Record<string, any[]> = {};
+      categoriesToUse.forEach((category) => {
+        productsByCategory[category.id] = menuProducts.filter(
+          (product) => product.categoryId === category.id
+        );
+      });
+
       const offsets = calculateSectionOffsets(
-        activeCategories,
+        categoriesToUse,
+        productsByCategory,
         100, // header height
         60, // category header height
         200 // interior image height
       );
 
-      setState((prev) => ({
-        ...prev,
-        sectionOffsets: offsets,
-      }));
+      setState((prev) => {
+        // Проверяем, изменились ли смещения
+        const hasChanged = Object.keys(offsets).some(
+          (key) => prev.sectionOffsets[key] !== offsets[key]
+        );
+
+        if (!hasChanged) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          sectionOffsets: offsets,
+        };
+      });
     }
-  }, [activeCategories]);
+  }, [activeCategories, allCategories, menuProducts]);
 
   // Обработчик скролла для автоматического переключения категорий
   const handleScroll = useCallback(
@@ -211,9 +267,18 @@ export default function CoffeeShopScreen() {
       const scrollY = event.nativeEvent.contentOffset.y;
 
       setState((prev) => {
+        const categoriesToUse =
+          activeCategories && activeCategories.length > 0
+            ? activeCategories
+            : allCategories;
+
+        if (!categoriesToUse || categoriesToUse.length === 0) {
+          return { ...prev, scrollY };
+        }
+
         const newActiveCategoryId = getActiveCategoryByScrollPosition(
           scrollY,
-          activeCategories,
+          categoriesToUse,
           prev.sectionOffsets
         );
 
@@ -236,7 +301,7 @@ export default function CoffeeShopScreen() {
         };
       });
     },
-    [activeCategories]
+    [activeCategories, allCategories]
   );
 
   // Обновленный обработчик нажатия на категорию с прокруткой
@@ -307,7 +372,7 @@ export default function CoffeeShopScreen() {
       )}
 
       {/* Горизонтальный скролл категорий */}
-      {!state.isSearchActive && (
+      {!state.isSearchActive && state.categories.length > 0 && (
         <CategoryHeader
           categories={state.categories}
           activeCategoryId={state.activeCategoryId}
@@ -324,19 +389,16 @@ export default function CoffeeShopScreen() {
         scrollEventThrottle={16}
       >
         {/* Изображение интерьера кофейни */}
-        {!state.isSearchActive && (
+        {!state.isSearchActive && coffeeShop?.bannerUrl && (
           <Image
-            source={{
-              uri:
-                coffeeShop?.bannerUrl || 'https://via.placeholder.com/400x200',
-            }}
+            source={{ uri: coffeeShop.bannerUrl }}
             style={styles.interiorImage}
             resizeMode="cover"
           />
         )}
 
         {/* Состояние загрузки */}
-        {(isCoffeeShopLoading || isProductsLoading) && (
+        {(isCoffeeShopLoading || isProductsLoading || isCategoriesLoading) && (
           <View style={{ padding: 20, alignItems: 'center' }}>
             <ActivityIndicator size="large" color={colors.primary.main} />
             <Text style={{ marginTop: 10, color: colors.texts.secondary }}>
@@ -381,22 +443,48 @@ export default function CoffeeShopScreen() {
 
         {/* Секции продуктов по категориям */}
         {!state.isSearchActive &&
-          activeCategories
-            .map((category: any) => ({
-              ...category,
-              products: menuProducts.filter(
-                (product) => product.categoryId === category.id
-              ),
-            }))
-            .filter((category: any) => category.products.length > 0)
-            .map((category: any) => (
-              <ProductSection
-                key={category.id}
-                category={category}
-                onProductPress={handleProductPress}
-                onFavoritePress={handleFavoritePress}
-              />
-            ))}
+          !isCategoriesLoading &&
+          (() => {
+            const categoriesToUse =
+              activeCategories && activeCategories.length > 0
+                ? activeCategories
+                : allCategories;
+
+            return (
+              categoriesToUse &&
+              categoriesToUse.length > 0 &&
+              categoriesToUse
+                .map((category: any) => ({
+                  ...category,
+                  products: menuProducts.filter(
+                    (product) => product.categoryId === category.id
+                  ),
+                }))
+                .filter((category: any) => category.products.length > 0)
+                .map((category: any) => (
+                  <ProductSection
+                    key={category.id}
+                    category={category}
+                    onProductPress={handleProductPress}
+                    onFavoritePress={handleFavoritePress}
+                  />
+                ))
+            );
+          })()}
+
+        {/* Сообщение, если нет категорий */}
+        {!state.isSearchActive &&
+          !isCategoriesLoading &&
+          (!activeCategories || activeCategories.length === 0) &&
+          (!allCategories || allCategories.length === 0) && (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Text
+                style={{ color: colors.texts.secondary, textAlign: 'center' }}
+              >
+                Категории не найдены
+              </Text>
+            </View>
+          )}
       </ScrollView>
     </View>
   );

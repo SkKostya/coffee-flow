@@ -32,11 +32,6 @@ export interface CartApiError {
 // ===== ТИПЫ ENDPOINTS =====
 
 // GET /cart
-export interface GetCartParams {
-  includePartner?: boolean;
-  includeProducts?: boolean;
-}
-
 export type GetCartApiResponse = CartApiResponse<GetCartResponse>;
 
 // POST /cart/items
@@ -65,7 +60,7 @@ export type ClearCartApiResponse = CartApiResponse<ClearCartResponse>;
 // ===== ТИПЫ ДЛЯ API КЛИЕНТА =====
 
 export interface CartApiClient {
-  getCart: (params?: GetCartParams) => Promise<GetCartResponse>;
+  getCart: () => Promise<GetCartResponse>;
   addCartItem: (data: AddCartItemRequest) => Promise<AddCartItemResponse>;
   updateCartItem: (
     params: UpdateCartItemParams,

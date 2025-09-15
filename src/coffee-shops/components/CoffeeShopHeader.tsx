@@ -47,7 +47,7 @@ const CoffeeShopHeader: React.FC<CoffeeShopHeaderProps> = ({
         </TouchableOpacity>
 
         <View style={styles.coffeeShopInfo}>
-          <Image source={{ uri: logo }} style={styles.logo} />
+          {logo && <Image source={{ uri: logo }} style={styles.logo} />}
           <View style={styles.textContainer}>
             <Text style={[styles.name, textStyle]}>{name}</Text>
             <Text style={[styles.address, secondaryTextStyle]}>{address}</Text>

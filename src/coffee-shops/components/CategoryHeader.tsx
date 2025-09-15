@@ -21,26 +21,37 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   onCategoryPress,
 }) => {
   const colors = useColors();
+
   const animatedValues = React.useRef(
-    categories.reduce((acc, category) => {
-      acc[category.id] = new Animated.Value(
-        category.id === activeCategoryId ? 1 : 0
-      );
+    (categories || []).reduce((acc, category) => {
+      if (category.id) {
+        acc[category.id] = new Animated.Value(
+          category.id === activeCategoryId ? 1 : 0
+        );
+      }
       return acc;
     }, {} as Record<string, Animated.Value>)
   ).current;
 
   // Анимация при изменении активной категории
   React.useEffect(() => {
-    categories.forEach((category) => {
-      const isActive = category.id === activeCategoryId;
-      Animated.timing(animatedValues[category.id], {
-        toValue: isActive ? 1 : 0,
-        duration: 200,
-        useNativeDriver: false,
-      }).start();
+    (categories || []).forEach((category) => {
+      const animatedValue = animatedValues[category.id];
+      if (animatedValue) {
+        const isActive = category.id === activeCategoryId;
+        Animated.timing(animatedValue, {
+          toValue: isActive ? 1 : 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
     });
   }, [activeCategoryId, categories, animatedValues]);
+
+  // Проверяем, что categories существует и не пустой
+  if (!categories || categories.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -54,6 +65,11 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           .filter((category) => category.isVisible)
           .map((category) => {
             const animatedValue = animatedValues[category.id];
+
+            // Проверяем, что animatedValue существует
+            if (!animatedValue) {
+              return null;
+            }
 
             const backgroundColor = animatedValue.interpolate({
               inputRange: [0, 1],

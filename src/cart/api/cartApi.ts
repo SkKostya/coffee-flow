@@ -16,7 +16,6 @@ import type {
   CartApiClient,
   CartApiError,
   DeleteCartItemParams,
-  GetCartParams,
   UpdateCartItemParams,
 } from '../types/api';
 
@@ -32,23 +31,9 @@ class CartApiService implements CartApiClient {
   /**
    * Получить корзину пользователя
    */
-  async getCart(params?: GetCartParams): Promise<GetCartResponse> {
+  async getCart(): Promise<GetCartResponse> {
     try {
-      const queryParams = new URLSearchParams();
-
-      if (params?.includePartner) {
-        queryParams.append('includePartner', 'true');
-      }
-
-      if (params?.includeProducts) {
-        queryParams.append('includeProducts', 'true');
-      }
-
-      const url = queryParams.toString()
-        ? `/cart?${queryParams.toString()}`
-        : '/cart';
-
-      const response = await this.apiClient.get<GetCartResponse>(url);
+      const response = await this.apiClient.get<GetCartResponse>('/cart');
       return response.data!;
     } catch (error) {
       throw this.handleApiError(error);
