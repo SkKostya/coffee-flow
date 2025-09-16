@@ -15,11 +15,7 @@ export const authApi = {
         credentials
       );
 
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка регистрации');
-      }
-
-      return response.data!;
+      return response.data;
     } catch (error) {
       console.error('Ошибка регистрации:', error);
       throw error;
@@ -34,11 +30,7 @@ export const authApi = {
         credentials
       );
 
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка авторизации');
-      }
-
-      return response.data!;
+      return response.data;
     } catch (error) {
       throw error;
     }

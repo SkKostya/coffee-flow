@@ -30,11 +30,7 @@ export const useProfile = (): UseProfileReturn => {
 
       const response = await profileApi.getProfile();
 
-      if (response.success && response.data) {
-        setProfile(response.data);
-      } else {
-        setError(response.error || 'Ошибка загрузки профиля');
-      }
+      setProfile(response.data);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Ошибка загрузки профиля';
@@ -52,14 +48,8 @@ export const useProfile = (): UseProfileReturn => {
 
         const response = await profileApi.updateProfile(data);
 
-        if (response.success && response.data) {
-          setProfile(response.data);
-          return { success: true };
-        } else {
-          const errorMessage = response.error || 'Ошибка обновления профиля';
-          setError(errorMessage);
-          return { success: false, error: errorMessage };
-        }
+        setProfile(response.data);
+        return { success: true };
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Ошибка обновления профиля';
@@ -77,14 +67,8 @@ export const useProfile = (): UseProfileReturn => {
 
       const response = await profileApi.deleteAccount({ password });
 
-      if (response.success) {
-        setProfile(null);
-        return { success: true };
-      } else {
-        const errorMessage = response.error || 'Ошибка удаления аккаунта';
-        setError(errorMessage);
-        return { success: false, error: errorMessage };
-      }
+      setProfile(null);
+      return { success: true };
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Ошибка удаления аккаунта';

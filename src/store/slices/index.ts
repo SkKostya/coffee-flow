@@ -6,4 +6,5 @@ export { default as favoritesSlice } from './favoritesSlice';
 export { default as generalSlice } from './generalSlice';
 export { default as productsSlice } from './productsSlice';
 export { default as profileSlice } from './profileSlice';
+export { default as stickyCartSlice } from './stickyCartSlice';
 export { default as themeSlice } from './themeSlice';

@@ -171,6 +171,8 @@ export const selectCartItemById = createSelector(
 export const selectCartCategoryStats = createSelector(
   [selectCartItems],
   (items: CartItem[]): Record<string, { count: number; total: number }> => {
+    if (items.length === 0) return {};
+
     return items.reduce((acc, item) => {
       const category = item.product.category;
       if (!acc[category]) {

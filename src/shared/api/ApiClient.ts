@@ -176,10 +176,7 @@ export class ApiClient {
         apiError = await this.interceptors.error(apiError);
       }
 
-      return {
-        success: false,
-        error: apiError.message,
-      };
+      throw apiError;
     }
   }
 

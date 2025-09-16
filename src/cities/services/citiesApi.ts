@@ -19,10 +19,6 @@ export class CitiesApiService {
         this.baseEndpoint
       );
 
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Ошибка получения городов');
-      }
-
       // Преобразуем API ответ в наши типы
       return response.data.map((apiCity) => mapCityApiResponse(apiCity));
     } catch (error) {

@@ -37,10 +37,6 @@ export class CoffeeShopsApiService {
       const url = `${this.baseEndpoint}/nearby?${queryParams.toString()}`;
       const response = await apiClient.get<NearbyCoffeeShopsResponse>(url);
 
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Ошибка получения кофеен');
-      }
-
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -57,12 +53,6 @@ export class CoffeeShopsApiService {
       const response = await apiClient.get<CoffeeShopDetailsResponse>(
         `${this.baseEndpoint}/${params.id}`
       );
-
-      if (!response.success || !response.data) {
-        throw new Error(
-          response.error || 'Ошибка получения информации о кофейне'
-        );
-      }
 
       return response.data;
     } catch (error) {

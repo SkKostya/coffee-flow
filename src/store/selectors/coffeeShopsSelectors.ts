@@ -103,13 +103,16 @@ export const selectProductsInfo = createSelector(
 );
 
 // Селектор для получения кофейни по ID
-export const selectCoffeeShopById = (id: string) =>
-  createSelector(
-    [selectNearbyCoffeeShops, selectSelectedCoffeeShop],
-    (nearby, selected) => {
-      if (selected && selected.id === id) {
-        return selected;
-      }
-      return nearby.find((shop) => shop.id === id) || null;
+export const selectCoffeeShopById = createSelector(
+  [
+    selectNearbyCoffeeShops,
+    selectSelectedCoffeeShop,
+    (state: RootState, id: string) => id,
+  ],
+  (nearby, selected, id) => {
+    if (selected && selected.id === id) {
+      return selected;
     }
-  );
+    return nearby.find((shop) => shop.id === id) || null;
+  }
+);

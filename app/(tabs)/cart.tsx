@@ -21,6 +21,7 @@ import {
   LoadingSpinner,
   ProductCard,
   useColors,
+  useToast,
 } from '../../src/shared';
 import { useCart, useCartErrorHandling } from '../../src/store';
 
@@ -60,6 +61,7 @@ const suggestedProducts: Product[] = [
 
 const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
   const colors = useColors();
+  const { showSuccess, showError } = useToast();
 
   // ===== REDUX ХУКИ =====
   const {
@@ -88,9 +90,10 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       // Используем updateItem из основного хука useCart
       await updateItem(itemId, { quantity });
+      showSuccess('Количество товара обновлено', 'Корзина', 3000);
     } catch (error) {
       console.error('Failed to update quantity:', error);
-      Alert.alert('Ошибка', 'Не удалось изменить количество товара');
+      showError('Не удалось изменить количество товара');
     }
   };
 
@@ -112,9 +115,10 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       };
 
       await updateItem(itemId, { customizations: updatedCustomizations });
+      showSuccess('Настройки товара обновлены', 'Корзина', 3000);
     } catch (error) {
       console.error('Failed to toggle customization:', error);
-      Alert.alert('Ошибка', 'Не удалось изменить настройки товара');
+      showError('Не удалось изменить настройки товара');
     }
   };
 
@@ -141,9 +145,10 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
           onPress: async () => {
             try {
               await clearCart();
+              showSuccess('Корзина очищена', 'Корзина', 4000);
             } catch (error) {
               console.error('Failed to clear cart:', error);
-              Alert.alert('Ошибка', 'Не удалось очистить корзину');
+              showError('Не удалось очистить корзину');
             }
           },
         },

@@ -12,6 +12,7 @@ import ordersReducer from './slices/ordersSlice';
 import paymentMethodsReducer from './slices/paymentMethodsSlice';
 import productsReducer from './slices/productsSlice';
 import profileReducer from './slices/profileSlice';
+import stickyCartReducer from './slices/stickyCartSlice';
 import themeReducer from './slices/themeSlice';
 
 // Конфигурация Redux Persist
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   paymentMethods: paymentMethodsReducer,
   products: productsReducer,
   profile: profileReducer,
+  stickyCart: stickyCartReducer,
   theme: themeReducer,
 });
 

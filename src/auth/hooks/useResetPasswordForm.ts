@@ -39,7 +39,6 @@ export const useResetPasswordForm = () => {
   const onSubmitPhone = async (data: ResetPasswordFormData) => {
     try {
       setFormError('');
-      console.log('Reset password phone submitted:', data);
       setPhoneNumber(data.phoneNumber);
       setStep('password');
       return { success: true };
@@ -54,7 +53,6 @@ export const useResetPasswordForm = () => {
   const onSubmitPassword = async (data: NewPasswordFormData) => {
     try {
       setFormError('');
-      console.log('New password submitted:', { phoneNumber, ...data });
       // Здесь будет логика отправки нового пароля на сервер
       return { success: true };
     } catch (error) {

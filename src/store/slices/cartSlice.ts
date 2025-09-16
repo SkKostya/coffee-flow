@@ -55,6 +55,7 @@ export const addCartItem = createAsyncThunk<
 >('cart/addCartItem', async (itemData, { rejectWithValue }) => {
   try {
     const cart = await cartApiService.addCartItem(itemData);
+    console.log(cart);
     return cart;
   } catch (error) {
     const cartError = error as CartError;
@@ -452,6 +453,8 @@ export const {
   resetRetryCount,
   updateCartFromExternal,
 } = cartSlice.actions;
+
+// Async thunks уже экспортированы выше при создании
 
 // ===== ЭКСПОРТ REDUCER =====
 

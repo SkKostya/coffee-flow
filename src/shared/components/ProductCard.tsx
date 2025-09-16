@@ -15,14 +15,26 @@ interface ProductCardProps {
   product: Product;
   onFavoritePress: () => void;
   onProductPress: () => void;
+  onAddToCart?: () => void;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
   isAvailable?: boolean;
+  showAddToCart?: boolean;
+  showCounter?: boolean;
+  quantity?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onFavoritePress,
   onProductPress,
+  onAddToCart,
+  onIncrement,
+  onDecrement,
   isAvailable = true,
+  showAddToCart = false,
+  showCounter = false,
+  quantity = 0,
 }) => {
   const colors = useColors();
 
@@ -94,6 +106,72 @@ const ProductCard: React.FC<ProductCardProps> = ({
               </Text>
             )}
           </View>
+
+          {/* Кнопка добавления в корзину или счетчик */}
+          {showAddToCart && isAvailable && onAddToCart && !showCounter && (
+            <TouchableOpacity
+              style={[
+                styles.addToCartButton,
+                { backgroundColor: colors.primary.main },
+              ]}
+              onPress={onAddToCart}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[styles.addToCartText, { color: colors.texts.primary }]}
+              >
+                Добавить
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Счетчик количества */}
+          {showCounter && isAvailable && onIncrement && onDecrement && (
+            <View style={styles.counterContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.backgrounds.elevated },
+                  { borderColor: colors.borders.primary },
+                ]}
+                onPress={onDecrement}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.counterButtonText,
+                    { color: colors.texts.primary },
+                  ]}
+                >
+                  -
+                </Text>
+              </TouchableOpacity>
+
+              <Text
+                style={[styles.counterText, { color: colors.texts.primary }]}
+              >
+                {quantity}
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.counterButton,
+                  { backgroundColor: colors.primary.main },
+                ]}
+                onPress={onIncrement}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.counterButtonText,
+                    { color: colors.texts.primary },
+                  ]}
+                >
+                  +
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Card>
     </TouchableOpacity>
@@ -137,6 +215,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontStyle: 'italic',
+  },
+  addToCartButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  addToCartText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  counterButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  counterButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  counterText: {
+    fontSize: 16,
+    fontWeight: '600',
+    minWidth: 24,
+    textAlign: 'center',
   },
 });
 

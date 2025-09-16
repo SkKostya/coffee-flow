@@ -68,6 +68,7 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   category: ProductCategory;
+  partner: CoffeeShop;
 }
 
 export interface ProductsParams {

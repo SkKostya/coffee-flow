@@ -18,10 +18,6 @@ export class GeneralApi {
   async getCategories(): Promise<Category[]> {
     const response = await apiClient.get<CategoryApiResponse[]>('/categories');
 
-    if (!response.success) {
-      throw new Error(response.error || 'Ошибка загрузки категорий');
-    }
-
     return response.data?.map(mapCategoryApiResponse) || [];
   }
 
@@ -32,10 +28,6 @@ export class GeneralApi {
     const response = await apiClient.get<CategoryApiResponse>(
       `/categories/${id}`
     );
-
-    if (!response.success) {
-      throw new Error(response.error || 'Ошибка загрузки категории');
-    }
 
     if (!response.data) {
       throw new Error('Категория не найдена');
@@ -49,10 +41,6 @@ export class GeneralApi {
    */
   async getCities(): Promise<City[]> {
     const response = await apiClient.get<CityApiResponse[]>('/cities');
-
-    if (!response.success) {
-      throw new Error(response.error || 'Ошибка загрузки городов');
-    }
 
     return response.data?.map((apiCity) => mapCityApiResponse(apiCity)) || [];
   }

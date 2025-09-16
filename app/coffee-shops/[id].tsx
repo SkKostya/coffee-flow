@@ -23,9 +23,11 @@ import {
   SearchResultsGrid,
 } from '../../src/coffee-shops';
 import type { CategoryTab } from '../../src/coffee-shops/types/categories';
-import { useColors } from '../../src/shared';
+import { useColors, useToast } from '../../src/shared';
 import { useCoffeeShops, useProducts } from '../../src/store';
+import { useFavoriteProducts } from '../../src/store/hooks/useFavorites';
 import { useGeneral } from '../../src/store/hooks/useGeneral';
+import { useStickyCart } from '../../src/store/hooks/useStickyCart';
 
 // Состояние компонента
 interface CoffeeShopScreenState {
@@ -40,6 +42,7 @@ interface CoffeeShopScreenState {
 
 export default function CoffeeShopScreen() {
   const colors = useColors();
+  const { showSuccess, showError } = useToast();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Получаем ID кофейни из параметров
@@ -64,6 +67,25 @@ export default function CoffeeShopScreen() {
     loadCategories,
     isLoading: isCategoriesLoading,
   } = useGeneral();
+
+  // Хук для работы с избранными продуктами
+  const {
+    toggleProduct,
+    isProductFavorite,
+    isLoading: isFavoritesLoading,
+    error: favoritesError,
+  } = useFavoriteProducts();
+
+  // Хук для работы со sticky корзиной
+  const {
+    addProduct: addToStickyCart,
+    removeProduct: removeFromStickyCart,
+    toggleProduct: toggleStickyProduct,
+    isProductSelected: isProductInStickyCart,
+    updateTotal: updateStickyTotal,
+    totalAmount: stickyTotalAmount,
+    totalItems: stickyTotalItems,
+  } = useStickyCart();
 
   // Состояние компонента
   const [state, setState] = useState<CoffeeShopScreenState>({
@@ -149,10 +171,53 @@ export default function CoffeeShopScreen() {
     console.log('Product pressed:', product.name);
   }, []);
 
-  const handleFavoritePress = useCallback((product: MenuProduct) => {
-    // Переключение избранного
-    console.log('Favorite toggled for:', product.name);
-  }, []);
+  const handleFavoritePress = useCallback(
+    async (product: MenuProduct) => {
+      try {
+        const isCurrentlyFavorite = isProductFavorite(product.id);
+        await toggleProduct(product.id);
+
+        // Показываем уведомление об успешном действии
+        if (isCurrentlyFavorite) {
+          showSuccess(
+            `${product.name} удален из избранного`,
+            'Избранное',
+            3000
+          );
+        } else {
+          showSuccess(
+            `${product.name} добавлен в избранное`,
+            'Избранное',
+            3000
+          );
+        }
+      } catch (error) {
+        showError(
+          product.isFavorite
+            ? 'Не удалось удалить из избранного'
+            : 'Не удалось добавить в избранное'
+        );
+      }
+    },
+    [toggleProduct, isProductFavorite, showSuccess, showError]
+  );
+
+  const handleAddToCart = useCallback(
+    (product: MenuProduct) => {
+      try {
+        const isCurrentlySelected = isProductInStickyCart(product.id);
+
+        if (isCurrentlySelected) {
+          removeFromStickyCart(product.id);
+        } else {
+          addToStickyCart(product.id);
+        }
+      } catch (error) {
+        showError('Не удалось добавить в корзину');
+      }
+    },
+    [addToStickyCart, removeFromStickyCart, isProductInStickyCart, showError]
+  );
 
   const handleBackPress = useCallback(() => {
     router.back();
@@ -175,6 +240,8 @@ export default function CoffeeShopScreen() {
       loadCategories(); // Загружаем категории
     }
   }, [id, loadById, loadProducts, loadCategories]);
+
+  // Общая сумма теперь пересчитывается автоматически в slice
 
   // Обновляем категории при изменении данных
   useEffect(() => {
@@ -430,6 +497,9 @@ export default function CoffeeShopScreen() {
                   products={state.filteredProducts}
                   onProductPress={handleProductPress}
                   onFavoritePress={handleFavoritePress}
+                  onAddToCart={handleAddToCart}
+                  isProductFavorite={isProductFavorite}
+                  showAddToCart={true}
                 />
               </>
             ) : (
@@ -467,6 +537,9 @@ export default function CoffeeShopScreen() {
                     category={category}
                     onProductPress={handleProductPress}
                     onFavoritePress={handleFavoritePress}
+                    onAddToCart={handleAddToCart}
+                    isProductFavorite={isProductFavorite}
+                    showAddToCart={true}
                   />
                 ))
             );

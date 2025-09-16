@@ -35,10 +35,6 @@ export class ProductsApiService {
 
       const response = await apiClient.get<ProductsResponse>(endpoint);
 
-      if (!response.success) {
-        throw new Error(response.error || 'Ошибка получения продуктов');
-      }
-
       return response.data;
     } catch (error) {
       console.error('ProductsApiService.getProducts error:', error);

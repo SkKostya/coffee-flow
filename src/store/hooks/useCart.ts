@@ -1,7 +1,7 @@
 // src/store/hooks/useCart.ts
 // Основной хук для работы с корзиной
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type {
   AddCartItemRequest,
   UpdateCartItemRequest,
@@ -36,6 +36,7 @@ import {
  */
 export const useCart = () => {
   const dispatch = useAppDispatch();
+  const hasInitialized = useRef(false);
 
   // ===== СЕЛЕКТОРЫ =====
 
@@ -74,7 +75,6 @@ export const useCart = () => {
       try {
         await dispatch(addCartItem(itemData)).unwrap();
       } catch (error) {
-        console.error('Failed to add item to cart:', error);
         throw error;
       }
     },
@@ -138,7 +138,8 @@ export const useCart = () => {
   // ===== АВТОМАТИЧЕСКАЯ ЗАГРУЗКА =====
 
   useEffect(() => {
-    if (!isInitialized && !isLoading) {
+    if (!isInitialized && !isLoading && !hasInitialized.current) {
+      hasInitialized.current = true;
       loadCartData();
     }
   }, [isInitialized, isLoading, loadCartData]);

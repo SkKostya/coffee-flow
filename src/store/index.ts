@@ -20,6 +20,8 @@ export * from './hooks/usePaymentMethods';
 export * from './hooks/useProducts';
 export * from './hooks/useProfile';
 export * from './hooks/useRepeatOrder';
+export * from './hooks/useStickyCart';
+export { default as useStickyCartToCart } from './hooks/useStickyCartToCart';
 export * from './hooks/useTheme';
 
 // Экспорт селекторов

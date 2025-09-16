@@ -1,11 +1,10 @@
 // Общие типы для API запросов и ответов
 
-// Базовый тип для API ответов
+// Базовый тип для API ответов (только успешные ответы)
 export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
+  success: true;
+  data: T;
   message?: string;
-  error?: string;
 }
 
 // Тип для ошибок API

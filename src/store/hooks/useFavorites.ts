@@ -258,8 +258,12 @@ export const useFavoriteOrders = () => {
 export const useFavoriteItem = (itemId: string, type: FavoriteType) => {
   const dispatch = useAppDispatch();
 
-  const isProductFavorite = useAppSelector(selectIsProductFavorite(itemId));
-  const isOrderFavorite = useAppSelector(selectIsOrderFavorite(itemId));
+  const isProductFavorite = useAppSelector((state) =>
+    selectIsProductFavorite(state, itemId)
+  );
+  const isOrderFavorite = useAppSelector((state) =>
+    selectIsOrderFavorite(state, itemId)
+  );
   const isLoading = useAppSelector(selectFavoritesLoading);
   const error = useAppSelector(selectFavoritesError);
 

@@ -30,11 +30,7 @@ export const loadProfile = createAsyncThunk(
     try {
       const response = await profileApi.getProfile();
 
-      if (response.success && response.data) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Ошибка загрузки профиля');
-      }
+      return response.data;
     } catch (error) {
       console.error('Ошибка загрузки профиля:', error);
       return rejectWithValue(
@@ -51,11 +47,7 @@ export const updateProfile = createAsyncThunk(
     try {
       const response = await profileApi.updateProfile(data);
 
-      if (response.success && response.data) {
-        return response.data;
-      } else {
-        throw new Error(response.error || 'Ошибка обновления профиля');
-      }
+      return response.data;
     } catch (error) {
       console.error('Ошибка обновления профиля:', error);
       return rejectWithValue(
@@ -72,11 +64,7 @@ export const changePassword = createAsyncThunk(
     try {
       const response = await profileApi.changePassword(data);
 
-      if (response.success) {
-        return { message: response.message || 'Пароль успешно изменен' };
-      } else {
-        throw new Error(response.error || 'Ошибка изменения пароля');
-      }
+      return { message: response.message || 'Пароль успешно изменен' };
     } catch (error) {
       console.error('Ошибка изменения пароля:', error);
       return rejectWithValue(
@@ -93,15 +81,11 @@ export const deleteAccount = createAsyncThunk(
     try {
       const response = await profileApi.deleteAccount(data);
 
-      if (response.success) {
-        // Очищаем профиль и выходим из системы
-        dispatch(clearProfile());
-        dispatch(logout());
-        router.navigate('/auth/login');
-        return { message: response.message || 'Аккаунт успешно удален' };
-      } else {
-        throw new Error(response.error || 'Ошибка удаления аккаунта');
-      }
+      // Очищаем профиль и выходим из системы
+      dispatch(clearProfile());
+      dispatch(logout());
+      router.navigate('/auth/login');
+      return { message: response.message || 'Аккаунт успешно удален' };
     } catch (error) {
       console.error('Ошибка удаления аккаунта:', error);
       return rejectWithValue(

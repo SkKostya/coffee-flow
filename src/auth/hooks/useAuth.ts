@@ -30,7 +30,7 @@ export const useAuth = (): AuthState & AuthActions => {
 
       const response = await authApi.signin(credentials);
 
-      if (response.success && response.token) {
+      if (response.accessToken) {
         // TODO: Сохранить токен в AsyncStorage или SecureStore
         console.log('Успешная авторизация:', response);
         // TODO: Обновить состояние пользователя в контексте
@@ -65,7 +65,7 @@ export const useAuth = (): AuthState & AuthActions => {
 
       const response = await authApi.signup(credentials);
 
-      if (response.success && response.token) {
+      if (response.accessToken) {
         // TODO: Сохранить токен в AsyncStorage или SecureStore
         console.log('Успешная регистрация:', response);
         // TODO: Обновить состояние пользователя в контексте

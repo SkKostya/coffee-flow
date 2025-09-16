@@ -70,6 +70,8 @@ export const selectFavoriteOrdersWithShop = createSelector(
 export const selectFavoriteProductsByShop = createSelector(
   [selectFavoriteProductsWithShop],
   (products) => {
+    if (products.length === 0) return [];
+
     const groupedByShop = products.reduce((acc, product) => {
       const shopId = product.coffeeShopId;
       if (!acc[shopId]) {
@@ -88,24 +90,30 @@ export const selectFavoriteProductsByShop = createSelector(
 );
 
 // Селекторы для проверки статуса избранного
-export const selectIsProductFavorite = (productId: string) =>
-  createSelector([selectFavoriteProducts], (favoriteProducts) =>
+export const selectIsProductFavorite = createSelector(
+  [selectFavoriteProducts, (state: RootState, productId: string) => productId],
+  (favoriteProducts, productId) =>
     favoriteProducts.some((fav) => fav.productId === productId)
-  );
+);
 
-export const selectIsOrderFavorite = (orderId: string) =>
-  createSelector([selectFavoriteOrders], (favoriteOrders) =>
+export const selectIsOrderFavorite = createSelector(
+  [selectFavoriteOrders, (state: RootState, orderId: string) => orderId],
+  (favoriteOrders, orderId) =>
     favoriteOrders.some((fav) => fav.orderId === orderId)
-  );
+);
 
 // Селекторы для статистики
 export const selectFavoritesStats = createSelector(
   [selectFavorites],
-  (favorites) => ({
-    total: favorites.length,
-    products: favorites.filter((fav) => fav.type === 'product').length,
-    orders: favorites.filter((fav) => fav.type === 'order').length,
-  })
+  (favorites) => {
+    const products = favorites.filter((fav) => fav.type === 'product').length;
+    const orders = favorites.filter((fav) => fav.type === 'order').length;
+    return {
+      total: favorites.length,
+      products,
+      orders,
+    };
+  }
 );
 
 // Селекторы для проверки состояния загрузки
@@ -127,12 +135,16 @@ export const selectFavoritesInfo = createSelector(
     selectFavoritesError,
     selectFavoritesLastFetchTime,
   ],
-  (favorites, isLoading, error, lastFetchTime) => ({
-    favorites,
-    isLoading,
-    error,
-    lastFetchTime,
-    isEmpty: favorites.length === 0,
-    hasData: favorites.length > 0,
-  })
+  (favorites, isLoading, error, lastFetchTime) => {
+    const isEmpty = favorites.length === 0;
+    const hasData = favorites.length > 0;
+    return {
+      favorites,
+      isLoading,
+      error,
+      lastFetchTime,
+      isEmpty,
+      hasData,
+    };
+  }
 );
