@@ -3,7 +3,13 @@ import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import { GeneralInitializer } from '../src/general';
-import { StickyCartWrapper, toastConfig } from '../src/shared';
+import {
+  AuthRedirectProvider,
+  PathTracker,
+  StickyCartProvider,
+  StickyCartWrapper,
+  toastConfig,
+} from '../src/shared';
 import { useColors } from '../src/shared/hooks/useColors';
 import CoffeeFlowThemeProvider from '../src/shared/theme/ThemeProvider';
 import { ReduxProvider } from '../src/store';
@@ -29,11 +35,16 @@ export default function RootLayout() {
       <BottomSheetModalProvider>
         <ReduxProvider>
           <CoffeeFlowThemeProvider>
-            <GeneralInitializer>
-              <LayoutStack />
-              <Toast config={toastConfig} />
-              <StickyCartWrapper />
-            </GeneralInitializer>
+            <AuthRedirectProvider>
+              <StickyCartProvider>
+                <GeneralInitializer>
+                  <PathTracker />
+                  <LayoutStack />
+                  <Toast config={toastConfig} />
+                  <StickyCartWrapper />
+                </GeneralInitializer>
+              </StickyCartProvider>
+            </AuthRedirectProvider>
           </CoffeeFlowThemeProvider>
         </ReduxProvider>
       </BottomSheetModalProvider>

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { authErrorHandler } from '../../shared/api/authErrorHandler';
 import { useAuth } from '../../store';
 import { authApi } from '../services/authApi';
 import { AuthFormData, authSchema } from '../validation/validationSchema';
@@ -39,7 +40,17 @@ export const useAuthForm = () => {
 
       if (response.accessToken) {
         await login(response);
-        router.navigate('/coffee-shops');
+
+        // Проверяем, есть ли сохраненный путь для возврата
+        const redirectPath = authErrorHandler.getRedirectPath();
+        if (redirectPath) {
+          // Если есть сохраненный путь, возвращаемся на него
+          authErrorHandler.handleAuthSuccess();
+        } else {
+          // Иначе переходим на кофейни
+          router.navigate('/coffee-shops');
+        }
+
         return { success: true, data: response };
       } else {
         const errorMessage = response.message || 'Ошибка авторизации';

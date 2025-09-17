@@ -24,7 +24,6 @@ export const useStickyCartProducts = (): StickyCartProduct[] => {
       .map((productId: string) => {
         const product = allProducts.find((p) => p.id === productId);
         if (!product) return null;
-        console.log(product);
 
         return {
           id: product.id,

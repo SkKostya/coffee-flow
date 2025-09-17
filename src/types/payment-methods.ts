@@ -17,22 +17,24 @@ export interface PaymentMethod {
 }
 
 export interface CreatePaymentMethodRequest {
-  type: 'card';
-  cardNumber: string;
-  cardHolderName: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cardBrand: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
+  type: 'card' | 'kaspi' | 'cash';
+  name?: string;
+  cardNumber?: string;
+  cardHolderName?: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+  cardBrand?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
   isDefault: boolean;
 }
 
 export interface UpdatePaymentMethodRequest {
-  type: 'card';
-  cardNumber: string;
-  cardHolderName: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cardBrand: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
+  type: 'card' | 'kaspi' | 'cash';
+  name?: string;
+  cardNumber?: string;
+  cardHolderName?: string;
+  expiryMonth?: string;
+  expiryYear?: string;
+  cardBrand?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'other';
   isDefault: boolean;
 }
 

@@ -14,6 +14,14 @@ export * from './constants';
 // export * from './contexts/ProfileContext';
 // export * from './contexts/ThemeContext';
 
+// Экспорт контекстов
+export {
+  AuthRedirectProvider,
+  StickyCartProvider,
+  useAuthRedirect,
+  useStickyCartContext,
+} from './contexts';
+
 // Экспорт темы
 export * from './theme';
 

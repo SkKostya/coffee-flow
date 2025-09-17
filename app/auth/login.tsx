@@ -1,6 +1,7 @@
-import { Stack, router } from 'expo-router';
-import React, { useRef } from 'react';
+import { Stack, router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -19,10 +20,12 @@ import {
   PhoneInput,
 } from '../../src/auth/components';
 import { useAuthForm } from '../../src/auth/hooks';
-import { useColors } from '../../src/shared/hooks';
+import { authErrorHandler } from '../../src/shared/api/authErrorHandler';
+import { useAuthRedirectHandler, useColors } from '../../src/shared/hooks';
 
 export default function AuthScreen() {
   const colors = useColors();
+  const { handleAuthSuccess, handleAuthCancel } = useAuthRedirectHandler();
 
   // Ref для навигации между полями
   const passwordRef = useRef<TextInput>(null);
@@ -39,6 +42,17 @@ export default function AuthScreen() {
     handleLogin,
   } = useAuthForm();
 
+  // Обработка успешной авторизации
+  useEffect(() => {
+    // Проверяем, есть ли сохраненный путь для возврата
+    const redirectPath = authErrorHandler.getRedirectPath();
+    if (redirectPath) {
+      // Если есть сохраненный путь, значит пользователь был редиректирован
+      // Показываем сообщение о необходимости авторизации
+      console.log('Пользователь был редиректирован с пути:', redirectPath);
+    }
+  }, []);
+
   // Фиксированные размеры для мобильных устройств
   const formSizes = { paddingHorizontal: 24 };
   const spacing = { xl: 32 };
@@ -50,6 +64,34 @@ export default function AuthScreen() {
   const handleRegisterPress = () => {
     router.navigate('/auth/register');
   };
+
+  const handleBackPress = useCallback(() => {
+    // Если пользователь не был редиректирован, просто возвращаемся назад
+    const redirectPath = authErrorHandler.getRedirectPath();
+    if (!redirectPath) {
+      router.back();
+      return;
+    }
+
+    // Если был редиректирован, обрабатываем отмену авторизации
+    handleAuthCancel();
+  }, [handleAuthCancel]);
+
+  // Обработка кнопки "Назад" на Android
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        handleBackPress();
+        return true; // Предотвращаем стандартное поведение
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+      return () => subscription.remove();
+    }, [handleBackPress])
+  );
 
   // Обработчики для навигации между полями
   const focusPassword = () => {
@@ -137,6 +179,17 @@ export default function AuthScreen() {
             </View>
 
             <ForgotPasswordLink onPress={handleForgotPassword} />
+
+            {/* Кнопка отмены для случаев, когда пользователь был редиректирован */}
+            {authErrorHandler.getRedirectPath() && (
+              <View style={{ marginTop: 16 }}>
+                <Button
+                  title="Отмена"
+                  onPress={handleBackPress}
+                  variant="secondary"
+                />
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

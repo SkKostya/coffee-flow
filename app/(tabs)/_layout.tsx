@@ -36,6 +36,7 @@ export default function TabsLayout() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
+        tabBarHideOnKeyboard: true,
       })}
     >
       <Tabs.Screen

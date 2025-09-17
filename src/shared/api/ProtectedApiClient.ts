@@ -6,6 +6,7 @@ import {
   RequestOptions,
 } from '../types/api';
 import { ApiClient } from './ApiClient';
+import { authErrorHandler } from './authErrorHandler';
 
 /**
  * API клиент для защищенных запросов (требует авторизации)
@@ -16,7 +17,37 @@ export class ProtectedApiClient extends ApiClient {
     authConfig: Partial<AuthConfig> = {},
     interceptors: ApiInterceptors = {}
   ) {
-    super(config, authConfig, interceptors);
+    // Настраиваем обработчик ошибок авторизации
+    const authConfigWithErrorHandler: Partial<AuthConfig> = {
+      ...authConfig,
+      onTokenExpired: () => {
+        authErrorHandler.handleAuthError(
+          'Сессия истекла. Необходимо войти в систему'
+        );
+      },
+    };
+
+    // Настраиваем интерцептор ошибок для обработки 401/403
+    const interceptorsWithAuthError: ApiInterceptors = {
+      ...interceptors,
+      error: async (error) => {
+        // Обрабатываем ошибки авторизации
+        if (error.status === 401 || error.status === 403) {
+          authErrorHandler.handleAuthError(error.message);
+          // Не пробрасываем ошибку дальше, так как уже обработали редирект
+          return error;
+        }
+
+        // Вызываем оригинальный интерцептор ошибок если он есть
+        if (interceptors.error) {
+          return await interceptors.error(error);
+        }
+
+        return error;
+      },
+    };
+
+    super(config, authConfigWithErrorHandler, interceptorsWithAuthError);
   }
 
   /**

@@ -8,14 +8,14 @@ import {
   selectStickyCartProductQuantities,
   selectStickyCartSelectedProducts,
 } from '../selectors/stickyCartSelectors';
-import { useCart } from './useCart';
+import useComponentCart from './useComponentCart';
 import { useStickyCart } from './useStickyCart';
 
 /**
  * Хук для добавления товаров из sticky cart в основную корзину
  */
 const useStickyCartToCart = () => {
-  const { addItem, isLoading: cartLoading, error: cartError } = useCart();
+  const { addItem } = useComponentCart();
   const {
     clear,
     hide,
@@ -60,7 +60,7 @@ const useStickyCartToCart = () => {
   /**
    * Добавляет все выбранные товары из sticky cart в основную корзину
    */
-  const addStickyCartToCart = useCallback(async () => {
+  const addStickyCartToCart = useCallback(() => {
     try {
       if (selectedProducts.length === 0) {
         throw new Error('Нет товаров для добавления в корзину');
@@ -72,34 +72,20 @@ const useStickyCartToCart = () => {
         throw new Error('Нет валидных товаров для добавления в корзину');
       }
 
-      // Добавляем товары по одному
-      const results = [];
-      for (const item of cartItems) {
-        try {
-          await addItem(item);
-          results.push({ success: true, item });
-        } catch (error) {
-          results.push({ success: false, item, error });
-        }
-      }
+      // Добавляем товары синхронно (оптимистично)
+      cartItems.forEach((item) => {
+        addItem(item);
+      });
 
-      // Проверяем, есть ли успешно добавленные товары
-      const successfulItems = results.filter((r) => r.success);
-      if (successfulItems.length === 0) {
-        throw new Error('Не удалось добавить ни одного товара в корзину');
-      }
-
-      // Очищаем sticky cart только если все товары добавлены успешно
-      if (successfulItems.length === cartItems.length) {
-        clear();
-        hide();
-      }
+      // Очищаем sticky cart после успешного добавления
+      clear();
+      hide();
 
       return {
-        success: results.every((r) => r.success),
-        itemsCount: successfulItems.length,
+        success: true,
+        itemsCount: cartItems.length,
         totalItems: cartItems.length,
-        failedItems: results.filter((r) => !r.success).length,
+        failedItems: 0,
       };
     } catch (error) {
       console.error('Failed to add sticky cart items to cart:', error);
@@ -107,7 +93,6 @@ const useStickyCartToCart = () => {
     }
   }, [
     selectedProducts,
-    productQuantities,
     convertStickyProductsToCartItems,
     addItem,
     clear,
@@ -118,8 +103,8 @@ const useStickyCartToCart = () => {
    * Проверяет, можно ли добавить товары в корзину
    */
   const canAddToCart = useCallback((): boolean => {
-    return selectedProducts.length > 0 && !cartLoading;
-  }, [selectedProducts.length, cartLoading]);
+    return selectedProducts.length > 0;
+  }, [selectedProducts.length]);
 
   /**
    * Получает информацию о товарах для добавления
@@ -130,16 +115,14 @@ const useStickyCartToCart = () => {
       totalItems: stickyTotalItems,
       totalAmount: stickyTotalAmount,
       canAdd: canAddToCart(),
-      isLoading: cartLoading,
-      error: cartError,
+      isLoading: false, // Теперь синхронная операция
+      error: null, // Ошибки обрабатываются локально
     };
   }, [
     selectedProducts.length,
     stickyTotalItems,
     stickyTotalAmount,
     canAddToCart,
-    cartLoading,
-    cartError,
   ]);
 
   return {
@@ -148,8 +131,8 @@ const useStickyCartToCart = () => {
     productQuantities,
 
     // Состояния
-    isLoading: cartLoading,
-    error: cartError,
+    isLoading: false, // Синхронная операция
+    error: null, // Ошибки обрабатываются локально
     canAddToCart: canAddToCart(),
 
     // Действия

@@ -14,6 +14,7 @@ export * from './hooks/useCartErrorHandling';
 export * from './hooks/useCartItem';
 export * from './hooks/useCartOptimization';
 export * from './hooks/useCoffeeShops';
+export { default as useComponentCart } from './hooks/useComponentCart';
 export * from './hooks/useFavorites';
 export * from './hooks/useOrders';
 export * from './hooks/usePaymentMethods';

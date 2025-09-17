@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Animated, View } from 'react-native';
 import { useStickyCart, useStickyCartToCart } from '../../store';
-import { useStickyCartProducts, useToast } from '../hooks';
+import { useStickyCartContext } from '../contexts/StickyCartContext';
+import { useCurrentRoute, useStickyCartProducts, useToast } from '../hooks';
 import CartSuccessModal from './CartSuccessModal';
 import StickyCart from './StickyCart';
 
 const StickyCartWrapper: React.FC = () => {
-  const { isVisible, isEmpty, clear } = useStickyCart();
+  const { isVisible, isEmpty, clear, hide } = useStickyCart();
   const {
     addStickyCartToCart,
     isLoading,
@@ -16,6 +18,8 @@ const StickyCartWrapper: React.FC = () => {
   } = useStickyCartToCart();
   const { showError, showSuccess } = useToast();
   const stickyCartProducts = useStickyCartProducts();
+  const { shouldShowStickyCart, isCompact } = useCurrentRoute();
+  const { cartHeight, setCartHeight, setIsVisible } = useStickyCartContext();
 
   const [isAdding, setIsAdding] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -24,6 +28,7 @@ const StickyCartWrapper: React.FC = () => {
     totalItems: number;
     failedItems: number;
   } | null>(null);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   const handleAddToCart = async () => {
     try {
@@ -78,21 +83,57 @@ const StickyCartWrapper: React.FC = () => {
     clear();
   };
 
-  // Не рендерим, если корзина пуста или не видна
-  if (!isVisible || isEmpty) {
+  const handleCartLayout = (event: any) => {
+    const { height } = event.nativeEvent.layout;
+    setCartHeight(height + 20); // Добавляем небольшой отступ
+  };
+
+  // Автоматически скрываем корзину при переходе на скрытые экраны
+  useEffect(() => {
+    if (!shouldShowStickyCart && isVisible) {
+      // Анимация исчезновения
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        hide();
+        setIsVisible(false);
+      });
+    } else if (shouldShowStickyCart && isVisible && !isEmpty) {
+      // Анимация появления
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      setIsVisible(true);
+    }
+  }, [shouldShowStickyCart, isVisible, isEmpty, hide, fadeAnim, setIsVisible]);
+
+  // Не рендерим, если корзина пуста, не видна или на скрытом экране
+  if (!isVisible || isEmpty || !shouldShowStickyCart) {
     return null;
   }
 
   return (
     <>
-      <StickyCart
-        onAddToCart={handleAddToCart}
-        onViewCart={handleViewCart}
-        onClear={handleClear}
-        isLoading={isLoading || isAdding}
-        error={error}
-        products={stickyCartProducts}
-      />
+      {/* Отступ для контента, чтобы он не перекрывался корзиной */}
+      {isVisible && !isEmpty && shouldShowStickyCart && (
+        <View style={{ height: cartHeight }} />
+      )}
+
+      <Animated.View style={{ opacity: fadeAnim }} onLayout={handleCartLayout}>
+        <StickyCart
+          onAddToCart={handleAddToCart}
+          onViewCart={handleViewCart}
+          onClear={handleClear}
+          isLoading={isLoading || isAdding}
+          error={error}
+          products={stickyCartProducts}
+          isCompact={isCompact}
+        />
+      </Animated.View>
 
       {successData && (
         <CartSuccessModal

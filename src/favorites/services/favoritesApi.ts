@@ -1,4 +1,4 @@
-import { apiClient } from '../../shared/api';
+import { protectedApiClient } from '../../shared/api/ProtectedApiClient';
 import type {
   AddOrderToFavoritesResponse,
   AddProductToFavoritesResponse,
@@ -23,7 +23,7 @@ export class FavoritesApiService {
         url += `?type=${params.type}`;
       }
 
-      const response = await apiClient.get<Favorite[]>(url);
+      const response = await protectedApiClient.get<Favorite[]>(url);
       return response.data || [];
     } catch (error) {
       console.error('Ошибка получения избранного:', error);
@@ -38,10 +38,11 @@ export class FavoritesApiService {
     productId: string
   ): Promise<AddProductToFavoritesResponse> {
     try {
-      const response = await apiClient.post<AddProductToFavoritesResponse>(
-        `${this.BASE_URL}/products/${productId}`,
-        {}
-      );
+      const response =
+        await protectedApiClient.post<AddProductToFavoritesResponse>(
+          `${this.BASE_URL}/products/${productId}`,
+          {}
+        );
       if (!response.data) {
         throw new Error('Пустой ответ от сервера');
       }
@@ -57,7 +58,7 @@ export class FavoritesApiService {
    */
   static async removeProductFromFavorites(productId: string): Promise<void> {
     try {
-      await apiClient.delete(`${this.BASE_URL}/products/${productId}`);
+      await protectedApiClient.delete(`${this.BASE_URL}/products/${productId}`);
     } catch (error) {
       console.error('Ошибка удаления продукта из избранного:', error);
       throw new Error('Не удалось удалить продукт из избранного');
@@ -71,9 +72,10 @@ export class FavoritesApiService {
     orderId: string
   ): Promise<AddOrderToFavoritesResponse> {
     try {
-      const response = await apiClient.post<AddOrderToFavoritesResponse>(
-        `${this.BASE_URL}/orders/${orderId}`
-      );
+      const response =
+        await protectedApiClient.post<AddOrderToFavoritesResponse>(
+          `${this.BASE_URL}/orders/${orderId}`
+        );
       if (!response.data) {
         throw new Error('Пустой ответ от сервера');
       }
@@ -89,7 +91,7 @@ export class FavoritesApiService {
    */
   static async removeOrderFromFavorites(orderId: string): Promise<void> {
     try {
-      await apiClient.delete(`${this.BASE_URL}/orders/${orderId}`);
+      await protectedApiClient.delete(`${this.BASE_URL}/orders/${orderId}`);
     } catch (error) {
       console.error('Ошибка удаления заказа из избранного:', error);
       throw new Error('Не удалось удалить заказ из избранного');
@@ -101,7 +103,7 @@ export class FavoritesApiService {
    */
   static async removeFavorite(favoriteId: string): Promise<void> {
     try {
-      await apiClient.delete(`${this.BASE_URL}/${favoriteId}`);
+      await protectedApiClient.delete(`${this.BASE_URL}/${favoriteId}`);
     } catch (error) {
       console.error('Ошибка удаления избранного:', error);
       throw new Error('Не удалось удалить избранное');

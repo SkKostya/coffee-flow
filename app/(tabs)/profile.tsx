@@ -1,21 +1,52 @@
-import { TOKEN_KEY, USER_KEY } from '@/src/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, ListItem, Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useColors } from '../../src/shared/hooks/useColors';
-
-const isAuthenticated = true;
+import { useAuth } from '../../src/store/hooks/useAuth';
+import { useTheme } from '../../src/store/hooks/useTheme';
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const { isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
-  const handleLogout = () => {
-    AsyncStorage.removeItem(TOKEN_KEY);
-    AsyncStorage.removeItem(USER_KEY);
-    router.navigate('/auth/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // AsyncStorage.removeItem(TOKEN_KEY);
+      // AsyncStorage.removeItem(USER_KEY);
+      router.navigate('/auth/login');
+    } catch (error) {
+      console.error('Ошибка при выходе:', error);
+    }
+  };
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light':
+        return 'sunny-outline';
+      case 'dark':
+        return 'moon-outline';
+      case 'system':
+        return 'phone-portrait-outline';
+      default:
+        return 'phone-portrait-outline';
+    }
+  };
+
+  const getThemeText = () => {
+    switch (theme) {
+      case 'light':
+        return 'Светлая тема';
+      case 'dark':
+        return 'Темная тема';
+      case 'system':
+        return 'Системная тема';
+      default:
+        return 'Системная тема';
+    }
   };
 
   const styles = StyleSheet.create({
@@ -24,6 +55,7 @@ export default function ProfileScreen() {
       backgroundColor: colors.backgrounds.primary,
     },
     loginButton: {
+      marginTop: 32,
       marginHorizontal: 20,
       marginBottom: 16,
       borderRadius: 12,
@@ -80,6 +112,12 @@ export default function ProfileScreen() {
       icon: 'time-outline',
       onPress: () => router.navigate('/orders'),
     },
+    {
+      id: 'theme',
+      title: getThemeText(),
+      icon: getThemeIcon(),
+      onPress: toggleTheme,
+    },
   ];
 
   return (
@@ -100,86 +138,48 @@ export default function ProfileScreen() {
         )}
 
         <View>
-          {isAuthenticated ? (
-            <>
-              {menuItems.map((item) => (
-                <ListItem
-                  key={item.id}
-                  containerStyle={styles.menuItem}
-                  onPress={item.onPress}
-                >
-                  <ListItem.Content style={styles.menuItemContent}>
-                    <View style={styles.menuItemLeft}>
-                      <Ionicons
-                        name={item.icon as any}
-                        size={24}
-                        color={colors.texts.primary}
-                      />
-                      <Text style={styles.menuItemText}>{item.title}</Text>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={colors.texts.secondary}
-                    />
-                  </ListItem.Content>
-                </ListItem>
-              ))}
-
-              <ListItem containerStyle={styles.menuItem} onPress={handleLogout}>
-                <ListItem.Content style={styles.menuItemContent}>
-                  <View style={styles.menuItemLeft}>
-                    <Ionicons
-                      name="exit-outline"
-                      size={24}
-                      color={colors.error.main}
-                    />
-                    <Text style={styles.logoutText}>Выйти</Text>
-                  </View>
+          {menuItems.map((item) => (
+            <ListItem
+              key={item.id}
+              containerStyle={styles.menuItem}
+              onPress={item.onPress}
+            >
+              <ListItem.Content style={styles.menuItemContent}>
+                <View style={styles.menuItemLeft}>
                   <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={colors.texts.secondary}
+                    name={item.icon as any}
+                    size={24}
+                    color={colors.texts.primary}
                   />
-                </ListItem.Content>
-              </ListItem>
-            </>
-          ) : (
-            <>
-              {menuItems
-                .filter((item) =>
-                  [
-                    'cart',
-                    'favorites',
-                    'notifications',
-                    'faq',
-                    'support',
-                  ].includes(item.id)
-                )
-                .map((item) => (
-                  <ListItem
-                    key={item.id}
-                    containerStyle={styles.menuItem}
-                    onPress={item.onPress}
-                  >
-                    <ListItem.Content style={styles.menuItemContent}>
-                      <View style={styles.menuItemLeft}>
-                        <Ionicons
-                          name={item.icon as any}
-                          size={24}
-                          color={colors.texts.primary}
-                        />
-                        <Text style={styles.menuItemText}>{item.title}</Text>
-                      </View>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color={colors.texts.secondary}
-                      />
-                    </ListItem.Content>
-                  </ListItem>
-                ))}
-            </>
+                  <Text style={styles.menuItemText}>{item.title}</Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.texts.secondary}
+                />
+              </ListItem.Content>
+            </ListItem>
+          ))}
+
+          {isAuthenticated && (
+            <ListItem containerStyle={styles.menuItem} onPress={handleLogout}>
+              <ListItem.Content style={styles.menuItemContent}>
+                <View style={styles.menuItemLeft}>
+                  <Ionicons
+                    name="exit-outline"
+                    size={24}
+                    color={colors.error.main}
+                  />
+                  <Text style={styles.logoutText}>Выйти</Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.texts.secondary}
+                />
+              </ListItem.Content>
+            </ListItem>
           )}
         </View>
       </View>

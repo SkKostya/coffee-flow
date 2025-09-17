@@ -1,5 +1,5 @@
 // src/orders/api/ordersApi.ts
-import { apiClient } from '../../shared/api';
+import { protectedApiClient } from '../../shared/api/ProtectedApiClient';
 import type {
   CreateOrderFromCartRequest,
   CreateOrderRequest,
@@ -16,9 +16,12 @@ export const ordersApi = {
    * Получить все заказы для аутентифицированного клиента
    */
   async getOrders(params?: GetOrdersParams): Promise<GetOrdersResponse[]> {
-    const response = await apiClient.get<GetOrdersResponse[]>('/orders', {
-      params: params as Record<string, unknown>,
-    });
+    const response = await protectedApiClient.get<GetOrdersResponse[]>(
+      '/orders',
+      {
+        params: params as Record<string, unknown>,
+      }
+    );
     return response.data || [];
   },
 
@@ -26,7 +29,7 @@ export const ordersApi = {
    * Получить конкретный заказ по ID
    */
   async getOrderById(orderId: string): Promise<GetOrdersResponse> {
-    const response = await apiClient.get<GetOrdersResponse>(
+    const response = await protectedApiClient.get<GetOrdersResponse>(
       `/orders/${orderId}`
     );
     if (!response.data) {
@@ -39,7 +42,10 @@ export const ordersApi = {
    * Создать новый заказ с конкретными товарами и партнером
    */
   async createOrder(data: CreateOrderRequest): Promise<CreateOrderResponse> {
-    const response = await apiClient.post<CreateOrderResponse>('/orders', data);
+    const response = await protectedApiClient.post<CreateOrderResponse>(
+      '/orders',
+      data
+    );
     if (!response.data) {
       throw new Error('Ошибка создания заказа');
     }
@@ -52,7 +58,7 @@ export const ordersApi = {
   async createOrderFromCart(
     data: CreateOrderFromCartRequest
   ): Promise<CreateOrderResponse> {
-    const response = await apiClient.post<CreateOrderResponse>(
+    const response = await protectedApiClient.post<CreateOrderResponse>(
       '/orders/from-cart',
       data
     );
@@ -69,7 +75,7 @@ export const ordersApi = {
     orderId: string,
     data: UpdateOrderStatusRequest
   ): Promise<UpdateOrderStatusResponse> {
-    const response = await apiClient.put<UpdateOrderStatusResponse>(
+    const response = await protectedApiClient.put<UpdateOrderStatusResponse>(
       `/orders/${orderId}/status`,
       data
     );
@@ -83,7 +89,7 @@ export const ordersApi = {
    * Отменить существующий заказ (если не доставлен)
    */
   async cancelOrder(orderId: string): Promise<UpdateOrderStatusResponse> {
-    const response = await apiClient.put<UpdateOrderStatusResponse>(
+    const response = await protectedApiClient.put<UpdateOrderStatusResponse>(
       `/orders/${orderId}/cancel`
     );
     if (!response.data) {
@@ -96,7 +102,7 @@ export const ordersApi = {
    * Создать новый заказ с теми же товарами, что и существующий заказ
    */
   async repeatOrder(orderId: string): Promise<RepeatOrderResponse> {
-    const response = await apiClient.post<RepeatOrderResponse>(
+    const response = await protectedApiClient.post<RepeatOrderResponse>(
       `/orders/${orderId}/repeat`
     );
     if (!response.data) {

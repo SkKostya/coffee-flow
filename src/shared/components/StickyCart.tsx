@@ -29,6 +29,7 @@ interface StickyCartProps {
   onClear: () => void;
   isLoading?: boolean;
   error?: string | null;
+  isCompact?: boolean;
   // Данные о продуктах для отображения подробностей
   products?: Array<{
     id: string;
@@ -45,6 +46,7 @@ const StickyCart: React.FC<StickyCartProps> = ({
   onClear,
   isLoading = false,
   error = null,
+  isCompact = false,
   products = [],
 }) => {
   const colors = useColors();
@@ -60,6 +62,7 @@ const StickyCart: React.FC<StickyCartProps> = ({
   // Состояние для раскрытия подробностей
   const [isExpanded, setIsExpanded] = useState(false);
   const [animationValue] = useState(new Animated.Value(0));
+  const [fadeAnim] = useState(new Animated.Value(1));
 
   // Функция для переключения раскрытия
   const toggleExpanded = () => {
@@ -105,6 +108,8 @@ const StickyCart: React.FC<StickyCartProps> = ({
     backgroundColor: colors.backgrounds.elevated,
     borderTopColor: colors.borders.primary,
     borderTopWidth: 1,
+    // Адаптивная высота
+    paddingBottom: isCompact ? 20 : 34, // Меньший отступ в компактном режиме
   };
 
   const buttonStyle: ViewStyle = {
@@ -117,94 +122,120 @@ const StickyCart: React.FC<StickyCartProps> = ({
     borderWidth: 1,
   };
 
-  return (
-    <View style={[styles.container, containerStyle]}>
-      {/* Кнопка раскрытия по центру */}
-      <TouchableOpacity
-        style={[
-          styles.expandButton,
-          { backgroundColor: colors.backgrounds.elevated },
-        ]}
-        onPress={toggleExpanded}
-        activeOpacity={0.8}
-      >
-        <Ionicons
-          name={isExpanded ? 'chevron-down' : 'chevron-up'}
-          size={20}
-          color={colors.texts.secondary}
-        />
-      </TouchableOpacity>
+  // В компактном режиме скрываем детали продуктов
+  const shouldShowExpandedContent = isExpanded && !isCompact;
 
-      {/* Раскрывающийся список продуктов */}
-      <Animated.View
-        style={[
-          styles.expandedContent,
-          {
-            maxHeight: animationValue.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 200], // Максимальная высота для списка
-            }),
-            opacity: animationValue,
-          },
-        ]}
-      >
-        <ScrollView
-          style={styles.productsList}
-          showsVerticalScrollIndicator={false}
+  return (
+    <Animated.View
+      style={[
+        styles.container,
+        containerStyle,
+        {
+          opacity: fadeAnim,
+          transform: [
+            {
+              translateY: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [100, 0], // Анимация появления снизу
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      {/* Кнопка раскрытия - только в некомпактном режиме */}
+      {!isCompact && (
+        <TouchableOpacity
+          style={[
+            styles.expandButton,
+            { backgroundColor: colors.backgrounds.elevated },
+          ]}
+          onPress={toggleExpanded}
+          activeOpacity={0.8}
         >
-          {selectedProductsData.map((product: SelectedProductData) => (
-            <View
-              key={product.id}
-              style={[
-                styles.productItem,
-                { borderBottomColor: colors.borders.primary },
-              ]}
-            >
-              <View style={styles.productInfo}>
-                <Text
-                  style={[styles.productName, { color: colors.texts.primary }]}
-                >
-                  {product.name}
-                </Text>
-                <Text
-                  style={[
-                    styles.productShop,
-                    { color: colors.texts.secondary },
-                  ]}
-                >
-                  {product.coffeeShopName}
-                </Text>
-                <Text
-                  style={[
-                    styles.productQuantity,
-                    { color: colors.texts.secondary },
-                  ]}
-                >
-                  Количество: {product.quantity}
-                </Text>
+          <Ionicons
+            name={isExpanded ? 'chevron-down' : 'chevron-up'}
+            size={20}
+            color={colors.texts.secondary}
+          />
+        </TouchableOpacity>
+      )}
+
+      {/* Раскрывающийся список продуктов - только в некомпактном режиме */}
+      {shouldShowExpandedContent && (
+        <Animated.View
+          style={[
+            styles.expandedContent,
+            {
+              maxHeight: animationValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 200], // Максимальная высота для списка
+              }),
+              opacity: animationValue,
+            },
+          ]}
+        >
+          <ScrollView
+            style={styles.productsList}
+            showsVerticalScrollIndicator={false}
+          >
+            {selectedProductsData.map((product: SelectedProductData) => (
+              <View
+                key={product.id}
+                style={[
+                  styles.productItem,
+                  { borderBottomColor: colors.borders.primary },
+                ]}
+              >
+                <View style={styles.productInfo}>
+                  <Text
+                    style={[
+                      styles.productName,
+                      { color: colors.texts.primary },
+                    ]}
+                  >
+                    {product.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.productShop,
+                      { color: colors.texts.secondary },
+                    ]}
+                  >
+                    {product.coffeeShopName}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.productQuantity,
+                      { color: colors.texts.secondary },
+                    ]}
+                  >
+                    Количество: {product.quantity}
+                  </Text>
+                </View>
+                <View style={styles.productPrice}>
+                  <Text
+                    style={[
+                      styles.productUnitPrice,
+                      { color: colors.texts.secondary },
+                    ]}
+                  >
+                    {formatPrice(product.unitPrice)} × {product.quantity}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.productTotalPrice,
+                      { color: colors.texts.primary },
+                    ]}
+                  >
+                    {formatPrice(product.totalPrice)}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.productPrice}>
-                <Text
-                  style={[
-                    styles.productUnitPrice,
-                    { color: colors.texts.secondary },
-                  ]}
-                >
-                  {formatPrice(product.unitPrice)} × {product.quantity}
-                </Text>
-                <Text
-                  style={[
-                    styles.productTotalPrice,
-                    { color: colors.texts.primary },
-                  ]}
-                >
-                  {formatPrice(product.totalPrice)}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      </Animated.View>
+            ))}
+          </ScrollView>
+        </Animated.View>
+      )}
 
       <View style={styles.content}>
         {/* Левая часть - общая сумма */}
@@ -241,7 +272,7 @@ const StickyCart: React.FC<StickyCartProps> = ({
           Добавить в корзину
         </Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -253,7 +284,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingBottom: 34, // Учитываем safe area
+    // paddingBottom будет переопределен в containerStyle для адаптивности
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

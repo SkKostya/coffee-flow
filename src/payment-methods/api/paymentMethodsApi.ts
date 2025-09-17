@@ -1,5 +1,5 @@
 // src/payment-methods/api/paymentMethodsApi.ts
-import { apiClient } from '../../shared/api';
+import { protectedApiClient } from '../../shared/api/ProtectedApiClient';
 import type {
   CreatePaymentMethodRequest,
   PaymentMethod,
@@ -57,10 +57,10 @@ export const paymentMethodsApi = {
     return mockMethods;
 
     // Раскомментируйте для реального API
-    // const response = await apiClient.get<PaymentMethodsResponse>(
+    // const response = await protectedApiClient.get<PaymentMethodsResponse>(
     //   '/payments/methods'
     // );
-    // return response.data;
+    // return response.data.data;
   },
 
   /**
@@ -69,11 +69,11 @@ export const paymentMethodsApi = {
   async createPaymentMethod(
     data: CreatePaymentMethodRequest
   ): Promise<PaymentMethod> {
-    const response = await apiClient.post<PaymentMethodResponse>(
+    const response = await protectedApiClient.post<PaymentMethodResponse>(
       '/payments/methods',
       data
     );
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -83,27 +83,27 @@ export const paymentMethodsApi = {
     methodId: string,
     data: UpdatePaymentMethodRequest
   ): Promise<PaymentMethod> {
-    const response = await apiClient.put<PaymentMethodResponse>(
+    const response = await protectedApiClient.put<PaymentMethodResponse>(
       `/payments/methods/${methodId}`,
       data
     );
-    return response.data;
+    return response.data.data;
   },
 
   /**
    * Удалить метод оплаты
    */
   async deletePaymentMethod(methodId: string): Promise<void> {
-    await apiClient.delete(`/payments/methods/${methodId}`);
+    await protectedApiClient.delete(`/payments/methods/${methodId}`);
   },
 
   /**
    * Установить метод оплаты по умолчанию
    */
   async setDefaultPaymentMethod(methodId: string): Promise<PaymentMethod> {
-    const response = await apiClient.put<PaymentMethodResponse>(
+    const response = await protectedApiClient.put<PaymentMethodResponse>(
       `/payments/methods/${methodId}/default`
     );
-    return response.data;
+    return response.data.data;
   },
 };
