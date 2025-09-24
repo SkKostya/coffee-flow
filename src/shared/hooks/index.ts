@@ -7,6 +7,8 @@ export { useCurrentPath } from './useCurrentPath';
 export { useCurrentRoute } from './useCurrentRoute';
 export { useDebounce, useDebouncedCallback } from './useDebounce';
 export { useGlobalToast } from './useGlobalToast';
+export { useLocation } from './useLocation';
+export { useMapCenter } from './useMapCenter';
 export {
   useMemoizedCallback,
   useMemoizedCallbackWithCustomCompare,

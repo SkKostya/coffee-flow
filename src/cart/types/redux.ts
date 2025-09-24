@@ -20,6 +20,7 @@ export interface CartSliceState extends CartState {
   pendingActions: CartAction[];
   retryCount: number;
   maxRetries: number;
+  itemLoadingStates: Record<string, boolean>; // Состояние загрузки для отдельных товаров
 }
 
 export interface CartAction {

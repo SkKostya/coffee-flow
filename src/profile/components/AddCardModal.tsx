@@ -15,12 +15,16 @@ interface AddCardModalProps {
   isVisible: boolean;
   onClose: () => void;
   onSubmit?: (data: AddCardFormData) => void;
+  isEditMode?: boolean;
+  initialData?: Partial<AddCardFormData>;
 }
 
 const AddCardModal: React.FC<AddCardModalProps> = ({
   isVisible,
   onClose,
   onSubmit,
+  isEditMode = false,
+  initialData,
 }) => {
   const colors = useColors();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,9 +39,9 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
     resolver: zodResolver(addCardSchema),
     mode: 'onChange',
     defaultValues: {
-      cardNumber: '',
-      expiryDate: '',
-      cvc: '',
+      cardNumber: initialData?.cardNumber || '',
+      expiryDate: initialData?.expiryDate || '',
+      cvc: initialData?.cvc || '',
     },
   });
 
@@ -159,7 +163,9 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
       <View style={styles.modalContainer}>
         {/* Modal Header */}
         <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>Добавление новой карты</Text>
+          <Text style={styles.modalTitle}>
+            {isEditMode ? 'Редактирование карты' : 'Добавление новой карты'}
+          </Text>
           <Ionicons
             name="close"
             size={24}
@@ -227,6 +233,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
                     placeholder="123"
                     error={errors.cvc?.message}
                     keyboardType="numeric"
+                    secureTextEntry={true}
                     maskedInputProps={{
                       mask: cvcMask,
                       value,
@@ -252,7 +259,13 @@ const AddCardModal: React.FC<AddCardModalProps> = ({
           disabled={!isValid || isSubmitting}
         >
           <Text style={styles.addButtonText}>
-            {isSubmitting ? 'Добавление...' : 'Добавить'}
+            {isSubmitting
+              ? isEditMode
+                ? 'Сохранение...'
+                : 'Добавление...'
+              : isEditMode
+              ? 'Сохранить'
+              : 'Добавить'}
           </Text>
         </TouchableOpacity>
       </View>

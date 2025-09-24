@@ -1,6 +1,8 @@
 // src/types/cart.ts
 // Типы для корзины и API операций
 
+import { Category } from '../general';
+
 // ===== БАЗОВЫЕ ТИПЫ КОРЗИНЫ =====
 
 export interface CartItem {
@@ -9,7 +11,7 @@ export interface CartItem {
   unitPrice: number;
   totalPrice: number;
   notes?: string;
-  customizations: CartItemCustomizations;
+  customizations: CartItemCustomizations | null;
   product: CartProduct;
 }
 
@@ -27,7 +29,7 @@ export interface CartProduct {
   name: string;
   description?: string;
   image?: string;
-  category: string;
+  category: Category;
   basePrice: number;
   isAvailable: boolean;
   coffeeShopId: string;

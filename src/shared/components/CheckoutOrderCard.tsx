@@ -23,7 +23,6 @@ const CheckoutOrderCard: React.FC<CheckoutOrderCardProps> = ({ item }) => {
     header: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      marginBottom: 12,
     },
     image: {
       width: 60,
@@ -129,7 +128,9 @@ const CheckoutOrderCard: React.FC<CheckoutOrderCardProps> = ({ item }) => {
         )}
         <View style={styles.content}>
           <Text style={styles.name}>{item.product.name}</Text>
-          <Text style={styles.size}>{getSizeText()}</Text>
+          {item.product.description && (
+            <Text style={styles.size}>{item.product.description}</Text>
+          )}
 
           <View style={styles.customizations}>{formatCustomizations()}</View>
         </View>
@@ -137,14 +138,10 @@ const CheckoutOrderCard: React.FC<CheckoutOrderCardProps> = ({ item }) => {
 
       <View style={styles.footer}>
         <View>
-          <Text style={styles.price}>
-            {formatPrice(item.totalPrice * item.quantity)}
-          </Text>
+          <Text style={styles.price}>{formatPrice(item.totalPrice)}</Text>
           <Text style={styles.quantity}>× {item.quantity} шт</Text>
         </View>
-        <Text style={styles.totalPrice}>
-          {formatPrice(item.totalPrice * item.quantity)}
-        </Text>
+        <Text style={styles.totalPrice}>{formatPrice(item.totalPrice)}</Text>
       </View>
     </Card>
   );

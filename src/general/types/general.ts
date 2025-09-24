@@ -36,6 +36,19 @@ export interface City {
   updatedAt: string;
 }
 
+// Типы для пользовательских данных
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+  timestamp: number;
+}
+
+export interface UserData {
+  location: UserLocation | null;
+  selectedCity: City | null;
+}
+
 // Тип для API ответа города
 export interface CityApiResponse {
   id: string;
@@ -52,6 +65,7 @@ export interface CityApiResponse {
 export interface GeneralState {
   categories: Category[];
   cities: City[];
+  user: UserData;
   isLoading: boolean;
   error: string | null;
 }
@@ -59,6 +73,9 @@ export interface GeneralState {
 // Действия для общих данных
 export interface GeneralActions {
   setCategories: (categories: Category[]) => void;
+  setCities: (cities: City[]) => void;
+  setSelectedCity: (city: City | null) => void;
+  setUserLocation: (location: UserLocation | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;

@@ -4,8 +4,16 @@
 import { useCallback } from 'react';
 import type { UpdateCartItemRequest } from '../../types/cart';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { selectCartItemById } from '../selectors/cartSelectors';
-import { removeCartItem, updateCartItem } from '../slices/cartSlice';
+import {
+  selectCartItemById,
+  selectItemLoadingState,
+} from '../selectors/cartSelectors';
+import {
+  clearItemLoading,
+  removeCartItem,
+  setItemLoading,
+  updateCartItem,
+} from '../slices/cartSlice';
 
 interface UseCartItemParams {
   itemId: string;
@@ -20,6 +28,9 @@ export const useCartItem = ({ itemId }: UseCartItemParams) => {
   // ===== СЕЛЕКТОРЫ =====
 
   const item = useAppSelector((state) => selectCartItemById(state, itemId));
+  const isLoading = useAppSelector((state) =>
+    selectItemLoadingState(state, itemId)
+  );
 
   // ===== ДЕЙСТВИЯ =====
 
@@ -28,11 +39,14 @@ export const useCartItem = ({ itemId }: UseCartItemParams) => {
    */
   const updateItem = useCallback(
     async (updates: UpdateCartItemRequest) => {
+      dispatch(setItemLoading({ itemId, isLoading: true }));
       try {
         await dispatch(updateCartItem({ itemId, updates })).unwrap();
       } catch (error) {
         console.error('Failed to update cart item:', error);
         throw error;
+      } finally {
+        dispatch(clearItemLoading(itemId));
       }
     },
     [dispatch, itemId]
@@ -42,11 +56,14 @@ export const useCartItem = ({ itemId }: UseCartItemParams) => {
    * Удалить товар
    */
   const removeItem = useCallback(async () => {
+    dispatch(setItemLoading({ itemId, isLoading: true }));
     try {
       await dispatch(removeCartItem(itemId)).unwrap();
     } catch (error) {
       console.error('Failed to remove cart item:', error);
       throw error;
+    } finally {
+      dispatch(clearItemLoading(itemId));
     }
   }, [dispatch, itemId]);
 
@@ -109,6 +126,7 @@ export const useCartItem = ({ itemId }: UseCartItemParams) => {
     // Данные товара
     item,
     isInCart: !!item,
+    isLoading,
 
     // Действия
     updateItem,

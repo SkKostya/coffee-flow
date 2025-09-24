@@ -40,8 +40,7 @@ export class FavoritesApiService {
     try {
       const response =
         await protectedApiClient.post<AddProductToFavoritesResponse>(
-          `${this.BASE_URL}/products/${productId}`,
-          {}
+          `${this.BASE_URL}/products/${productId}`
         );
       if (!response.data) {
         throw new Error('Пустой ответ от сервера');

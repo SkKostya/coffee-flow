@@ -4,9 +4,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@rneui/themed';
 import React, { memo, useCallback } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useDebounce, useThrottle } from '../../shared/hooks';
-import { useColors } from '../../shared/hooks/useColors';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useColors, useToast } from '../../shared/hooks';
 import { useCartItem } from '../../store';
 import type { CartItem } from '../../types/cart';
 import { formatCustomizations, formatPrice } from '../utils/cartUtils';
@@ -19,42 +25,77 @@ interface CartItemOptimizedProps {
 const CartItemOptimized: React.FC<CartItemOptimizedProps> = memo(
   ({ item, onRemove }) => {
     const colors = useColors();
-    const { updateQuantity, removeItem } = useCartItem({ itemId: item.id });
+    const { showSuccess, showError } = useToast();
+    const { updateQuantity, removeItem, isLoading } = useCartItem({
+      itemId: item.id,
+    });
 
-    // Дебаунсинг для обновления количества
-    const debouncedUpdateQuantity = useDebounce(
-      useCallback(
-        (quantity: number) => {
-          updateQuantity(quantity);
-        },
-        [updateQuantity]
-      ),
-      300
-    );
+    const handleIncrement = useCallback(async () => {
+      if (isLoading) return;
+      try {
+        await updateQuantity(item.quantity + 1);
+      } catch (error) {
+        console.error('Failed to increment quantity:', error);
+        showError(
+          'Ошибка обновления',
+          'Не удалось увеличить количество товара'
+        );
+      }
+    }, [
+      updateQuantity,
+      item.quantity,
+      isLoading,
+      showSuccess,
+      showError,
+      item.product.name,
+    ]);
 
-    // Троттлинг для кнопок
-    const throttledIncrement = useThrottle(
-      useCallback(() => {
-        updateQuantity(item.quantity + 1);
-      }, [updateQuantity, item.quantity]),
-      200
-    );
-
-    const throttledDecrement = useThrottle(
-      useCallback(() => {
+    const handleDecrement = useCallback(async () => {
+      if (isLoading) return;
+      try {
         if (item.quantity > 1) {
-          updateQuantity(item.quantity - 1);
+          await updateQuantity(item.quantity - 1);
         } else {
-          removeItem();
+          await removeItem();
+          showSuccess(
+            'Товар удален',
+            `Товар "${item.product.name}" удален из корзины`
+          );
         }
-      }, [updateQuantity, removeItem, item.quantity]),
-      200
-    );
+      } catch (error) {
+        console.error('Failed to decrement quantity:', error);
+        showError('Ошибка обновления', 'Не удалось изменить количество товара');
+      }
+    }, [
+      updateQuantity,
+      removeItem,
+      item.quantity,
+      isLoading,
+      showSuccess,
+      showError,
+      item.product.name,
+    ]);
 
-    const handleRemove = useCallback(() => {
-      onRemove?.(item.id);
-      removeItem();
-    }, [item.id, onRemove, removeItem]);
+    const handleRemove = useCallback(async () => {
+      try {
+        await removeItem();
+        onRemove?.(item.id);
+        showSuccess(
+          'Товар удален',
+          `Товар "${item.product.name}" удален из корзины`
+        );
+      } catch (error) {
+        console.error('Failed to remove item:', error);
+        showError('Ошибка удаления', 'Не удалось удалить товар из корзины');
+      }
+    }, [
+      item.id,
+      onRemove,
+      removeItem,
+      showSuccess,
+      showError,
+      item.product.name,
+    ]);
 
     const customizations = formatCustomizations(item.customizations);
 
@@ -160,9 +201,14 @@ const CartItemOptimized: React.FC<CartItemOptimizedProps> = memo(
         <TouchableOpacity
           style={styles.removeButton}
           onPress={handleRemove}
+          disabled={isLoading}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="close" size={16} color={colors.error.main} />
+          {isLoading ? (
+            <ActivityIndicator size="small" color={colors.error.main} />
+          ) : (
+            <Ionicons name="close" size={16} color={colors.error.main} />
+          )}
         </TouchableOpacity>
 
         <View style={styles.header}>
@@ -171,7 +217,7 @@ const CartItemOptimized: React.FC<CartItemOptimizedProps> = memo(
           )}
           <View style={styles.content}>
             <Text style={styles.name}>{item.product.name}</Text>
-            <Text style={styles.category}>{item.product.category}</Text>
+            <Text style={styles.category}>{item.product.category?.nameRu}</Text>
 
             {customizations.length > 0 && (
               <View style={styles.customizations}>
@@ -193,14 +239,14 @@ const CartItemOptimized: React.FC<CartItemOptimizedProps> = memo(
           <View style={styles.quantityControls}>
             <TouchableOpacity
               style={styles.quantityButton}
-              onPress={throttledDecrement}
-              disabled={item.quantity <= 1}
+              onPress={handleDecrement}
+              disabled={item.quantity <= 1 || isLoading}
             >
               <Ionicons
                 name="remove"
                 size={16}
                 color={
-                  item.quantity <= 1
+                  item.quantity <= 1 || isLoading
                     ? colors.texts.disabled
                     : colors.texts.primary
                 }
@@ -211,15 +257,18 @@ const CartItemOptimized: React.FC<CartItemOptimizedProps> = memo(
 
             <TouchableOpacity
               style={styles.quantityButton}
-              onPress={throttledIncrement}
+              onPress={handleIncrement}
+              disabled={isLoading}
             >
-              <Ionicons name="add" size={16} color={colors.texts.primary} />
+              <Ionicons
+                name="add"
+                size={16}
+                color={isLoading ? colors.texts.disabled : colors.texts.primary}
+              />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.price}>
-            {formatPrice(item.totalPrice * item.quantity)}
-          </Text>
+          <Text style={styles.price}>{formatPrice(item.totalPrice)}</Text>
         </View>
       </Card>
     );

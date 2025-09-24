@@ -22,7 +22,7 @@ const CitySelectionScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Redux хук для работы с общими данными
-  const { cities, isLoading, error, loadCities } = useGeneral();
+  const { cities, isLoading, error, loadCities, selectCity } = useGeneral();
 
   // Получаем параметры из навигации
   const params = useLocalSearchParams();
@@ -53,7 +53,8 @@ const CitySelectionScreen: React.FC = () => {
   // Обработка выбора города
   const handleCitySelect = useCallback(
     (city: City) => {
-      // TODO: Сохранить выбранный город в глобальном состоянии
+      // Сохраняем выбранный город в глобальном состоянии
+      selectCity(city);
 
       // Передаем выбранный город через параметры навигации
       if (returnTo) {
@@ -69,7 +70,7 @@ const CitySelectionScreen: React.FC = () => {
         router.back();
       }
     },
-    [returnTo]
+    [returnTo, selectCity]
   );
 
   // Обработка поиска

@@ -1,5 +1,20 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+// Load environment variables from .env file
+def loadEnvFile() {
+    def envFile = new File(rootDir.parent, '.env')
+    if (envFile.exists()) {
+        envFile.readLines().each { line ->
+            if (line && !line.startsWith('#') && line.contains('=')) {
+                def (key, value) = line.split('=', 2)
+                project.ext.set(key.trim(), value.trim())
+            }
+        }
+    }
+}
+
+loadEnvFile()
+
 buildscript {
   repositories {
     google()

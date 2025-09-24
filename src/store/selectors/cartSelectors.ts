@@ -3,10 +3,6 @@
 
 import { createSelector } from '@reduxjs/toolkit';
 import type { CartSliceState } from '../../cart/types/redux';
-import {
-  calculateCartItemCount,
-  calculateCartTotal,
-} from '../../cart/utils/cartUtils';
 import type { Cart, CartItem, CartPartner } from '../../types/cart';
 import type { RootState } from '../store';
 
@@ -85,9 +81,10 @@ export const selectCartPendingActions = (
  * Селектор общей суммы корзины
  */
 export const selectCartTotalAmount = createSelector(
-  [selectCartItems],
-  (items: CartItem[]): number => {
-    return calculateCartTotal(items);
+  [selectCart],
+  (cart: Cart | null): number => {
+    if (!cart) return 0;
+    return cart.totalAmount;
   }
 );
 
@@ -95,9 +92,10 @@ export const selectCartTotalAmount = createSelector(
  * Селектор общего количества товаров
  */
 export const selectCartTotalItems = createSelector(
-  [selectCartItems],
-  (items: CartItem[]): number => {
-    return calculateCartItemCount(items);
+  [selectCart],
+  (cart: Cart | null): number => {
+    if (!cart) return 0;
+    return cart.totalItems;
   }
 );
 
@@ -139,7 +137,7 @@ export const selectCartAverageItemPrice = createSelector(
 export const selectCartItemsByCategory = createSelector(
   [selectCartItems, (state: RootState, category: string) => category],
   (items: CartItem[], category: string): CartItem[] => {
-    return items.filter((item) => item.product.category === category);
+    return items.filter((item) => item.product.category?.name === category);
   }
 );
 
@@ -174,12 +172,12 @@ export const selectCartCategoryStats = createSelector(
     if (items.length === 0) return {};
 
     return items.reduce((acc, item) => {
-      const category = item.product.category;
-      if (!acc[category]) {
-        acc[category] = { count: 0, total: 0 };
+      const categoryName = item.product.category?.name || 'Без категории';
+      if (!acc[categoryName]) {
+        acc[categoryName] = { count: 0, total: 0 };
       }
-      acc[category].count += item.quantity;
-      acc[category].total += item.totalPrice * item.quantity;
+      acc[categoryName].count += item.quantity;
+      acc[categoryName].total += item.totalPrice * item.quantity;
       return acc;
     }, {} as Record<string, { count: number; total: number }>);
   }
@@ -380,6 +378,17 @@ export const selectCartIsReadyForCheckout = createSelector(
     isLoading: boolean,
     partner: CartPartner | null
   ): boolean => {
-    return isValid && !isEmpty && !isLoading && !!partner;
+    return isValid && !isEmpty && !isLoading;
   }
 );
+
+// ===== СЕЛЕКТОРЫ ДЛЯ СОСТОЯНИЯ ЗАГРУЗКИ ОТДЕЛЬНЫХ ТОВАРОВ =====
+
+export const selectItemLoadingState = (state: RootState, itemId: string) =>
+  state.cart.itemLoadingStates[itemId] || false;
+
+export const selectAllItemLoadingStates = (state: RootState) =>
+  state.cart.itemLoadingStates;
+
+export const selectIsAnyItemLoading = (state: RootState) =>
+  Object.values(state.cart.itemLoadingStates).some((loading) => loading);

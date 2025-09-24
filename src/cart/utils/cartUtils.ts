@@ -104,25 +104,6 @@ export const isCartValid = (cart: Cart | null): boolean => {
   return true;
 };
 
-// ===== ВЫЧИСЛЕНИЯ =====
-
-/**
- * Вычисление общей суммы корзины
- */
-export const calculateCartTotal = (items: CartItem[]): number => {
-  return items.reduce(
-    (total, item) => total + item.totalPrice * item.quantity,
-    0
-  );
-};
-
-/**
- * Вычисление общего количества товаров
- */
-export const calculateCartItemCount = (items: CartItem[]): number => {
-  return items.reduce((count, item) => count + item.quantity, 0);
-};
-
 /**
  * Вычисление метрик корзины
  */
@@ -139,8 +120,8 @@ export const calculateCartMetrics = (cart: Cart | null): CartMetrics => {
   }
 
   const items = cart.items;
-  const totalValue = calculateCartTotal(items);
-  const itemCount = calculateCartItemCount(items);
+  const totalValue = cart.totalAmount;
+  const itemCount = cart.totalItems;
   const averageItemPrice = itemCount > 0 ? totalValue / itemCount : 0;
 
   // Находим самый дорогой и самый дешевый товар
@@ -150,7 +131,7 @@ export const calculateCartMetrics = (cart: Cart | null): CartMetrics => {
 
   // Группировка по категориям
   const categoryBreakdown = items.reduce((acc, item) => {
-    const category = item.product.category;
+    const category = item.product.category?.name || 'Без категории';
     acc[category] = (acc[category] || 0) + item.quantity;
     return acc;
   }, {} as Record<string, number>);
@@ -187,8 +168,10 @@ export const formatQuantity = (quantity: number): string => {
  * Форматирование кастомизаций для отображения
  */
 export const formatCustomizations = (
-  customizations: CartItemCustomizations
+  customizations: CartItemCustomizations | null
 ): string[] => {
+  if (!customizations) return [];
+
   return Object.entries(customizations)
     .filter(([_, value]) => value !== false && value !== '')
     .map(([key, value]) => {
@@ -220,7 +203,7 @@ export const findItemsByCategory = (
   category: string
 ): CartItem[] => {
   if (!cart || !cart.items) return [];
-  return cart.items.filter((item) => item.product.category === category);
+  return cart.items.filter((item) => item.product.category?.name === category);
 };
 
 /**

@@ -8,14 +8,18 @@ interface PaymentMethodCardProps {
   cardNumber: string;
   onDelete?: () => void;
   onPress?: () => void;
+  onSetDefault?: () => void;
   isAddNew?: boolean;
+  isDefault?: boolean;
 }
 
 const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   cardNumber,
   onDelete,
   onPress,
+  onSetDefault,
   isAddNew = false,
+  isDefault = false,
 }) => {
   const colors = useColors();
 
@@ -60,6 +64,13 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
       color: colors.texts.primary,
       fontWeight: '500',
     },
+    defaultButton: {
+      padding: 4,
+      marginRight: 8,
+    },
+    defaultStar: {
+      marginRight: 8,
+    },
   });
 
   if (isAddNew) {
@@ -88,10 +99,31 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
           style={styles.icon}
         />
         <View style={styles.cardInfo}>
-          <Text style={styles.cardText}>Карта **** {cardNumber}</Text>
+          <Text style={styles.cardText}>Карта **** {cardNumber || '****'}</Text>
         </View>
       </View>
       <View style={styles.rightSection}>
+        {isDefault ? (
+          <Ionicons
+            name="star"
+            size={20}
+            color={colors.success.main}
+            style={styles.defaultStar}
+          />
+        ) : (
+          onSetDefault && (
+            <TouchableOpacity
+              style={styles.defaultButton}
+              onPress={onSetDefault}
+            >
+              <Ionicons
+                name="star-outline"
+                size={20}
+                color={colors.texts.secondary}
+              />
+            </TouchableOpacity>
+          )
+        )}
         {onDelete && (
           <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
             <Ionicons

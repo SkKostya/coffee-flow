@@ -1,6 +1,11 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generalApi } from '../../general/services';
-import type { Category, City, GeneralState } from '../../general/types';
+import type {
+  Category,
+  City,
+  GeneralState,
+  UserLocation,
+} from '../../general/types';
 
 // Типы для ошибок
 interface GeneralError {
@@ -12,6 +17,10 @@ interface GeneralError {
 const initialState: GeneralState = {
   categories: [],
   cities: [],
+  user: {
+    location: null,
+    selectedCity: null,
+  },
   isLoading: false,
   error: null,
 };
@@ -79,6 +88,12 @@ const generalSlice = createSlice({
     setCities: (state, action: PayloadAction<City[]>) => {
       state.cities = action.payload;
     },
+    setSelectedCity: (state, action: PayloadAction<City | null>) => {
+      state.user.selectedCity = action.payload;
+    },
+    setUserLocation: (state, action: PayloadAction<UserLocation | null>) => {
+      state.user.location = action.payload;
+    },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
@@ -141,6 +156,13 @@ const generalSlice = createSlice({
   },
 });
 
-export const { setCategories, setCities, setLoading, setError, clearError } =
-  generalSlice.actions;
+export const {
+  setCategories,
+  setCities,
+  setSelectedCity,
+  setUserLocation,
+  setLoading,
+  setError,
+  clearError,
+} = generalSlice.actions;
 export default generalSlice.reducer;

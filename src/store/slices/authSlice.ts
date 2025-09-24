@@ -18,7 +18,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true, // Начинаем с true для загрузки данных при инициализации
+  isLoading: false, // Начинаем с false, загрузка будет запущена в useAppInitialization
   error: null,
 };
 

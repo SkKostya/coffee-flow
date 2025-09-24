@@ -1,3 +1,4 @@
+export { default as AuthInitializer } from './AuthInitializer';
 export { default as BottomNavigation } from './BottomNavigation';
 export { default as CartSuccessModal } from './CartSuccessModal';
 export { default as CheckoutOrderCard } from './CheckoutOrderCard';

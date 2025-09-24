@@ -1,7 +1,7 @@
 // src/cart/components/CartList.tsx
 // Список товаров корзины
 
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -12,9 +12,8 @@ import {
 import EmptyState from '../../shared/components/EmptyState';
 import ErrorMessage from '../../shared/components/ErrorMessage';
 import LoadingSpinner from '../../shared/components/LoadingSpinner';
-import { useColors } from '../../shared/hooks/useColors';
+import { useColors, useToast } from '../../shared/hooks';
 import { useCart } from '../../store';
-import type { CartItem } from '../../types/cart';
 import CartItemOptimized from './CartItemOptimized';
 
 interface CartListOptimizedProps {
@@ -25,13 +24,23 @@ interface CartListOptimizedProps {
 const CartList: React.FC<CartListOptimizedProps> = memo(
   ({ onRefresh, refreshing = false }) => {
     const colors = useColors();
-    const { items, isLoading, error, isEmpty, loadCart } = useCart();
+    const { showSuccess, showError } = useToast();
+    const { items, isLoading, error, isEmpty, loadCart, removeItem } =
+      useCart();
 
     // Мемоизированные обработчики
-    const handleRemoveItem = useCallback((itemId: string) => {
-      // Логика удаления уже в CartItemOptimized
-      console.log('Removing item:', itemId);
-    }, []);
+    const handleRemoveItem = useCallback(
+      async (itemId: string) => {
+        try {
+          await removeItem(itemId);
+          showSuccess('Товар удален', 'Товар успешно удален из корзины');
+        } catch (error) {
+          console.error('Failed to remove item from cart:', error);
+          showError('Ошибка удаления', 'Не удалось удалить товар из корзины');
+        }
+      },
+      [removeItem, showSuccess, showError]
+    );
 
     const handleRefresh = useCallback(async () => {
       if (onRefresh) {
@@ -41,46 +50,13 @@ const CartList: React.FC<CartListOptimizedProps> = memo(
       }
     }, [onRefresh, loadCart]);
 
-    // Мемоизированный пустой компонент
-    const EmptyComponent = useMemo(() => {
-      if (isLoading) {
-        return <LoadingSpinner message="Загрузка товаров..." />;
-      }
-
-      if (error) {
-        return (
-          <ErrorMessage
-            error={error}
-            onRetry={handleRefresh}
-            title="Ошибка загрузки корзины"
-          />
-        );
-      }
-
-      if (isEmpty) {
-        return (
-          <EmptyState
-            icon="cart-outline"
-            title="Корзина пуста"
-            message="Добавьте товары из меню кофейни"
-            actionText="Перейти к меню"
-            onAction={() => {
-              // Навигация к меню
-              console.log('Navigate to menu');
-            }}
-          />
-        );
-      }
-
-      return null;
-    }, [isLoading, error, isEmpty, handleRefresh]);
-
     const styles = StyleSheet.create({
       container: {
         flex: 1,
       },
       scrollView: {
         flex: 1,
+        paddingTop: 16,
       },
       separator: {
         height: 8,
@@ -96,8 +72,42 @@ const CartList: React.FC<CartListOptimizedProps> = memo(
       },
     });
 
-    if (isEmpty || isLoading || error) {
-      return <View style={styles.container}>{EmptyComponent}</View>;
+    // Обработка состояний загрузки и ошибок
+    if (isLoading) {
+      return (
+        <View style={styles.container}>
+          <LoadingSpinner message="Загрузка товаров..." />
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.container}>
+          <ErrorMessage
+            error={error}
+            onRetry={handleRefresh}
+            title="Ошибка загрузки корзины"
+          />
+        </View>
+      );
+    }
+
+    if (isEmpty) {
+      return (
+        <View style={styles.container}>
+          <EmptyState
+            icon="cart-outline"
+            title="Корзина пуста"
+            message="Добавьте товары из меню кофейни"
+            actionText="Перейти к меню"
+            onAction={() => {
+              // Навигация к меню
+              console.log('Navigate to menu');
+            }}
+          />
+        </View>
+      );
     }
 
     return (

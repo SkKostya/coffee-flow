@@ -34,7 +34,12 @@ class CartApiService implements CartApiClient {
   async getCart(): Promise<GetCartResponse> {
     try {
       const response = await this.apiClient.get<GetCartResponse>('/cart');
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from cart API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }
@@ -52,7 +57,12 @@ class CartApiService implements CartApiClient {
         '/cart/items',
         data
       );
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from add cart item API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }
@@ -74,7 +84,12 @@ class CartApiService implements CartApiClient {
         `/cart/items/${params.itemId}`,
         data
       );
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from update cart item API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }
@@ -93,7 +108,12 @@ class CartApiService implements CartApiClient {
       const response = await this.apiClient.delete<DeleteCartItemResponse>(
         `/cart/items/${params.itemId}`
       );
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from delete cart item API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }
@@ -107,7 +127,12 @@ class CartApiService implements CartApiClient {
       const response = await this.apiClient.get<GetCartTotalResponse>(
         '/cart/total'
       );
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from get cart total API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }
@@ -119,7 +144,12 @@ class CartApiService implements CartApiClient {
   async clearCart(): Promise<ClearCartResponse> {
     try {
       const response = await this.apiClient.delete<ClearCartResponse>('/cart');
-      return response.data!;
+
+      if (!response.data) {
+        throw new Error('No data received from clear cart API');
+      }
+
+      return response.data;
     } catch (error) {
       throw this.handleApiError(error);
     }

@@ -1,21 +1,21 @@
 // src/store/hooks/useStickyCartToCart.ts
 // Хук для добавления товаров из sticky cart в основную корзину
 
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { AddCartItemRequest } from '../../types/cart';
 import { useAppSelector } from '../hooks';
 import {
   selectStickyCartProductQuantities,
   selectStickyCartSelectedProducts,
 } from '../selectors/stickyCartSelectors';
-import useComponentCart from './useComponentCart';
+import { useCart } from './useCart';
 import { useStickyCart } from './useStickyCart';
 
 /**
  * Хук для добавления товаров из sticky cart в основную корзину
  */
 const useStickyCartToCart = () => {
-  const { addItem } = useComponentCart();
+  const { addItem } = useCart();
   const {
     clear,
     hide,
@@ -25,6 +25,10 @@ const useStickyCartToCart = () => {
 
   const selectedProducts = useAppSelector(selectStickyCartSelectedProducts);
   const productQuantities = useAppSelector(selectStickyCartProductQuantities);
+
+  // Состояния для отслеживания процесса добавления
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * Преобразует товары из sticky cart в формат для добавления в корзину
@@ -60,7 +64,7 @@ const useStickyCartToCart = () => {
   /**
    * Добавляет все выбранные товары из sticky cart в основную корзину
    */
-  const addStickyCartToCart = useCallback(() => {
+  const addStickyCartToCart = useCallback(async () => {
     try {
       if (selectedProducts.length === 0) {
         throw new Error('Нет товаров для добавления в корзину');
@@ -72,24 +76,42 @@ const useStickyCartToCart = () => {
         throw new Error('Нет валидных товаров для добавления в корзину');
       }
 
-      // Добавляем товары синхронно (оптимистично)
-      cartItems.forEach((item) => {
-        addItem(item);
-      });
+      setIsLoading(true);
+      setError(null);
 
-      // Очищаем sticky cart после успешного добавления
-      clear();
-      hide();
+      // Добавляем товары асинхронно через API
+      const results = await Promise.allSettled(
+        cartItems.map((item) => addItem(item))
+      );
+
+      // Подсчитываем результаты
+      const successfulItems = results.filter(
+        (result) => result.status === 'fulfilled'
+      ).length;
+      const failedItems = results.filter(
+        (result) => result.status === 'rejected'
+      ).length;
+
+      // Очищаем sticky cart только если хотя бы один товар был добавлен
+      if (successfulItems > 0) {
+        clear();
+        hide();
+      }
 
       return {
-        success: true,
-        itemsCount: cartItems.length,
+        success: successfulItems > 0,
+        itemsCount: successfulItems,
         totalItems: cartItems.length,
-        failedItems: 0,
+        failedItems,
       };
     } catch (error) {
       console.error('Failed to add sticky cart items to cart:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Неизвестная ошибка';
+      setError(errorMessage);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   }, [
     selectedProducts,
@@ -107,22 +129,23 @@ const useStickyCartToCart = () => {
   }, [selectedProducts.length]);
 
   /**
-   * Получает информацию о товарах для добавления
+   * Получает информацию о товарах для добавления (мемоизированно)
    */
-  const getAddToCartInfo = useCallback(() => {
+  const getAddToCartInfo = useMemo(() => {
     return {
       itemsCount: selectedProducts.length,
       totalItems: stickyTotalItems,
       totalAmount: stickyTotalAmount,
-      canAdd: canAddToCart(),
-      isLoading: false, // Теперь синхронная операция
-      error: null, // Ошибки обрабатываются локально
+      canAdd: selectedProducts.length > 0,
+      isLoading,
+      error,
     };
   }, [
     selectedProducts.length,
     stickyTotalItems,
     stickyTotalAmount,
-    canAddToCart,
+    isLoading,
+    error,
   ]);
 
   return {
@@ -131,8 +154,8 @@ const useStickyCartToCart = () => {
     productQuantities,
 
     // Состояния
-    isLoading: false, // Синхронная операция
-    error: null, // Ошибки обрабатываются локально
+    isLoading,
+    error,
     canAddToCart: canAddToCart(),
 
     // Действия

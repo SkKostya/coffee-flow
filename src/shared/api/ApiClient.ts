@@ -143,6 +143,17 @@ export class ApiClient {
       }
 
       const data = await response.json();
+
+      // Проверяем, что данные не null или undefined
+      if (data === null || data === undefined) {
+        const apiError: ApiError = {
+          message: 'No data received from server',
+          status: response.status,
+          code: 'NO_DATA',
+        };
+        throw apiError;
+      }
+
       const apiResponse: ApiResponse<T> = {
         success: true,
         data,
@@ -158,7 +169,7 @@ export class ApiClient {
       return apiResponse;
     } catch (err: unknown) {
       const error = err as Error;
-      console.error(`${requestConfig.url}:`, error);
+      console.error(`${requestConfig.method} ${requestConfig.url}:`, error);
 
       let apiError: ApiError;
 
@@ -201,7 +212,7 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : JSON.stringify({}),
     });
   }
 
@@ -216,7 +227,7 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : JSON.stringify({}),
     });
   }
 
@@ -231,7 +242,7 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : JSON.stringify({}),
     });
   }
 
@@ -246,7 +257,7 @@ export class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'DELETE',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : JSON.stringify({}),
     });
   }
 

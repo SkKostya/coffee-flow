@@ -15,9 +15,8 @@ import {
   View,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import useCitySelection from '../../src/shared/hooks/useCitySelection';
-import { useColors } from '../../src/shared/hooks/useColors';
-import { useCoffeeShops, useTheme } from '../../src/store';
+import { useColors, useMapCenter } from '../../src/shared';
+import { useCoffeeShops, useGeneral, useTheme } from '../../src/store';
 
 const CoffeeShops = () => {
   const { isDark } = useTheme();
@@ -42,8 +41,23 @@ const CoffeeShops = () => {
   const selectedCityIdFromParams = params.selectedCityId as string;
 
   // Управление выбором города
-  const { selectedCity, selectCity, availableCities } = useCitySelection({
-    initialCityId: selectedCityIdFromParams,
+  const { selectedCity, selectCity, cities, userLocation } = useGeneral();
+
+  // Управление центром карты
+  const {
+    mapRegion,
+    isRegionReady,
+    centerOnUserLocation,
+    centerOnCity,
+    centerOnRadius,
+    hasUserLocation,
+    hasSelectedCity,
+  } = useMapCenter({
+    userLocation,
+    selectedCity,
+    searchRadius: parseInt(selectedRadius.replace(' км', '')),
+    userZoomLevel: 'NEIGHBORHOOD',
+    cityZoomLevel: 'CITY',
   });
 
   // Обновляем выбранный город при получении параметров
@@ -51,16 +65,14 @@ const CoffeeShops = () => {
     if (
       selectedCityIdFromParams &&
       selectedCityIdFromParams !== selectedCity?.id &&
-      availableCities.length > 0
+      cities.length > 0
     ) {
-      const city = availableCities.find(
-        (c) => c.id === selectedCityIdFromParams
-      );
+      const city = cities.find((c: any) => c.id === selectedCityIdFromParams);
       if (city) {
         selectCity(city);
       }
     }
-  }, [selectedCityIdFromParams, selectedCity?.id, selectCity, availableCities]);
+  }, [selectedCityIdFromParams, selectedCity?.id, selectCity, cities]);
 
   // Загружаем кофейни при изменении города или радиуса
   useEffect(() => {
@@ -284,6 +296,28 @@ const CoffeeShops = () => {
       color: colors.colors.error[500],
       textAlign: 'center',
     },
+    mapControls: {
+      position: 'absolute',
+      top: 40,
+      right: 20,
+      flexDirection: 'column',
+      gap: 8,
+    },
+    mapControlButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.backgrounds.neutral,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: colors.shadows.medium,
+      shadowOpacity: 0.2,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 4,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: colors.borders.subtle,
+    },
   });
 
   return (
@@ -370,12 +404,14 @@ const CoffeeShops = () => {
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFillObject}
             customMapStyle={isDark ? darkMapTheme : lightMapTheme}
-            initialRegion={{
-              latitude: 43.238949,
-              longitude: 76.889709,
-              latitudeDelta: 0.02,
-              longitudeDelta: 0.02,
-            }}
+            region={
+              mapRegion || {
+                latitude: 43.238949,
+                longitude: 76.889709,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02,
+              }
+            }
           >
             {filteredWithKeys.map((shop) => (
               <Marker
@@ -395,6 +431,40 @@ const CoffeeShops = () => {
               />
             ))}
           </MapView>
+
+          {/* Кнопки управления картой */}
+          <View style={styles.mapControls}>
+            {hasUserLocation && (
+              <TouchableOpacity
+                style={styles.mapControlButton}
+                onPress={centerOnUserLocation}
+              >
+                <Ionicons name="locate" size={20} color={colors.primary.main} />
+              </TouchableOpacity>
+            )}
+
+            {!!selectedCity && (
+              <TouchableOpacity
+                style={styles.mapControlButton}
+                onPress={centerOnCity}
+              >
+                <Ionicons
+                  name="business"
+                  size={20}
+                  color={colors.primary.main}
+                />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.mapControlButton}
+              onPress={() =>
+                centerOnRadius(parseInt(selectedRadius.replace(/\D/g, '')))
+              }
+            >
+              <Ionicons name="search" size={20} color={colors.primary.main} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Список в bottom sheet */}

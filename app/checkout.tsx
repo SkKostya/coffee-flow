@@ -4,7 +4,6 @@ import { Button, Text } from '@rneui/themed';
 import { router, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -16,12 +15,14 @@ import {
   CheckoutOrderCard,
   PaymentMethodModal,
   useColors,
+  useToast,
 } from '../src/shared';
 import { useCart, usePaymentMethods } from '../src/store';
 import type { PaymentMethod } from '../src/types/payment-methods';
 
 export default function CheckoutScreen() {
   const colors = useColors();
+  const { showSuccess, showError } = useToast();
 
   // Redux hooks
   const {
@@ -191,34 +192,30 @@ export default function CheckoutScreen() {
   };
 
   const handlePaymentPress = () => {
-    if (!selectedPaymentMethod) {
-      setIsPaymentModalVisible(true);
-      return;
-    }
-    // Navigate to payment method selection
     setIsPaymentModalVisible(true);
   };
 
   const handleConfirmOrder = async () => {
     if (!selectedPaymentMethod) {
-      Alert.alert('Ошибка', 'Выберите способ оплаты');
+      showError('Выберите способ оплаты');
       return;
     }
 
     try {
       // Here you would process the payment
-      Alert.alert(
-        'Заказ подтвержден',
+      showSuccess(
         `Заказ на сумму ${formatPrice(totalAmount)} успешно оформлен`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)/orders'),
-          },
-        ]
+        'Оформление заказа',
+        4000
       );
+
+      // Переходим к заказам через небольшую задержку
+      setTimeout(() => {
+        router.replace('/orders');
+      }, 2000);
     } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось оформить заказ');
+      console.error('Failed to confirm order:', error);
+      showError('Не удалось оформить заказ');
     }
   };
 

@@ -82,7 +82,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
     methodName: {
       fontSize: 16,
       fontWeight: '500',
-      color: colors.texts.primary,
       marginBottom: 2,
     },
     methodDetails: {
@@ -180,39 +179,53 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
           </View>
 
           <View style={styles.methodList}>
-            {paymentMethods.map((method) => (
-              <TouchableOpacity
-                key={method.id}
-                style={[
-                  styles.methodItem,
-                  selectedMethod?.id === method.id && styles.selectedMethod,
-                ]}
-                onPress={() => onSelect(method)}
-              >
-                <Ionicons
-                  name={getMethodIcon(method)}
-                  size={24}
-                  color={colors.texts.primary}
-                  style={styles.methodIcon}
-                />
-                <View style={styles.methodInfo}>
-                  <Text style={styles.methodName}>
-                    {getMethodDisplayName(method)}
-                  </Text>
-                  <Text style={styles.methodDetails}>
-                    {getMethodDetails(method)}
-                  </Text>
-                </View>
-                {selectedMethod?.id === method.id && (
+            {paymentMethods.map((method) => {
+              const isSelected = selectedMethod?.id === method.id;
+              return (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.methodItem,
+                    isSelected && styles.selectedMethod,
+                  ]}
+                  onPress={() => onSelect(method)}
+                >
                   <Ionicons
-                    name="checkmark-circle"
+                    name={getMethodIcon(method)}
                     size={24}
-                    color={colors.primary.main}
-                    style={styles.checkIcon}
+                    color={
+                      isSelected ? colors.texts.inverse : colors.texts.primary
+                    }
+                    style={styles.methodIcon}
                   />
-                )}
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.methodInfo}>
+                    <Text
+                      style={[
+                        styles.methodName,
+                        {
+                          color: isSelected
+                            ? colors.texts.inverse
+                            : colors.texts.primary,
+                        },
+                      ]}
+                    >
+                      {getMethodDisplayName(method)}
+                    </Text>
+                    <Text style={styles.methodDetails}>
+                      {getMethodDetails(method)}
+                    </Text>
+                  </View>
+                  {selectedMethod?.id === method.id && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={24}
+                      color={colors.primary.main}
+                      style={styles.checkIcon}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <Button

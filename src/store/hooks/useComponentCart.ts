@@ -1,7 +1,7 @@
 // src/store/hooks/useComponentCart.ts
 // Хук для работы с корзиной в компонентах без API запросов
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { AddCartItemRequest } from '../../types/cart';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import {
@@ -39,13 +39,22 @@ const useComponentCart = () => {
       // Создаем объект товара для добавления
       const newItem = {
         id: `${request.productId}-${Date.now()}`, // Временный ID
-        productId: request.productId,
         quantity: request.quantity,
+        unitPrice: 0, // Будет обновлено при загрузке с сервера
         totalPrice: 0, // Будет обновлено при загрузке с сервера
         notes: request.notes || '',
-        customizations: request.customizations || [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        customizations: request.customizations || {},
+        product: {
+          id: request.productId,
+          name: 'Загрузка...', // Временное название
+          description: '',
+          image: '',
+          category: '',
+          basePrice: 0,
+          isAvailable: true,
+          coffeeShopId: '',
+          coffeeShopName: '',
+        },
       };
 
       dispatch(addItemOptimistic(newItem));
@@ -61,12 +70,14 @@ const useComponentCart = () => {
       if (cart) {
         const item = cart.items.find((item) => item.id === itemId);
         if (item) {
-          const updatedItem = {
-            ...item,
-            quantity,
-            updatedAt: new Date().toISOString(),
-          };
-          dispatch(updateItemOptimistic(updatedItem));
+          dispatch(
+            updateItemOptimistic({
+              itemId,
+              updates: {
+                quantity,
+              },
+            })
+          );
         }
       }
     },
@@ -89,7 +100,7 @@ const useComponentCart = () => {
   const hasItem = useCallback(
     (productId: string): boolean => {
       if (!cart) return false;
-      return cart.items.some((item) => item.productId === productId);
+      return cart.items.some((item) => item.product.id === productId);
     },
     [cart]
   );
@@ -100,7 +111,7 @@ const useComponentCart = () => {
   const getItemQuantity = useCallback(
     (productId: string): number => {
       if (!cart) return 0;
-      const item = cart.items.find((item) => item.productId === productId);
+      const item = cart.items.find((item) => item.product.id === productId);
       return item ? item.quantity : 0;
     },
     [cart]
@@ -112,7 +123,7 @@ const useComponentCart = () => {
   const getItem = useCallback(
     (productId: string) => {
       if (!cart) return null;
-      return cart.items.find((item) => item.productId === productId) || null;
+      return cart.items.find((item) => item.product.id === productId) || null;
     },
     [cart]
   );
@@ -130,9 +141,9 @@ const useComponentCart = () => {
   }, [dispatch, cart]);
 
   /**
-   * Получает информацию о корзине
+   * Получает информацию о корзине (мемоизированно)
    */
-  const getCartInfo = useCallback(() => {
+  const getCartInfo = useMemo(() => {
     return {
       items: cart?.items || [],
       totalItems,

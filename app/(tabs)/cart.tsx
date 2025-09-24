@@ -1,9 +1,9 @@
 // app/cart.tsx
-import { CartListOptimized, formatPrice } from '@/src/cart';
-import { Ionicons } from '@expo/vector-icons';
+import { CartList, formatPrice } from '@/src/cart';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   RefreshControl,
@@ -19,7 +19,6 @@ import {
   ErrorBoundary,
   ErrorMessage,
   LoadingSpinner,
-  ProductCard,
   useColors,
   useToast,
 } from '../../src/shared';
@@ -111,7 +110,7 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       // Переключаем кастомизацию
       const updatedCustomizations = {
         ...currentCustomizations,
-        [customizationId]: !currentCustomizations[customizationId],
+        [customizationId]: !currentCustomizations?.[customizationId],
       };
 
       await updateItem(itemId, { customizations: updatedCustomizations });
@@ -233,7 +232,7 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       marginBottom: 12,
     },
     suggestionsSection: {
-      marginBottom: 24,
+      marginTop: 24,
     },
     suggestionsTitle: {
       fontSize: 16,
@@ -255,6 +254,7 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       backgroundColor: colors.backgrounds.neutral,
       marginHorizontal: 16,
       borderRadius: 12,
+      marginTop: 24,
       marginBottom: 16,
     },
     paymentMethod: {
@@ -305,6 +305,11 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       color: colors.texts.primary,
       fontSize: 16,
       fontWeight: '600',
+    },
+    payButtonLoading: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     payButtonDisabled: {
       backgroundColor: colors.texts.disabled,
@@ -375,7 +380,8 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // ===== СОСТОЯНИЯ ЗАГРУЗКИ И ОШИБОК =====
 
-  if (isLoading && !cart) {
+  // Показываем глобальную загрузку только при первой загрузке корзины
+  if (isLoading && !cart && !isReadyForCheckout) {
     return (
       <View style={styles.container}>
         <LoadingSpinner
@@ -448,10 +454,10 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
       )}
 
       {/* Товары в корзине */}
-      <CartListOptimized onRefresh={handleRefresh} refreshing={refreshing} />
+      <CartList onRefresh={handleRefresh} refreshing={refreshing} />
 
       {/* Рекомендуемые продукты */}
-      <View style={styles.suggestionsSection}>
+      {/* <View style={styles.suggestionsSection}>
         <Text style={styles.suggestionsTitle}>Добавьте к своей корзине</Text>
         <ScrollView
           horizontal
@@ -468,22 +474,10 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
             </View>
           ))}
         </ScrollView>
-      </View>
+      </View> */}
 
       {/* Способ оплаты и итоговая сумма */}
       <View style={styles.paymentSection}>
-        <View style={styles.paymentMethod}>
-          <Text style={styles.paymentMethodLabel}>Способ оплаты</Text>
-          <View style={styles.paymentMethodValue}>
-            <Text style={styles.paymentMethodText}>Kaspi</Text>
-            <Ionicons
-              name="chevron-down"
-              size={16}
-              color={colors.texts.secondary}
-            />
-          </View>
-        </View>
-
         <View style={styles.totalSection}>
           <Text style={styles.totalLabel}>Итого</Text>
           <Text style={styles.totalAmount}>{formatPrice(totalAmount)}</Text>
@@ -499,9 +493,16 @@ const CartScreenContent: React.FC<{ navigation: any }> = ({ navigation }) => {
         onPress={() => isReadyForCheckout && router.navigate('/checkout')}
         disabled={!isReadyForCheckout}
       >
-        <Text style={styles.payButtonText}>
-          {isLoading ? 'Загрузка...' : `Оплатить ${formatPrice(totalAmount)}`}
-        </Text>
+        {isLoading ? (
+          <View style={styles.payButtonLoading}>
+            <ActivityIndicator size="small" color={colors.texts.primary} />
+            <Text style={[styles.payButtonText, { marginLeft: 8 }]}>
+              Загрузка...
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.payButtonText}>Перейти к оплате</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );

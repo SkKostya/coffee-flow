@@ -9,11 +9,19 @@ import {
   selectGeneralError,
   selectGeneralInfo,
   selectGeneralLoading,
+  selectGeneralUser,
+  selectSelectedCity,
+  selectSelectedCityInfo,
+  selectUserInfo,
+  selectUserLocation,
+  selectUserLocationInfo,
 } from '../selectors/generalSelectors';
 import {
   clearError,
   fetchCategories,
   fetchCities,
+  setSelectedCity,
+  setUserLocation,
 } from '../slices/generalSlice';
 import { useAppDispatch, useAppSelector } from './';
 
@@ -26,6 +34,12 @@ export const useGeneral = () => {
   // Селекторы
   const categories = useAppSelector(selectCategories);
   const cities = useAppSelector(selectCities);
+  const user = useAppSelector(selectGeneralUser);
+  const selectedCity = useAppSelector(selectSelectedCity);
+  const selectedCityInfo = useAppSelector(selectSelectedCityInfo);
+  const userLocation = useAppSelector(selectUserLocation);
+  const userLocationInfo = useAppSelector(selectUserLocationInfo);
+  const userInfo = useAppSelector(selectUserInfo);
   const isLoading = useAppSelector(selectGeneralLoading);
   const error = useAppSelector(selectGeneralError);
   const activeCategories = useAppSelector(selectActiveCategories);
@@ -55,10 +69,38 @@ export const useGeneral = () => {
     dispatch(clearError());
   }, [dispatch]);
 
+  const selectCity = useCallback(
+    (city: any) => {
+      dispatch(setSelectedCity(city));
+    },
+    [dispatch]
+  );
+
+  const clearSelectedCity = useCallback(() => {
+    dispatch(setSelectedCity(null));
+  }, [dispatch]);
+
+  const setLocation = useCallback(
+    (location: any) => {
+      dispatch(setUserLocation(location));
+    },
+    [dispatch]
+  );
+
+  const clearLocation = useCallback(() => {
+    dispatch(setUserLocation(null));
+  }, [dispatch]);
+
   return {
     // Данные
     categories,
     cities,
+    user,
+    selectedCity,
+    selectedCityInfo,
+    userLocation,
+    userLocationInfo,
+    userInfo,
     activeCategories,
     activeCities,
     isLoading,
@@ -68,6 +110,10 @@ export const useGeneral = () => {
     // Действия
     loadCategories,
     loadCities,
+    selectCity,
+    clearSelectedCity,
+    setLocation,
+    clearLocation,
     clearError: clearErrorState,
   };
 };

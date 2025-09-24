@@ -15,6 +15,12 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription:
+          'Это приложение использует геолокацию для определения ближайших кофеен и автоматического выбора города.',
+        NSLocationAlwaysAndWhenInUseUsageDescription:
+          'Это приложение использует геолокацию для определения ближайших кофеен и автоматического выбора города.',
+      },
     },
     android: {
       adaptiveIcon: {
@@ -23,6 +29,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
       package: 'com.anonymous.coffeeflow',
+      permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
     },
     web: {
       bundler: 'metro',
@@ -31,6 +38,16 @@ export default {
     },
     plugins: [
       'expo-router',
+      [
+        'expo-location',
+        {
+          locationAlwaysAndWhenInUsePermission:
+            'Это приложение использует геолокацию для определения ближайших кофеен и автоматического выбора города.',
+          locationWhenInUsePermission:
+            'Это приложение использует геолокацию для определения ближайших кофеен и автоматического выбора города.',
+          isAndroidBackgroundLocationEnabled: false,
+        },
+      ],
       [
         'expo-splash-screen',
         {

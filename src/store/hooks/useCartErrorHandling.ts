@@ -2,6 +2,7 @@
 // Хук для обработки ошибок корзины
 
 import { useCallback, useEffect, useState } from 'react';
+import { useGlobalToast } from '../../shared/hooks/useGlobalToast';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import {
   selectCartCanRetry,
@@ -22,6 +23,7 @@ import {
  */
 export const useCartErrorHandling = () => {
   const dispatch = useAppDispatch();
+  const { showToast } = useGlobalToast();
 
   // ===== СЕЛЕКТОРЫ =====
 
@@ -83,9 +85,11 @@ export const useCartErrorHandling = () => {
       // Сбрасываем счетчик попыток при успехе
       dispatch(resetRetryCount());
       setRetryAttempts([]);
+      showToast('success', 'Операция выполнена', 'Корзина успешно обновлена');
     } catch (error) {
       console.error('Retry failed:', error);
       setRetryAttempts((prev) => [...prev, Date.now()]);
+      showToast('error', 'Ошибка повтора', 'Не удалось повторить операцию');
     } finally {
       setIsRetrying(false);
     }
@@ -202,7 +206,9 @@ export const useCartErrorHandling = () => {
     const errorType = getErrorType();
     const recommendations = getErrorRecommendations();
 
-    // Здесь можно интегрировать с системой уведомлений
+    // Показываем toast уведомление об ошибке
+    showToast('error', 'Ошибка корзины', error);
+
     console.error('Cart Error:', {
       message: error,
       type: errorType,
@@ -210,7 +216,14 @@ export const useCartErrorHandling = () => {
       canRetry,
       retryCount,
     });
-  }, [error, getErrorType, getErrorRecommendations, canRetry, retryCount]);
+  }, [
+    error,
+    getErrorType,
+    getErrorRecommendations,
+    canRetry,
+    retryCount,
+    showToast,
+  ]);
 
   // ===== АВТОМАТИЧЕСКАЯ ОБРАБОТКА =====
 

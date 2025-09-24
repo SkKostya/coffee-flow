@@ -24,6 +24,7 @@ const initialState: CartSliceState = {
   pendingActions: [],
   retryCount: 0,
   maxRetries: 3,
+  itemLoadingStates: {}, // Состояние загрузки для отдельных товаров
 };
 
 // ===== ASYNC THUNKS =====
@@ -54,9 +55,7 @@ export const addCartItem = createAsyncThunk<
   { rejectValue: CartError }
 >('cart/addCartItem', async (itemData, { rejectWithValue }) => {
   try {
-    const cart = await cartApiService.addCartItem(itemData);
-    console.log(cart);
-    return cart;
+    return cartApiService.addCartItem(itemData);
   } catch (error) {
     const cartError = error as CartError;
     return rejectWithValue(cartError);
@@ -250,6 +249,22 @@ const cartSlice = createSlice({
       state.lastUpdated = new Date().toISOString();
       state.error = null;
     },
+
+    // Действия для управления состоянием загрузки отдельных товаров
+    setItemLoading: (
+      state,
+      action: PayloadAction<{ itemId: string; isLoading: boolean }>
+    ) => {
+      state.itemLoadingStates[action.payload.itemId] = action.payload.isLoading;
+    },
+
+    clearItemLoading: (state, action: PayloadAction<string>) => {
+      delete state.itemLoadingStates[action.payload];
+    },
+
+    clearAllItemLoading: (state) => {
+      state.itemLoadingStates = {};
+    },
   },
   extraReducers: (builder) => {
     // ===== LOAD CART =====
@@ -285,7 +300,7 @@ const cartSlice = createSlice({
     // ===== ADD CART ITEM =====
     builder
       .addCase(addCartItem.pending, (state) => {
-        state.isLoading = true;
+        // Не показываем глобальную загрузку для добавления товаров
         state.error = null;
         state.lastAction = {
           type: 'addCartItem',
@@ -294,7 +309,6 @@ const cartSlice = createSlice({
         };
       })
       .addCase(addCartItem.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.cart = action.payload;
         state.lastUpdated = new Date().toISOString();
         state.error = null;
@@ -302,7 +316,6 @@ const cartSlice = createSlice({
         state.lastAction = null;
       })
       .addCase(addCartItem.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload?.message || 'Ошибка добавления товара';
         state.lastAction = {
           type: 'addCartItem',
@@ -313,8 +326,8 @@ const cartSlice = createSlice({
 
     // ===== UPDATE CART ITEM =====
     builder
-      .addCase(updateCartItem.pending, (state) => {
-        state.isLoading = true;
+      .addCase(updateCartItem.pending, (state, action) => {
+        // Не показываем глобальную загрузку для обновления товаров
         state.error = null;
         state.lastAction = {
           type: 'updateCartItem',
@@ -323,7 +336,6 @@ const cartSlice = createSlice({
         };
       })
       .addCase(updateCartItem.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.cart = action.payload;
         state.lastUpdated = new Date().toISOString();
         state.error = null;
@@ -331,7 +343,6 @@ const cartSlice = createSlice({
         state.lastAction = null;
       })
       .addCase(updateCartItem.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload?.message || 'Ошибка обновления товара';
         state.lastAction = {
           type: 'updateCartItem',
@@ -343,7 +354,7 @@ const cartSlice = createSlice({
     // ===== REMOVE CART ITEM =====
     builder
       .addCase(removeCartItem.pending, (state) => {
-        state.isLoading = true;
+        // Не показываем глобальную загрузку для удаления товаров
         state.error = null;
         state.lastAction = {
           type: 'removeCartItem',
@@ -352,7 +363,6 @@ const cartSlice = createSlice({
         };
       })
       .addCase(removeCartItem.fulfilled, (state, action) => {
-        state.isLoading = false;
         state.cart = action.payload;
         state.lastUpdated = new Date().toISOString();
         state.error = null;
@@ -360,7 +370,6 @@ const cartSlice = createSlice({
         state.lastAction = null;
       })
       .addCase(removeCartItem.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload?.message || 'Ошибка удаления товара';
         state.lastAction = {
           type: 'removeCartItem',
@@ -452,6 +461,9 @@ export const {
   incrementRetryCount,
   resetRetryCount,
   updateCartFromExternal,
+  setItemLoading,
+  clearItemLoading,
+  clearAllItemLoading,
 } = cartSlice.actions;
 
 // Async thunks уже экспортированы выше при создании

@@ -49,8 +49,11 @@ const StickyCartWrapper: React.FC = () => {
           failedItems: result.failedItems,
         });
 
-        // Показываем модалку успеха
+        // Показываем модалку успеха сразу после успешного добавления
         setShowSuccessModal(true);
+      } else {
+        // Если не удалось добавить ни одного товара
+        showError('Не удалось добавить товары в корзину');
       }
     } catch (error) {
       console.error('Failed to add items to cart:', error);
